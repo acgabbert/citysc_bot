@@ -2,6 +2,7 @@ from time import time
 import traceback
 import logging
 import sqlite3
+import inspect
 
 import discord as msg
 
@@ -17,7 +18,8 @@ def time_dec(func):
             logging.error(f'Critical error: {str(e)}\n{traceback.format_exc()}')
         end = time()
         exe_time = f'%.2f' % (end-start)
-        message = f'{func.__name__} finished. Execution time: {exe_time} seconds.'
+        module_name = str(inspect.getmodule(func)).split('/')[-1].replace(".py'>",'')
+        message = f'{module_name}.{func.__name__} finished. Execution time: {exe_time} seconds.'
         logging.info(message)
         msg.send(f'{msg.user}\n{message}')
     return timed_func
