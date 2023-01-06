@@ -5,13 +5,19 @@ SCHEDULE_BASE = 'https://sportapi.mlssoccer.com/api/matches?culture=en-us'
 # returns optaId and matchDate for all matches in 2023
 SCHEDULE_LITE = 'https://sportapi.mlssoccer.com/api/matchesLite/2023?culture=en-us&competition=98&matchType=Regular'
 
-def get_schedule(date_from='2022-12-31', date_to='2023-12-31', team=None):
+def get_schedule(date_from='2022-12-31', date_to='2023-12-31', team=None, comp=mls.MLS_REGULAR):
     """Call the MLS API to get a schedule.
     Keyword arguments:
-    date_from -- 
-    date_to -- 
-    team -- optaId of the team"""
-    url = SCHEDULE_BASE + mls.DATE_FROM + date_from + mls.DATE_TO + date_to + mls.MLS_REGULAR
+    date_from -- string in format YYYY-MM-DD
+    date_to -- string in format YYYY-MM-DD
+    team -- optaId of the team
+    comp -- competition variable from mls-api
+    """
+    url = SCHEDULE_BASE + mls.DATE_FROM + date_from + mls.DATE_TO + date_to
+    if team is not None:
+        url += f'&clubOptaId={team}'
+    if comp is not None:
+        url += comp
     print(url) 
     data, status = mls.call_api(url)
     return data
@@ -29,7 +35,7 @@ def get_lite_schedule():
 
 @util.time_dec
 def main():
-    data = get_schedule()
+    data = get_schedule(comp=None)
     for row in data:
         opta_id = row['optaId']
         home = row['home']['shortName']
