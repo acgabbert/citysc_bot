@@ -7,3 +7,4 @@ env/*
 *.sh
 .DS_Store
 *.db
+mls_test.db
