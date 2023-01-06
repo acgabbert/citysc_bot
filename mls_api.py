@@ -24,9 +24,6 @@ FRIENDLY = '&competition=34'
 DATE_FROM = '&dateFrom='
 DATE_TO = '&dateTo='
 SEASON = '&seasonId='
-match = '&match_game_id='
-commentary_tail = '&match_game_id=2261459&include=club&include=player&include=player_match&order_by=-commentary_period&order_by=-commentary_minute&order_by=-commentary_second&order_by=-commentary_timestamp&order_by=-commentary_opta_id&page=0&page_size=500'
-
 
 def call_api(url: str):
     """Call the MLS API at the given url, and return the json data and status code.
