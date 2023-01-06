@@ -1,0 +1,8 @@
+private_config.py
+chromedriver
+assets/*
+*.log
+log/*
+env/*
+*.sh
+.DS_Store
