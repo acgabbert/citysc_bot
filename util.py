@@ -3,6 +3,7 @@ import traceback
 import logging
 import sqlite3
 import inspect
+import json
 
 import discord as msg
 
@@ -41,3 +42,9 @@ def db_query(query: str, data: tuple=None):
     finally:
         con.close()
     return retval
+
+
+def write_json(data, filename):
+    """Write json data to filename."""
+    with open(filename, 'w') as f:
+        f.write(json.dumps(data, indent=4))
