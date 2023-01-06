@@ -6,23 +6,30 @@ import inspect
 import json
 
 import discord as msg
+import functools
 
 mls_db = 'mls_test.db'
 
-def time_dec(func):
-    def timed_func():
-        logging.basicConfig(filename='log/mls_api.log', format='%(asctime)s | %(levelname)s | %(message)s', level=logging.INFO)
-        start = time()
-        try:
-            func()
-        except Exception as e:
-            logging.error(f'Critical error: {str(e)}\n{traceback.format_exc()}')
-        end = time()
-        exe_time = f'%.2f' % (end-start)
-        module_name = str(inspect.getmodule(func)).split('/')[-1].replace(".py'>",'')
-        message = f'{module_name}.{func.__name__} finished. Execution time: {exe_time} seconds.'
-        logging.info(message)
-        msg.send(f'{msg.user}\n{message}')
+def time_dec(tag):
+    def timed_func(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            logging.basicConfig(filename='log/mls_api.log', format='%(asctime)s | %(levelname)s | %(message)s', level=logging.INFO)
+            start = time()
+            try:
+                func()
+            except Exception as e:
+                logging.error(f'Critical error: {str(e)}\n{traceback.format_exc()}')
+            end = time()
+            exe_time = f'%.2f' % (end-start)
+            module_name = str(inspect.getmodule(func)).split('/')[-1].replace(".py'>",'')
+            message = f'{module_name}.{func.__name__} finished. Execution time: {exe_time} seconds.'
+            logging.info(message)
+            if tag:
+                message = f'{msg.user}\n{message}'
+            msg.send(message)
+            return func(*args, **kwargs)
+        return wrapper
     return timed_func
 
 
