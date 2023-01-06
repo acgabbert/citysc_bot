@@ -36,7 +36,6 @@ def call_api(url: str):
         'sec-fetch-mode': 'cors'
     }
     r = requests.get(url, headers=headers)
-    print(r.request.headers)
     if r.status_code != 200:
         message = f'{r.status_code}: {r.reason}'
         logging.error(message)
@@ -51,7 +50,7 @@ def main():
     request_url = 'https://stats-api.mlssoccer.com/v1/commentaries?&match_game_id=2261459&include=club&include=player&include=player_match&order_by=-commentary_period&order_by=-commentary_minute&order_by=-commentary_second&order_by=-commentary_timestamp&order_by=-commentary_opta_id&page=0&page_size=500'
     data, status = call_api(request_url)
     print(status)
-    return None
+
 
 if __name__ == '__main__':
     main()
