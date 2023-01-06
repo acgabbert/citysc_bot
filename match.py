@@ -5,7 +5,7 @@ BASE_URL = 'https://stats-api.mlssoccer.com/v1/'
 # match_facts gives preview stuff
 PREVIEW = 'matchfacts?&matchfact_language=en'
 GAME_ID = '&match_game_id='
-MATCH_DATA = 'matches?&include=away_club_match&include=home_club_match&include=venue&include=home_club&include=away_club'
+MATCH_DATA = 'matches?&include=away_club_match&include=home_club_match&include=venue&include=home_club&include=away_club&include=competition'
 STATS = '&include=club&include=match&include=competition&include=statistics'
 # no page limit for summary, could pose issues
 SUMMARY = 'commentaries?&commentary_type=secondyellow card&commentary_type=penalty goal&commentary_type=own goal&commentary_type=yellow card&commentary_type=red card&commentary_type=substitution&commentary_type=goal&include=club&include=player&order_by=commentary_period&order_by=commentary_minute&order_by=commentary_second&order_by=commentary_timestamp&order_by=commentary_opta_id'
@@ -48,11 +48,12 @@ def get_match_data(opta_id):
     url = BASE_URL + MATCH_DATA + GAME_ID + opta_id
     data = call_match_api(url, 'match-data')
     home = data[0]['home_club_match']
-    home_formation = process_formation(home['formation_matrix'])
-    print(home_formation)
-    away = data[0]['away_club_match']
-    away_formation = process_formation(away['formation_matrix'])
-    print(away_formation)
+    home_formation = []
+    away_formation = []
+    if home['formation_matrix'] is not None:
+        home_formation = process_formation(home['formation_matrix'])
+        away = data[0]['away_club_match']
+        away_formation = process_formation(away['formation_matrix'])
     return data
 
 
@@ -79,6 +80,7 @@ def get_feed(opta_id):
 def get_summary(opta_id):
     """Get the summary feed from a match.
     Includes goals, red cards, substitutions (?)
+    Returns a list of comments.
     """
     url = BASE_URL + SUMMARY + GAME_ID + opta_id
     data = call_match_api(url, 'summary')
