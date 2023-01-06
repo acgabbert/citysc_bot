@@ -3,6 +3,7 @@ import json
 import logging
 
 import discord as msg
+import util
 
 logging.basicConfig(filename='log/mls_api.log', format='%(asctime)s | %(levelname)s | %(message)s', level=logging.INFO)
 
@@ -52,8 +53,12 @@ def call_api(url):
         data = r.json()
         return data, r.status_code
 
-if __name__ == '__main__':
+@util.time_dec
+def main():
     request_url = 'https://stats-api.mlssoccer.com/v1/commentaries?&match_game_id=2261459&include=club&include=player&include=player_match&order_by=-commentary_period&order_by=-commentary_minute&order_by=-commentary_second&order_by=-commentary_timestamp&order_by=-commentary_opta_id&page=0&page_size=500'
     data, status = call_api(request_url)
     print(status)
-    #print(json.dumps(data))
+    return None
+
+if __name__ == '__main__':
+    main()

@@ -8,17 +8,19 @@ import discord as msg
 mls_db = 'mls_test.db'
 
 def time_dec(func):
-    logging.basicConfig(filename='log/mls_scraper.log', format='%(asctime)s | %(levelname)s | %(message)s', level=logging.INFO)
-    start = time()
-    try:
-        func()
-    except Exception as e:
-        logging.error(f'Critical error: {str(e)}\n{traceback.format_exc()}')
-    end = time()
-    exe_time = f'%.2f' % (end-start)
-    message = f'MLS Scraper finished. Execution time: {exe_time} seconds.'
-    logging.info(message)
-    msg.send(f'{msg.user}\n{message}')
+    def timed_func():
+        logging.basicConfig(filename='log/mls_api.log', format='%(asctime)s | %(levelname)s | %(message)s', level=logging.INFO)
+        start = time()
+        try:
+            func()
+        except Exception as e:
+            logging.error(f'Critical error: {str(e)}\n{traceback.format_exc()}')
+        end = time()
+        exe_time = f'%.2f' % (end-start)
+        message = f'{func.__name__} finished. Execution time: {exe_time} seconds.'
+        logging.info(message)
+        msg.send(f'{msg.user}\n{message}')
+    return timed_func
 
 
 def db_query(query: str, data: tuple=None):
