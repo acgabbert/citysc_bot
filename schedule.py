@@ -1,7 +1,7 @@
 import mls_api as mls
 import util
 
-SCHEDULE_BASE = 'https://sportapi.mlssoccer.com/api/matches?culture=en-us'
+BASE_URL = 'https://sportapi.mlssoccer.com/api/matches?culture=en-us'
 # returns optaId and matchDate for all matches in 2023
 SCHEDULE_LITE = 'https://sportapi.mlssoccer.com/api/matchesLite/2023?culture=en-us&competition=98&matchType=Regular'
 
@@ -12,7 +12,7 @@ def get_schedule(**kwargs):
         date_from (str): a date in the form YYYY-MM-DD
         date_to (str): a date in the form YYYY-MM-DD
     """
-    url = SCHEDULE_BASE
+    url = BASE_URL
     date_from = '2022-12-31'
     date_to = '2023-12-31'
     comp = mls.MLS_REGULAR
@@ -26,7 +26,7 @@ def get_schedule(**kwargs):
             comp = value
         if key == 'team':
             team = f'&clubOptaId={value}'
-    url = SCHEDULE_BASE + mls.DATE_FROM + date_from + mls.DATE_TO + date_to
+    url = BASE_URL + mls.DATE_FROM + date_from + mls.DATE_TO + date_to
     if team is not None:
         url += team
     if comp is None:
@@ -38,7 +38,7 @@ def get_schedule(**kwargs):
 
 
 def craft_url(date_from, date_to, team):
-    url = SCHEDULE_BASE
+    url = BASE_URL
     return url
 
 
