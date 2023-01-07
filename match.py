@@ -24,9 +24,27 @@ class Team(mls.MlsObject):
     def __init__(self, opta_id):
         super().__init__(opta_id)
         self.name = ''
-        self.starters = []
-        self.subs = []
+        self.lineup = []
         self.formation_matrix = []
+        self.goals = 0
+    
+    def lineup_str(self):
+        starters = []
+        subs = []
+        for player in self.lineup:
+            if player.status == 'Start':
+                index = self.formation_matrix.index(player.formation_place)
+                starters.insert(index, player)
+            else:
+                subs.append(player)
+        retval = f'**{self.name}**\n\n'
+        for player in starters:
+            retval += player.name + ', '
+        retval = retval[:-2] + '\n\n**Subs:** '
+        for player in subs:
+            retval += player.name + ', '
+        retval = retval[:-2]
+        return retval
     
     def __str__(self):
         if self.name:
@@ -54,6 +72,18 @@ class Match(mls.MlsObject):
         else:
             return super().__str__()
         return retval
+
+
+class Player(mls.MlsObject):
+    def __init__(self, opta_id, name, status, formation_place, team):
+        super().__init__(opta_id)
+        self.name = name
+        self.status = status
+        self.formation_place = formation_place
+        self.team = team
+    
+    def __str__(self):
+        return self.name
 
 
 def call_match_api(url, filename):
@@ -90,8 +120,9 @@ def process_club(data, away=False) -> Team:
     opta_id = data[team]['opta_id']
     retval = Team(opta_id=opta_id)
     retval.name = data[team]['name']
-    if data[team_match]['formation_matrix'] is not None:
-        retval.form
+    formation = data[team_match]['formation_matrix']
+    if formation is not None:
+        retval.formation_matrix = process_formation(formation)
     print(retval)
     return retval
 
@@ -110,53 +141,64 @@ def get_match_data(match_obj: Match) -> Match:
     return retval
 
 
-def get_preview(opta_id):
+def get_preview(match_obj: Match) -> Match:
     """Get the preview (match facts) for a match.
     Returns a list of comments.
     """
-    url = BASE_URL + PREVIEW + GAME_ID + opta_id
+    retval = match_obj
+    url = BASE_URL + PREVIEW + GAME_ID + match_obj.opta_id
     data = call_match_api(url, 'preview')
     comments = []
     for row in data:
         comments.append(row['fact'])
-    return comments
+    retval.preview = comments
+    return retval
 
 
-def get_feed(opta_id):
+def get_feed(match_obj: Match) -> Match:
     """Get the full feed from a match."""
-    url = BASE_URL + FEED + GAME_ID + opta_id
+    retval = match_obj
+    url = BASE_URL + FEED + GAME_ID + match_obj.opta_id
     data = call_match_api(url, 'feed')
     comments = process_feed(data)
-    return comments
+    retval.feed = comments
+    return retval
 
 
-def get_summary(opta_id):
+def get_summary(match_obj: Match) -> Match:
     """Get the summary feed from a match.
     Includes goals, red cards, substitutions (?)
     Returns a list of comments.
     """
-    url = BASE_URL + SUMMARY + GAME_ID + opta_id
+    retval = match_obj
+    url = BASE_URL + SUMMARY + GAME_ID + match_obj.opta_id
     data = call_match_api(url, 'summary')
     comments = process_feed(data)
-    return comments
+    retval.summary = comments
+    return retval
 
 
-def get_lineups(opta_id):
+def get_lineups(match_obj: Match) -> Match:
     """Get the lineups from a match."""
     # TODO to get the lineups in the correct order, we need formation matrix
     # this can come from stats
-    url = BASE_URL + LINEUPS + GAME_ID + opta_id
+    retval = match_obj
+    url = BASE_URL + LINEUPS + GAME_ID + str(match_obj.opta_id)
     data = call_match_api(url, 'lineups')
-    lineups = {}
     for player in data:
         team_id = player['club']['opta_id']
-        if team_id not in lineups.keys():
-            lineups[team_id] = {'Start': [], 'Sub': []}
         status = player['status']
         name = player['player']['full_name']
         formation_place  = player['formation_place']
-        lineups[team_id][status].append((name, formation_place))
-    return lineups
+        player_id = player['player']['opta_id']
+        adder = Player(player_id, name, status, formation_place, team_id)
+        if team_id == retval.home.opta_id:
+            retval.home.lineup.append(adder)
+        elif team_id == retval.away.opta_id:
+            retval.away.lineup.append(adder)
+        else:
+            print('problem, player does not match either team')
+    return retval
 
 
 def get_managers(opta_id):
@@ -189,11 +231,12 @@ def get_stats(opta_id):
 
 @util.time_dec(False)
 def main():
-    opta_id = 2341646
+    opta_id = 2261389
     match_obj = Match(opta_id)
     print(match_obj)
     match_obj = get_match_data(match_obj)
-    print(match_obj)
+    match_obj = get_lineups(match_obj)
+    print(match_obj.home.lineup_str())
     #match_obj = get_preview(match_obj)
     #get_stats(match_obj)
 
