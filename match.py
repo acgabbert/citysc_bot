@@ -114,6 +114,7 @@ def process_feed(data) -> list[str]:
 
 
 def process_club(data, away=False) -> Team:
+    """Process club data. Should be called from get_match_data."""
     team = 'home_club'
     if away:
         team = 'away_club'
@@ -225,12 +226,12 @@ def get_stats(match_obj: Match) -> Match:
     home_score = 0
     away_score = 0
     try:
-        home_score = data[0]['statistics']['goals']
+        home_score = data[0]['score']
         match_obj.home.goals = home_score
     except KeyError:
         pass
     try:
-        away_score = data[1]['statistics']['goals']
+        away_score = data[1]['score']
         match_obj.away.goals = away_score
     except KeyError:
         pass
@@ -242,12 +243,7 @@ def get_stats(match_obj: Match) -> Match:
 def main():
     opta_id = 2261389
     match_obj = Match(opta_id)
-    match_obj = get_match_data(match_obj)
-    match_obj = get_lineups(match_obj)
-    match_obj = get_managers(match_obj)
-    print(match_obj.home.manager)
-    #match_obj = get_preview(match_obj)
-    #get_stats(match_obj)
+    match_obj = get_stats(match_obj)
 
 
 if __name__ == '__main__':
