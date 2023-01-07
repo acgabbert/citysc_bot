@@ -28,7 +28,7 @@ def time_dec(tag):
             if tag:
                 message = f'{msg.user}\n{message}'
             msg.send(message)
-            return func(*args, **kwargs)
+            return func
         return wrapper
     return timed_func
 
