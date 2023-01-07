@@ -6,7 +6,7 @@ BASE_URL = 'https://stats-api.mlssoccer.com/v1/'
 PREVIEW = 'matchfacts?&matchfact_language=en'
 GAME_ID = '&match_game_id='
 MATCH_DATA = 'matches?&include=away_club_match&include=home_club_match&include=venue&include=home_club&include=away_club&include=competition'
-STATS = '&include=club&include=match&include=competition&include=statistics'
+STATS = 'clubs/matches?&include=club&include=match&include=competition&include=statistics'
 # no page limit for summary, could pose issues
 SUMMARY = 'commentaries?&commentary_type=secondyellow card&commentary_type=penalty goal&commentary_type=own goal&commentary_type=yellow card&commentary_type=red card&commentary_type=substitution&commentary_type=goal&include=club&include=player&order_by=commentary_period&order_by=commentary_minute&order_by=commentary_second&order_by=commentary_timestamp&order_by=commentary_opta_id'
 # no page limit for feed, could pose issues
@@ -117,9 +117,26 @@ def get_managers(opta_id):
     return managers
 
 
-@util.time_dec
+def get_stats(opta_id):
+    url = BASE_URL + STATS + GAME_ID + opta_id
+    data = call_match_api(url, 'stats')
+    home_score = 0
+    away_score = 0
+    try:
+        home_score = data[0]['statistics']['goals']
+    except KeyError:
+        pass
+    try:
+        away_score = data[1]['statistics']['goals']
+    except KeyError:
+        pass
+    print(f'{home_score}:{away_score}')
+    return data
+
+
+@util.time_dec(False)
 def main():
-    print(get_managers('2261389'))
+    get_stats('2261389')
 
 
 if __name__ == '__main__':
