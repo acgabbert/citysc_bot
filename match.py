@@ -1,10 +1,7 @@
+import time
+
 import mls_api as mls
 import util
-from typing import TypedDict
-from collections import namedtuple
-from dataclasses import dataclass
-from dataclasses import field
-from typing import Optional
 
 BASE_URL = 'https://stats-api.mlssoccer.com/v1/'
 # match_facts gives preview stuff
@@ -59,12 +56,23 @@ class Match(mls.MlsObject):
         super().__init__(opta_id)
         self.venue = ''
         self.comp = ''
+        self.date = -1
         self.home = Team(-1)
         self.away = Team(-1)
         self.is_final = False
         self.preview = []
         self.feed = []
         self.summary = []
+    
+    def get_date_time(self):
+        secs = int(self.date) / 1000
+        date = time.strptime(time.ctime(secs))
+        date_val = time.strftime('%B %d, %Y', date)
+        time_val = time.strftime('%I:%M%p', date)
+        # remove leading zero from time
+        if time_val[0] == '0':
+            time_val = time_val[1:]
+        return date_val, time_val
     
     def __str__(self):
         retval = ''
@@ -125,7 +133,6 @@ def process_club(data, away=False) -> Team:
     formation = data[team_match]['formation_matrix']
     if formation is not None:
         retval.formation_matrix = process_formation(formation)
-    print(retval)
     return retval
 
 
@@ -140,6 +147,7 @@ def get_match_data(match_obj: Match) -> Match:
     retval.comp = data['competition']['name']
     retval.home = process_club(data)
     retval.away = process_club(data, True)
+    retval.date = data['date']
     return retval
 
 
@@ -148,7 +156,7 @@ def get_preview(match_obj: Match) -> Match:
     Returns a list of comments.
     """
     retval = match_obj
-    url = BASE_URL + PREVIEW + GAME_ID + match_obj.opta_id
+    url = BASE_URL + PREVIEW + GAME_ID + str(match_obj.opta_id)
     data = call_match_api(url, 'preview')
     comments = []
     for row in data:
@@ -160,7 +168,7 @@ def get_preview(match_obj: Match) -> Match:
 def get_feed(match_obj: Match) -> Match:
     """Get the full feed from a match."""
     retval = match_obj
-    url = BASE_URL + FEED + GAME_ID + match_obj.opta_id
+    url = BASE_URL + FEED + GAME_ID + str(match_obj.opta_id)
     data = call_match_api(url, 'feed')
     comments = process_feed(data)
     retval.feed = comments
@@ -173,7 +181,7 @@ def get_summary(match_obj: Match) -> Match:
     Returns a list of comments.
     """
     retval = match_obj
-    url = BASE_URL + SUMMARY + GAME_ID + match_obj.opta_id
+    url = BASE_URL + SUMMARY + GAME_ID + str(match_obj.opta_id)
     data = call_match_api(url, 'summary')
     comments = process_feed(data)
     retval.summary = comments
@@ -235,7 +243,6 @@ def get_stats(match_obj: Match) -> Match:
         match_obj.away.goals = away_score
     except KeyError:
         pass
-    print(f'{home_score}:{away_score}')
     return data
 
 
@@ -243,7 +250,8 @@ def get_stats(match_obj: Match) -> Match:
 def main():
     opta_id = 2261389
     match_obj = Match(opta_id)
-    match_obj = get_stats(match_obj)
+    match_obj = get_match_data(match_obj)
+    print(match_obj.get_date_time())
 
 
 if __name__ == '__main__':
