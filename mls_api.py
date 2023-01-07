@@ -25,6 +25,15 @@ DATE_FROM = '&dateFrom='
 DATE_TO = '&dateTo='
 SEASON = '&seasonId='
 
+
+class MlsObject:
+    def __init__(self, opta_id):
+        self.opta_id = opta_id
+    
+    def __str__(self):
+        return str(self.opta_id)
+
+
 def call_api(url: str):
     """Call the MLS API at the given url, and return the json data and status code.
     Keyword arguments:

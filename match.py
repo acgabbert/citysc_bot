@@ -1,5 +1,10 @@
 import mls_api as mls
 import util
+from typing import TypedDict
+from collections import namedtuple
+from dataclasses import dataclass
+from dataclasses import field
+from typing import Optional
 
 BASE_URL = 'https://stats-api.mlssoccer.com/v1/'
 # match_facts gives preview stuff
@@ -13,6 +18,42 @@ SUMMARY = 'commentaries?&commentary_type=secondyellow card&commentary_type=penal
 FEED = 'commentaries?&commentary_type=secondyellow card&commentary_type=penalty goal&commentary_type=own goal&commentary_type=yellow card&commentary_type=red card&commentary_type=substitution&commentary_type=goal&commentary_type=lineup&commentary_type=start&commentary_type=end 1&commentary_type=end 2&commentary_type=end 3&commentary_type=end 4&commentary_type=end 5&commentary_type=end 14&commentary_type=start delay&commentary_type=end delay&commentary_type=postponed&commentary_type=free kick lost&commentary_type=free kick won&commentary_type=attempt blocked&commentary_type=attempt saved&commentary_type=miss&commentary_type=post&commentary_type=corner&commentary_type=offside&commentary_type=penalty won&commentary_type=penalty lost&commentary_type=penalty miss&commentary_type=penalty saved&commentary_type=player retired&commentary_type=contentious referee decisions&commentary_type=VAR cancelled goal&include=club&include=player&include=player_match&order_by=-commentary_period&order_by=-commentary_minute&order_by=-commentary_second&order_by=-commentary_timestamp&order_by=-commentary_opta_id'
 LINEUPS = 'players/matches?&include=player&include=club'
 MANAGERS = 'managers/matches?&include=manager&include=club'
+
+
+class Team(mls.MlsObject):
+    def __init__(self, opta_id):
+        super().__init__(opta_id)
+        self.name = ''
+        self.starters = []
+        self.subs = []
+        self.formation_matrix = []
+    
+    def __str__(self):
+        if self.name:
+            return self.name
+        else:
+            return super().__str__()
+
+
+class Match(mls.MlsObject):
+    def __init__(self, opta_id):
+        super().__init__(opta_id)
+        self.venue = ''
+        self.comp = ''
+        self.home = Team(-1)
+        self.away = Team(-1)
+        self.is_final = False
+        self.preview = []
+        self.feed = []
+        self.summary = []
+    
+    def __str__(self):
+        retval = ''
+        if self.home.opta_id != -1:
+            retval += f'{self.home.name} vs. {self.away.name}'
+        else:
+            return super().__str__()
+        return retval
 
 
 def call_match_api(url, filename):
@@ -31,7 +72,7 @@ def process_formation(data):
     return formation
 
 
-def process_feed(data):
+def process_feed(data) -> list[str]:
     """Process a feed (summary or full feed)."""
     comments = []
     for comment in data:
@@ -41,20 +82,32 @@ def process_feed(data):
     return comments
 
 
-def get_match_data(opta_id):
+def process_club(data, away=False) -> Team:
+    team = 'home_club'
+    if away:
+        team = 'away_club'
+    team_match = team + '_match'
+    opta_id = data[team]['opta_id']
+    retval = Team(opta_id=opta_id)
+    retval.name = data[team]['name']
+    if data[team_match]['formation_matrix'] is not None:
+        retval.form
+    print(retval)
+    return retval
+
+
+def get_match_data(match_obj: Match) -> Match:
     """Get the match data for a match.
     Specfically, this is one place to get the formation matrix.
     """
-    url = BASE_URL + MATCH_DATA + GAME_ID + opta_id
-    data = call_match_api(url, 'match-data')
-    home = data[0]['home_club_match']
-    home_formation = []
-    away_formation = []
-    if home['formation_matrix'] is not None:
-        home_formation = process_formation(home['formation_matrix'])
-        away = data[0]['away_club_match']
-        away_formation = process_formation(away['formation_matrix'])
-    return data
+    retval = match_obj
+    url = BASE_URL + MATCH_DATA + GAME_ID + str(match_obj.opta_id)
+    data = call_match_api(url, 'match-data')[0]
+    retval.venue = data['venue']['name']
+    retval.comp = data['competition']['name']
+    retval.home = process_club(data)
+    retval.away = process_club(data, True)
+    return retval
 
 
 def get_preview(opta_id):
@@ -136,7 +189,13 @@ def get_stats(opta_id):
 
 @util.time_dec(False)
 def main():
-    get_stats('2261389')
+    opta_id = 2341646
+    match_obj = Match(opta_id)
+    print(match_obj)
+    match_obj = get_match_data(match_obj)
+    print(match_obj)
+    #match_obj = get_preview(match_obj)
+    #get_stats(match_obj)
 
 
 if __name__ == '__main__':
