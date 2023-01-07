@@ -9,10 +9,10 @@ PREVIEW = 'matchfacts?&matchfact_language=en'
 GAME_ID = '&match_game_id='
 MATCH_DATA = 'matches?&include=away_club_match&include=home_club_match&include=venue&include=home_club&include=away_club&include=competition'
 STATS = 'clubs/matches?&include=club&include=match&include=competition&include=statistics'
-# no page limit for summary, could pose issues
+# page limit defaults to 100 for summary, feed
 SUMMARY = 'commentaries?&commentary_type=secondyellow card&commentary_type=penalty goal&commentary_type=own goal&commentary_type=yellow card&commentary_type=red card&commentary_type=substitution&commentary_type=goal&include=club&include=player&order_by=commentary_period&order_by=commentary_minute&order_by=commentary_second&order_by=commentary_timestamp&order_by=commentary_opta_id'
-# no page limit for feed, could pose issues
-FEED = 'commentaries?&commentary_type=secondyellow card&commentary_type=penalty goal&commentary_type=own goal&commentary_type=yellow card&commentary_type=red card&commentary_type=substitution&commentary_type=goal&commentary_type=lineup&commentary_type=start&commentary_type=end 1&commentary_type=end 2&commentary_type=end 3&commentary_type=end 4&commentary_type=end 5&commentary_type=end 14&commentary_type=start delay&commentary_type=end delay&commentary_type=postponed&commentary_type=free kick lost&commentary_type=free kick won&commentary_type=attempt blocked&commentary_type=attempt saved&commentary_type=miss&commentary_type=post&commentary_type=corner&commentary_type=offside&commentary_type=penalty won&commentary_type=penalty lost&commentary_type=penalty miss&commentary_type=penalty saved&commentary_type=player retired&commentary_type=contentious referee decisions&commentary_type=VAR cancelled goal&include=club&include=player&include=player_match&order_by=-commentary_period&order_by=-commentary_minute&order_by=-commentary_second&order_by=-commentary_timestamp&order_by=-commentary_opta_id'
+FULL_FEED = 'commentaries?&commentary_type=secondyellow card&commentary_type=penalty goal&commentary_type=own goal&commentary_type=yellow card&commentary_type=red card&commentary_type=substitution&commentary_type=goal&commentary_type=lineup&commentary_type=start&commentary_type=end 1&commentary_type=end 2&commentary_type=end 3&commentary_type=end 4&commentary_type=end 5&commentary_type=end 14&commentary_type=start delay&commentary_type=end delay&commentary_type=postponed&commentary_type=free kick lost&commentary_type=free kick won&commentary_type=attempt blocked&commentary_type=attempt saved&commentary_type=miss&commentary_type=post&commentary_type=corner&commentary_type=offside&commentary_type=penalty won&commentary_type=penalty lost&commentary_type=penalty miss&commentary_type=penalty saved&commentary_type=player retired&commentary_type=contentious referee decisions&commentary_type=VAR cancelled goal&include=club&include=player&include=player_match&order_by=-commentary_period&order_by=-commentary_minute&order_by=-commentary_second&order_by=-commentary_timestamp&order_by=-commentary_opta_id'
+FEED = 'commentaries?&commentary_type=secondyellow card&commentary_type=penalty goal&commentary_type=own goal&commentary_type=yellow card&commentary_type=red card&commentary_type=substitution&commentary_type=goal&commentary_type=lineup&commentary_type=start&commentary_type=end 1&commentary_type=end 2&commentary_type=end 3&commentary_type=end 4&commentary_type=end 5&commentary_type=end 14&commentary_type=start delay&commentary_type=end delay&commentary_type=postponed&commentary_type=penalty won&commentary_type=penalty lost&commentary_type=penalty miss&commentary_type=penalty saved&commentary_type=player retired&commentary_type=contentious referee decisions&commentary_type=VAR cancelled goal&order_by=-commentary_period&order_by=-commentary_minute&order_by=-commentary_second&order_by=-commentary_timestamp&order_by=-commentary_opta_id'
 LINEUPS = 'players/matches?&include=player&include=club'
 MANAGERS = 'managers/matches?&include=manager&include=club'
 
@@ -42,6 +42,7 @@ class Team(mls.MlsObject):
         for player in subs:
             retval += player.name + ', '
         retval = retval[:-2]
+        retval += '\n\n'
         return retval
     
     def __str__(self):
@@ -116,7 +117,11 @@ def process_feed(data) -> list[str]:
     comments = []
     for comment in data:
         # in order from earliest to latest
-        adder = f'{comment["minute_display"]} {comment["comment"]}'
+        adder = ''
+        if comment['minute_display'] is None or comment['period'] == 'FullTime':
+            adder = f'{comment["comment"]}'
+        else:
+            adder = f'{comment["minute_display"]} {comment["comment"]}'
         comments.append(adder)
     return comments
 
@@ -248,7 +253,7 @@ def get_stats(match_obj: Match) -> Match:
 
 @util.time_dec(False)
 def main():
-    opta_id = 2261389
+    opta_id = 2335158
     match_obj = Match(opta_id)
     match_obj = get_match_data(match_obj)
     print(match_obj.get_date_time())
