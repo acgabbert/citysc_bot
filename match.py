@@ -24,6 +24,7 @@ class Team(mls.MlsObject):
     def __init__(self, opta_id):
         super().__init__(opta_id)
         self.name = ''
+        self.manager = ''
         self.lineup = []
         self.formation_matrix = []
         self.goals = 0
@@ -180,8 +181,6 @@ def get_summary(match_obj: Match) -> Match:
 
 def get_lineups(match_obj: Match) -> Match:
     """Get the lineups from a match."""
-    # TODO to get the lineups in the correct order, we need formation matrix
-    # this can come from stats
     retval = match_obj
     url = BASE_URL + LINEUPS + GAME_ID + str(match_obj.opta_id)
     data = call_match_api(url, 'lineups')
@@ -201,28 +200,38 @@ def get_lineups(match_obj: Match) -> Match:
     return retval
 
 
-def get_managers(opta_id):
-    url = BASE_URL + MANAGERS + GAME_ID + opta_id
+def get_managers(match_obj: Match) -> Match:
+    """Get managers from a match."""
+    retval = match_obj
+    url = BASE_URL + MANAGERS + GAME_ID + str(match_obj.opta_id)
     data = call_match_api(url, 'managers')
-    managers = []
     for manager in data:
-        name = f'{manager["manager"]["first_name"]} {manager["manager"]["last_name"]}'
-        club_id = manager['club']['opta_id']
-        managers.append((club_id, name))
-    return managers
+        team_id = manager['club']['opta_id']
+        first = manager['manager']['first_name']
+        last = manager['manager']['last_name']
+        name = f'{first} {last}'
+        if team_id == retval.home.opta_id:
+            retval.home.manager = name
+        elif team_id == retval.away.opta_id:
+            retval.away.manager = name
+    return retval
 
 
-def get_stats(opta_id):
-    url = BASE_URL + STATS + GAME_ID + opta_id
+def get_stats(match_obj: Match) -> Match:
+    """Get stats from a match."""
+    retval = match_obj
+    url = BASE_URL + STATS + GAME_ID + str(match_obj.opta_id)
     data = call_match_api(url, 'stats')
     home_score = 0
     away_score = 0
     try:
         home_score = data[0]['statistics']['goals']
+        match_obj.home.goals = home_score
     except KeyError:
         pass
     try:
         away_score = data[1]['statistics']['goals']
+        match_obj.away.goals = away_score
     except KeyError:
         pass
     print(f'{home_score}:{away_score}')
@@ -233,10 +242,10 @@ def get_stats(opta_id):
 def main():
     opta_id = 2261389
     match_obj = Match(opta_id)
-    print(match_obj)
     match_obj = get_match_data(match_obj)
     match_obj = get_lineups(match_obj)
-    print(match_obj.home.lineup_str())
+    match_obj = get_managers(match_obj)
+    print(match_obj.home.manager)
     #match_obj = get_preview(match_obj)
     #get_stats(match_obj)
 
