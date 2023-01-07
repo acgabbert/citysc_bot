@@ -9,37 +9,28 @@ def match_footer():
     return retval
 
 
-def pre_match_thread(opta_id):
+def pre_match_thread(match_obj: match.Match):
     """Generate markdown for a pre-match thread."""
-    match_data = match.get_match_data(opta_id)
-    match_data = match_data[0]
-    home = match_data['home_club']['name']
-    away = match_data['away_club']['name']
-    comp = match_data['competition']['name']
-    title = 'Pre-Match Thread: {} vs. {} ({comp})'
-    # from the api, date comes as epoch time in milliseconds
-    date = int(match_data['date']) / 1000
-    date = time.strptime(time.ctime(date))
-    date_val = time.strftime('%B %d, %Y', date)
-    time_val = time.strftime('%I:%M%p', date)
-    # remove leading zero from time
-    if time_val[0] == '0':
-        time_val = time_val[1:]
-    venue = match_data['venue']['name']
-    # TODO this needs to handle different values too
+    match_obj = match.get_match_data(match_obj)
+    home = match_obj.home.name
+    away = match_obj.away.name
+    comp = match_obj.comp
+    # TODO this will eventually need to handle different values
     if comp == 'US Major League Soccer':
         comp = 'MLS Regular Season'
     title = f'Pre-Match Thread: {home} vs. {away} ({comp})'
+    date, time = match_obj.get_date_time()
+    venue = match_obj.venue
     header = f'# {home} vs. {away}\n'
     match_info = header
     match_info += f'### Match Info\n'
     match_info += f'**Competition:** {comp}\n\n'
-    match_info += f'**Date:** {date_val}\n\n'
-    match_info += f'**Time:** {time_val}\n\n'
+    match_info += f'**Date:** {date}\n\n'
+    match_info += f'**Time:** {time}\n\n'
     match_info += f'**Venue:** {venue}\n\n---\n'
-    comments = match.get_preview(opta_id)
+    match_obj = match.get_preview(match_obj)
     match_info += '### Match Facts\n'
-    for comment in comments:
+    for comment in match_obj.preview:
         match_info += comment + '\n\n'
     return title, match_info
 
@@ -48,7 +39,9 @@ def post_match_thread(opta_id):
     return None
 
 def main():
-    title, markdown = pre_match_thread('2261385')
+    opta_id = 2261385
+    match_obj = match.Match(opta_id)
+    title, markdown = pre_match_thread(match_obj)
     print(markdown)
     print(match_footer())
 
