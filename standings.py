@@ -1,3 +1,5 @@
+import json
+
 import mls_api as mls
 import util
 
@@ -14,14 +16,32 @@ def get_standings(**kwargs):
         if key == 'comp':
             comp = COMP + str(value)
         if key == 'season':
-            season = SEASON + str(season)
+            season = SEASON + str(value)
+            print(season)
     url += comp + season
     data, _ = mls.call_api(url)
     return data
 
 
+def update_db(data):
+    for team in data:
+        try:
+            id = int(team['club']['optaId'])
+        except KeyError:
+            # right now STL is blank (no id) in standings results
+            continue
+        points = team['statistics']['total_points']
+        gp = team['statistics']['total_matches']
+        gd = team['statistics']['total_goal_differential']
+        sql = f'UPDATE team SET points={points}, gp={gp}, gd={gd} WHERE opta_id={id}'
+        util.db_query(sql)
+    return None
+
+
+@util.time_dec(False)
 def main():
-    get_standings()
+    data = get_standings()
+    update_db(data)
 
 
 if __name__ == '__main__':
