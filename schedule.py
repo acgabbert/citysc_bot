@@ -98,33 +98,32 @@ def update_results():
     # get all match ids
     sql = 'SELECT opta_id FROM match'
     matches = util.db_query(sql)
-    url = MATCH_RESULT
     i = 0
-    for id in matches:
-        url += GAME_ID + str(id[0])
-        i += 1
-        if i == 10:
-            break
-    print(url)
-    results = mls.call_api(url)[0]
-    # TODO problem this query replaces other values with null
-    for row in results:
-        opta_id = row['opta_id']
-        is_final = row['is_final']
-        home_score = row['home_club_match']['score']
-        away_score = row['away_club_match']['score']
-        sql = f'UPDATE match SET is_final={is_final}, home_score={home_score}, away_score={away_score} WHERE opta_id={opta_id}'
-        result = (opta_id, is_final, home_score, away_score)
-        print(result)
-        util.db_query(sql)
+    p = 50
+    for i in range(0, len(matches), p):
+        url = MATCH_RESULT
+        temp_list = matches[i:i+p]
+        for id in temp_list:
+            url += GAME_ID + str(id[0])
+        print(url)
+        results = mls.call_api(url)[0]
+        for row in results:
+            opta_id = row['opta_id']
+            is_final = 1 if row['is_final'] else 0
+            home_score = 0 if row['home_club_match']['score'] is None else row['home_club_match']['score']
+            away_score = 0 if row['away_club_match']['score'] is None else row['away_club_match']['score']
+            sql = f'UPDATE match SET is_final={is_final}, home_score={home_score}, away_score={away_score} WHERE opta_id={opta_id}'
+            result = (opta_id, is_final, home_score, away_score)
+            print(result)
+            util.db_query(sql)
 
 
 @util.time_dec(False)
 def main():
-    data = get_schedule(comp=None)
-    update_db(data)
-    util.write_json(data, 'assets/schedule.json')
-    #update_results()
+    #data = get_schedule(comp=None)
+    #update_db(data)
+    #util.write_json(data, 'assets/schedule.json')
+    update_results()
 
 if __name__ == '__main__':
     main()
