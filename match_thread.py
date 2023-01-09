@@ -1,5 +1,13 @@
-import match
 import time
+
+import match
+import util
+
+"""
+# select STL City matches coming up
+# just edit the time
+SELECT * FROM match WHERE time > 1677304800 and time < 1677391200 and (home = 17012 or away = 17012)
+"""
 
 def match_footer():
     retval = '\n\n---\n'
@@ -73,12 +81,26 @@ def post_match_thread(match_obj: match.Match):
     return None
 
 
+def get_upcoming_matches(opta_id=None, date_to=None):
+    """Get upcoming matches from the local database."""
+    today = int(time.time())
+    if date_to is None:
+        date_to = today + 172800
+    sql = f'SELECT * FROM match WHERE time > {today} AND time < {date_to}'
+    if opta_id is not None:
+        sql += f' AND (home = {opta_id} OR away = {opta_id})'
+    matches = util.db_query(sql)
+    return matches
+
 def main():
+    matches = get_upcoming_matches(date_to=1675144800)
+    print(matches)
+    """
     opta_id = 2261385
     match_obj = match.Match(opta_id)
     title, markdown = match_thread(match_obj)
     print(markdown)
-
+    """
 
 if __name__ == '__main__':
     main()
