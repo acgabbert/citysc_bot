@@ -8,3 +8,4 @@ env/*
 .DS_Store
 *.db
 mls_test.db
+__pycache__
