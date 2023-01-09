@@ -1,7 +1,7 @@
 import requests
 import json
 
-import private_config as conf
+import config as conf
 
 token = conf.DISCORD_TOKEN
 url = conf.MLS_BOT_WEBHOOK
