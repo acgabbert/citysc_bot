@@ -22,6 +22,17 @@ def get_upcoming_matches(date_from=None, opta_id=None):
             print(f'Match coming up: {match_obj.opta_id}; {title}')
     return matches
 
+def match_thread(opta_id):
+    match_obj = match.Match(opta_id)
+    match_obj = match.get_all_data(match_obj)
+    # check if thing_id already exists in the database
+    # post a thread and populate its thing_id to match_obj and the database
+    while not match_obj.is_final:
+        match_obj = match.get_stats(match_obj)
+        match_obj = match.get_feed(match_obj)
+        # edit existing thread
+        time.sleep(60)
+
 
 @util.time_dec(False)
 def main():
