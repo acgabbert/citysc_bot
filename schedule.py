@@ -40,7 +40,7 @@ def get_schedule(**kwargs):
     else:
         url += comp
     print(url)
-    data, status = mls.call_api(url)
+    data, _ = mls.call_api(url)
     return data
 
 
@@ -50,7 +50,7 @@ def craft_url(date_from, date_to, team):
 
 
 def get_lite_schedule():
-    data, status = mls.call_api(SCHEDULE_LITE)
+    data, _ = mls.call_api(SCHEDULE_LITE)
     return data
 
 
