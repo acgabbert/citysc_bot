@@ -1,4 +1,4 @@
-private_config.py
+config.py
 chromedriver
 assets/*
 *.log
