@@ -34,7 +34,7 @@ class MlsObject:
         return str(self.opta_id)
 
 
-def call_api(url: str):
+def call_api(url: str, params=None):
     """Call the MLS API at the given url, and return the json data and status code.
     Keyword arguments:
     url -- the url to call"""
@@ -44,6 +44,9 @@ def call_api(url: str):
         'accept-language': 'en-US,en;q=0.5',
         'sec-fetch-mode': 'cors'
     }
+    r = None
+    if params is not None:
+        r = requests.get(url, headers=headers, params=params)
     r = requests.get(url, headers=headers)
     if r.status_code != 200:
         message = f'{r.status_code}: {r.reason}'
