@@ -82,7 +82,7 @@ def edit_widget(subreddit, widget_id, name, text, headers=None):
     return requests.put(REDDIT_OAUTH + subreddit + '/api/widget/' + widget_id, headers=headers, data=json.dumps(payload))
 
 
-def post(subreddit, title, text, thing_id=None):
+def submit(subreddit, title, text, thing_id=None):
     headers = get_oauth_token()
     url = ''
     data = POST_TEMPLATE
