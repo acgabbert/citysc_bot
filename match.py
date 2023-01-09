@@ -66,7 +66,8 @@ class Match(mls.MlsObject):
         self.summary = []
     
     def get_date_time(self):
-        secs = int(self.date) / 1000
+        """Return date, time in match thread format."""
+        secs = int(self.date)
         date = time.strptime(time.ctime(secs))
         date_val = time.strftime('%B %d, %Y', date)
         time_val = time.strftime('%I:%M%p', date)
@@ -153,6 +154,9 @@ def get_match_data(match_obj: Match) -> Match:
     retval.home = process_club(data)
     retval.away = process_club(data, True)
     retval.date = data['date']
+    if retval.date > 999999999999:
+        retval.date /= 1000
+    retval.is_final = data['is_final']
     return retval
 
 
