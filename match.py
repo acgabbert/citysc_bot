@@ -255,12 +255,23 @@ def get_stats(match_obj: Match) -> Match:
     return data
 
 
+def get_all_data(match_obj: Match) -> Match:
+    match_obj = get_match_data(match_obj)
+    match_obj = get_preview(match_obj)
+    match_obj = get_lineups(match_obj)
+    match_obj = get_managers(match_obj)
+    match_obj = get_feed(match_obj)
+    match_obj = get_stats(match_obj)
+    match_obj = get_summary(match_obj)
+    return match_obj
+
+
 @util.time_dec(False)
 def main():
-    opta_id = 2335158
+    opta_id = 2277793
     match_obj = Match(opta_id)
-    match_obj = get_match_data(match_obj)
-    print(match_obj.get_date_time())
+    match_obj = get_preview(match_obj)
+    print(match_obj.preview)
 
 
 if __name__ == '__main__':
