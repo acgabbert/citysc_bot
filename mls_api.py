@@ -36,8 +36,13 @@ class MlsObject:
 
 def call_api(url: str, params=None):
     """Call the MLS API at the given url, and return the json data and status code.
+
+    Positional arguments:
+    url -- the url to call
+
     Keyword arguments:
-    url -- the url to call"""
+    params -- a dict of the http query parameters
+    """
     headers = {
         'user-agent': USER_AGENT,
         'accept-encoding': 'gzip, deflate, br',
