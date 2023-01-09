@@ -1,4 +1,5 @@
 import time
+import logging
 
 import mls_api as mls
 import util
@@ -15,6 +16,8 @@ FULL_FEED = 'commentaries?&commentary_type=secondyellow card&commentary_type=pen
 FEED = 'commentaries?&commentary_type=secondyellow card&commentary_type=penalty goal&commentary_type=own goal&commentary_type=yellow card&commentary_type=red card&commentary_type=substitution&commentary_type=goal&commentary_type=lineup&commentary_type=start&commentary_type=end 1&commentary_type=end 2&commentary_type=end 3&commentary_type=end 4&commentary_type=end 5&commentary_type=end 14&commentary_type=start delay&commentary_type=end delay&commentary_type=postponed&commentary_type=penalty won&commentary_type=penalty lost&commentary_type=penalty miss&commentary_type=penalty saved&commentary_type=player retired&commentary_type=contentious referee decisions&commentary_type=VAR cancelled goal&order_by=-commentary_period&order_by=-commentary_minute&order_by=-commentary_second&order_by=-commentary_timestamp&order_by=-commentary_opta_id'
 LINEUPS = 'players/matches?&include=player&include=club'
 MANAGERS = 'managers/matches?&include=manager&include=club'
+
+logging.basicConfig(filename='log/match.log', format='%(asctime)s | %(levelname)s | %(message)s', level=logging.INFO)
 
 
 class Team(mls.MlsObject):
@@ -252,10 +255,11 @@ def get_stats(match_obj: Match) -> Match:
         match_obj.away.goals = away_score
     except KeyError:
         pass
-    return data
+    return retval
 
 
 def get_all_data(match_obj: Match) -> Match:
+    logging.info(f'Getting all data for {match_obj.opta_id}')
     match_obj = get_match_data(match_obj)
     match_obj = get_preview(match_obj)
     match_obj = get_lineups(match_obj)
