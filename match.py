@@ -4,6 +4,8 @@ import logging
 import mls_api as mls
 import util
 
+logger = logging.getLogger(__name__)
+
 BASE_URL = 'https://stats-api.mlssoccer.com/v1/'
 # match_facts gives preview stuff
 PREVIEW = 'matchfacts?&matchfact_language=en'
@@ -257,7 +259,7 @@ def get_stats(match_obj: Match) -> Match:
 
 
 def get_all_data(match_obj: Match) -> Match:
-    logging.info(f'Getting all data for {match_obj.opta_id}')
+    logger.info(f'Getting all data for {match_obj.opta_id}')
     match_obj = get_match_data(match_obj)
     match_obj = get_preview(match_obj)
     match_obj = get_lineups(match_obj)

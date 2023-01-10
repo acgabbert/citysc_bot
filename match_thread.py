@@ -1,11 +1,14 @@
 import time
 import argparse
+import logging
 
 import config
 import match
 import match_markdown as md
 import reddit_interactor as reddit
 import util
+
+logger = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser(prog='match_thread.py', usage='%(prog)s [options]', description='')
 parser.add_argument('--pre', action='store_true', help='Create a pre-match thread')
@@ -29,7 +32,7 @@ def get_upcoming_matches(date_from=None, opta_id=None):
             id = row[0]
             match_obj = match.Match(id)
             title, markdown = md.pre_match_thread(match_obj)
-            print(f'Match coming up: {match_obj.opta_id}; {title}')
+            logger.info(f'Match coming up: {match_obj.opta_id}; {title}')
     return matches
 
 
@@ -39,6 +42,7 @@ def pre_match_thread(opta_id):
     match_obj = match.get_all_data(match_obj)
     title, markdown = md.pre_match_thread(match_obj)
     _, thing_id = reddit.submit(subreddit, title, markdown)
+    logger.info(f'Posted {title} on {subreddit}')
     return thing_id
 
 
@@ -58,6 +62,7 @@ def match_thread(opta_id):
         # no thread exists, post a new one
         title, markdown = md.match_thread(match_obj)
         _, thing_id = reddit.submit(config.TEST_SUB, title, markdown, thing_id)
+        logger.info(f'Posted {title} on {subreddit}')
         # populate its thing_id to match_obj and the database
         sql = f'UPDATE match SET thing_id="{thing_id}" WHERE opta_id = {opta_id}'
         util.db_query(sql)
