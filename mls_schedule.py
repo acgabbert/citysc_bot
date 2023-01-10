@@ -21,7 +21,7 @@ def get_schedule(**kwargs):
     date_from = '2022-12-31'
     date_to = '2023-12-31'
     comp = mls.MLS_REGULAR
-    team = None
+    team = 17012
     for key, value in kwargs.items():
         if key == 'date_from':
             date_from = value
@@ -31,7 +31,7 @@ def get_schedule(**kwargs):
         if key == 'comp':
             comp = value
         if key == 'team':
-            team = f'&clubOptaId={value}'
+            team = f'&clubOptaId={str(value)}'
     url = BASE_URL + mls.DATE_FROM + date_from + mls.DATE_TO + date_to
     if team is not None:
         url += team
