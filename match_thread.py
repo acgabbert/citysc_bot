@@ -48,15 +48,15 @@ def pre_match_thread(opta_id):
 
 def match_thread(opta_id):
     global subreddit
+    # initialize an empty Match object with the opta_id
     match_obj = match.Match(opta_id)
     match_obj = match.get_all_data(match_obj)
+    
     # check if thing_id already exists in the database
-    # post a thread and populate its thing_id to match_obj and the database
     sql = f'SELECT thing_id FROM match WHERE opta_id = {opta_id}'
     try:
         thing_id = util.db_query(sql)[0][0]
     except IndexError:
-        # match does not exist at all in database
         thing_id = None
     if thing_id is None:
         # no thread exists, post a new one
@@ -78,6 +78,15 @@ def match_thread(opta_id):
     if match_obj.is_final:
         # post a post-match thread
         pass
+
+
+def post_match_thread(opta_id):
+    global subreddit
+    # initialize an empty Match object with the opta_id
+    match_obj = match.Match(opta_id)
+    match_obj = match.get_all_data(match_obj)
+    title, markdown = md.post_match_thread(match_obj)
+    reddit.submit(subreddit, title, markdown)
 
 
 @util.time_dec(False)
