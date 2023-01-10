@@ -17,8 +17,6 @@ FEED = 'commentaries?&commentary_type=secondyellow card&commentary_type=penalty 
 LINEUPS = 'players/matches?&include=player&include=club'
 MANAGERS = 'managers/matches?&include=manager&include=club'
 
-logging.basicConfig(filename='log/match.log', format='%(asctime)s | %(levelname)s | %(message)s', level=logging.INFO)
-
 
 class Team(mls.MlsObject):
     def __init__(self, opta_id):
