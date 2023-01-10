@@ -83,7 +83,6 @@ def all_jobs():
 @util.time_dec(True)
 def main():
     root.info(f'Started {__name__} at {time.time()}')
-    killer = util.GracefulExit()
     # update the schedule every day
     schedule.every().day.at('04:00').do(mls_schedule.main)
     # within get_upcoming_matches, we will schedule pre-match threads
@@ -92,7 +91,7 @@ def main():
     schedule.every().day.at('05:00').do(get_upcoming_matches)
     schedule.every().day.at('05:30').do(all_jobs)
     running = True
-    while running and not killer.kill_now:
+    while running:
         try:
             schedule.run_pending()
             # while maintaining a match thread, we will be stuck in run_pending.
@@ -103,8 +102,6 @@ def main():
         except KeyboardInterrupt:
             root.error(f'Manual shutdown.')
             running = False
-    if killer.kill_now:
-        root.info(f'Stopped {__name__} via kill signal at {time.time()}')
 
 
 if __name__ == '__main__':
