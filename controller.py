@@ -1,4 +1,6 @@
 import time
+import logging, logging.handlers
+import sys
 from datetime import datetime, timedelta
 import schedule
 
@@ -7,6 +9,26 @@ import match
 import match_markdown as md
 import match_thread as thread
 import mls_schedule
+
+fh = logging.handlers.RotatingFileHandler('log/debug.log', maxBytes=1000000, backupCount=10)
+fh.setLevel(logging.DEBUG)
+fh2 = logging.handlers.RotatingFileHandler('log/controller.log', maxBytes=1000000, backupCount=5)
+fh2.setLevel(logging.INFO)
+er = logging.handlers.RotatingFileHandler('log/error.log', maxBytes=2000000, backupCount=2)
+er.setLevel(logging.WARNING)
+ch = logging.StreamHandler(sys.stdout)
+ch.setLevel(1)
+fh.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+fh2.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+er.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+ch.setFormatter(logging.Formatter('%(name)s - %(levelname)s - %(message)s'))
+
+root = logging.getLogger()
+root.setLevel(logging.DEBUG)
+root.addHandler(fh)
+root.addHandler(fh2)
+root.addHandler(er)
+root.addHandler(ch)
 
 
 def get_upcoming_matches(date_from=None, opta_id=17012):
@@ -27,11 +49,10 @@ def get_upcoming_matches(date_from=None, opta_id=17012):
             match_obj = match.Match(id)
             #title, markdown = md.pre_match_thread(match_obj)
             t = time.strftime('%H:%M', time.localtime(t))
-            print(f'Match coming up: {match_obj.opta_id}')
+            root.info(f'Match coming up: {match_obj.opta_id}')
             schedule.every().day.at(t).do(pre_match_thread, opta_id=id, h_m=t)
     else:
-        message = 'No upcoming matches.'
-        print(message)
+        root.info('No upcoming matches.')
     return matches
 
 
@@ -53,19 +74,31 @@ def match_thread(opta_id: int):
     return schedule.CancelJob
 
 
+def all_jobs():
+    return schedule.get_jobs()
+
+
+@util.time_dec(True)
 def main():
-    schedule.every().day.at('04:00').do(mls_schedule.main)
+    root.info(f'Started {__name__} at {time.time()}')
+    schedule.every().day.at('06:40').do(mls_schedule.main)
     # within get_upcoming_matches, we will schedule pre-match threads
     # pre-match threads will in turn schedule match threads
     # and post-match threads are posted directly after match threads
-    schedule.every().day.at('05:00').do(get_upcoming_matches)
-    while True:
-        schedule.run_pending()
-        # while maintaining a match thread, we will be stuck in run_pending.
-        # this is not a problem if only creating match threads for one team
-        # however, if ever used for more than one team/game at a time, 
-        # would need to find a different way to run things
-        time.sleep(60)
+    schedule.every().day.at('06:41').do(get_upcoming_matches)
+    schedule.every().day.at('06:42').do(print, all_jobs())
+    running = True
+    while running:
+        try:
+            schedule.run_pending()
+            # while maintaining a match thread, we will be stuck in run_pending.
+            # this is not a problem if only creating match threads for one team
+            # however, if ever used for more than one team/game at a time, 
+            # would need to find a different way to run things
+            time.sleep(60)
+        except KeyboardInterrupt:
+            root.error(f'Manual shutdown.')
+            running = False
 
 
 if __name__ == '__main__':
