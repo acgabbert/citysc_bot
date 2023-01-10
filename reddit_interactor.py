@@ -83,6 +83,8 @@ def edit_widget(subreddit, widget_id, name, text, headers=None):
 
 
 def submit(subreddit, title, text, thing_id=None):
+    """Submit a post to the given subreddit.
+    If thing_id is not None, edit the existing post."""
     headers = get_oauth_token()
     url = ''
     data = POST_TEMPLATE
@@ -95,14 +97,10 @@ def submit(subreddit, title, text, thing_id=None):
     else:
         url = REDDIT_OAUTH + '/api/submit'
     # don't json-ize the data!
-    print(url)
-    print(data)
     r = requests.post(url, data=data, headers=headers)
-    print(json.dumps(r.json()))
-    response = r.json()
     if thing_id is None:
-        thing_id = (response['jquery'][10][3][0]).split('/')[-3]
-    return response, thing_id
+        thing_id = (r.json()['jquery'][10][3][0]).split('/')[-3]
+    return r, thing_id
 
 
 if __name__ == '__main__':
