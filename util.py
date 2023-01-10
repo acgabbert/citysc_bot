@@ -47,17 +47,17 @@ def time_dec(tag):
     def timed_func(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            logger = setup_logger('MLS API Logger', 'log/mls_api.log')
+            #logger = setup_logger('MLS API Logger', 'log/mls_api.log')
             start = time()
             try:
                 func()
             except Exception as e:
-                logger.error(f'Critical error: {str(e)}\n{traceback.format_exc()}')
+                logging.error(f'Critical error: {str(e)}\n{traceback.format_exc()}')
             end = time()
             exe_time = f'%.2f' % (end-start)
             module_name = str(inspect.getmodule(func)).split('/')[-1].replace(".py'>",'')
             message = f'{module_name}.{func.__name__} finished. Execution time: {exe_time} seconds.'
-            logger.info(message)
+            logging.info(message)
             if tag:
                 message = f'{msg.user}\n{message}'
             msg.send(message)
@@ -67,7 +67,7 @@ def time_dec(tag):
 
 
 def db_query(query: str, data: tuple=None):
-    logger = setup_logger('MLS Database Logger', 'log/db.log', level=logging.DEBUG)
+    #logger = setup_logger('MLS Database Logger', 'log/db.log', level=logging.DEBUG)
     retval = None
     try:
         con = sqlite3.connect(mls_db)
@@ -76,14 +76,14 @@ def db_query(query: str, data: tuple=None):
             retval = cur.execute(query, data)
         else:
             retval = cur.execute(query)
-        logger.debug(query)
+        logging.debug(query)
         if cur.rowcount > -1:
-            logger.debug(f'{cur.rowcount} rows affected.')
+            logging.debug(f'{cur.rowcount} rows affected.')
         retval = retval.fetchall()
         con.commit()
-        logger.debug(query)
+        logging.debug(query)
     except Exception as e:
-        logger.error(f'Database error: {str(e)}\n{traceback.format_exc()}\nQuery: {query}')
+        logging.error(f'Database error: {str(e)}\n{traceback.format_exc()}\nQuery: {query}')
         raise
     finally:
         con.close()
