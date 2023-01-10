@@ -4,6 +4,7 @@ import logging
 import sqlite3
 import inspect
 import json
+import signal
 
 import discord as msg
 import functools
@@ -13,6 +14,16 @@ mls_db = 'mls.db'
 formatter = logging.Formatter('%(asctime)s | %(levelname)s | %(message)s')
 
 loggers = {}
+
+class GracefulExit:
+    kill_now = False
+
+    def __init__(self):
+        signal.signal(signal.SIGINT, self.exit_gracefully)
+        signal.signal(signal.SIGTERM, self.exit_gracefully)
+    
+    def exit_gracefully(self, *args):
+        self.kill_now = True
 
 def setup_logger(name, log_file, level=logging.INFO):
     """To avoid duplicate logs/loggers, use a global dict to keep track
