@@ -17,19 +17,15 @@ fh2 = logging.handlers.RotatingFileHandler('log/controller.log', maxBytes=100000
 fh2.setLevel(logging.INFO)
 er = logging.handlers.RotatingFileHandler('log/error.log', maxBytes=2000000, backupCount=2)
 er.setLevel(logging.WARNING)
-ch = logging.StreamHandler(sys.stdout)
-ch.setLevel(1)
 fh.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
 fh2.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
 er.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-ch.setFormatter(logging.Formatter('%(name)s - %(levelname)s - %(message)s'))
 
 root = logging.getLogger()
 root.setLevel(logging.DEBUG)
 root.addHandler(fh)
 root.addHandler(fh2)
 root.addHandler(er)
-root.addHandler(ch)
 
 
 def get_upcoming_matches(date_from=None, opta_id=17012):
