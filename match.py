@@ -32,6 +32,8 @@ class Team(mls.MlsObject):
     def lineup_str(self):
         starters = []
         subs = []
+        if len(self.lineup) == 0:
+            return f'{self.name} lineup has not yet been announced.\n\n'
         for player in self.lineup:
             if player.status == 'Start':
                 index = self.formation_matrix.index(player.formation_place)
