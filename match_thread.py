@@ -41,8 +41,11 @@ def pre_match_thread(opta_id):
     match_obj = match.Match(opta_id)
     match_obj = match.get_all_data(match_obj)
     title, markdown = md.pre_match_thread(match_obj)
-    _, thing_id = reddit.submit(subreddit, title, markdown)
-    logger.info(f'Posted {title} on {subreddit}')
+    response, thing_id = reddit.submit(subreddit, title, markdown)
+    if response.status_code == 200:
+        logger.info(f'Posted {title} on {subreddit} with thing_id {thing_id}')
+    else:
+        logger.error(f'Error posting {title} on {subreddit}.\n{response.status_code}')
     return thing_id
 
 
@@ -61,11 +64,20 @@ def match_thread(opta_id):
     if thing_id is None:
         # no thread exists, post a new one
         title, markdown = md.match_thread(match_obj)
-        _, thing_id = reddit.submit(config.TEST_SUB, title, markdown, thing_id)
-        logger.info(f'Posted {title} on {subreddit}')
-        # populate its thing_id to match_obj and the database
-        sql = f'UPDATE match SET thing_id="{thing_id}" WHERE opta_id = {opta_id}'
-        util.db_query(sql)
+        response, thing_id = reddit.submit(config.TEST_SUB, title, markdown, thing_id)
+        if response.status_code == 200 and response.json()['success']:
+            # populate its thing_id to match_obj and the database
+            sql = f'UPDATE match SET thing_id="{thing_id}" WHERE opta_id = {opta_id}'
+            util.db_query(sql)
+            logger.info(f'Posted {title} on {subreddit}')
+        else:
+            logger.error(
+                f'Error posting {title} on {subreddit}.\n'
+                f'{response.status_code} - {response.reason}\n'
+                f'{response.json()["jquery"][10][3][0]}'
+            )
+            # TODO or could raise an exception here
+            return
     
     while not match_obj.is_final:
         time.sleep(60)
@@ -73,7 +85,13 @@ def match_thread(opta_id):
         match_obj = match.get_feed(match_obj)
         title, markdown = md.match_thread(match_obj)
         # edit existing thread with thing_id
-        reddit.submit(subreddit, title, markdown, thing_id)
+        response, _ = reddit.submit(subreddit, title, markdown, thing_id)
+        if not response.json()['success']:
+            logger.error(
+                f'Error posting {title} on {subreddit}.\n'
+                f'{response.status_code} - {response.reason}\n'
+                f'{response.json()["jquery"][10][3][0]}'
+            )
         # update the database?
     if match_obj.is_final:
         # post a post-match thread
