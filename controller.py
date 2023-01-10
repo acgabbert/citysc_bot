@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import schedule
 
 import util
+import discord as msg
 import match
 import match_markdown as md
 import match_thread as thread
@@ -32,7 +33,7 @@ root.addHandler(ch)
 
 
 def get_upcoming_matches(date_from=None, opta_id=17012):
-    """Get upcoming matches from the local database."""
+    """Get upcoming matches from the local sqlite database."""
     if date_from is None:
         # check from +24h
         date_from = int(time.time()) + 86400
@@ -50,19 +51,21 @@ def get_upcoming_matches(date_from=None, opta_id=17012):
             #title, markdown = md.pre_match_thread(match_obj)
             t = time.strftime('%H:%M', time.localtime(t))
             root.info(f'Match coming up: {match_obj.opta_id}')
-            schedule.every().day.at(t).do(pre_match_thread, opta_id=id, h_m=t)
+            schedule.every().day.at(t).do(pre_match_thread, opta_id=id, t=t)
+            msg.send(f'{msg.user}\nScheduled pre-match thread for {t}')
     else:
         root.info('No upcoming matches.')
     return matches
 
 
-def pre_match_thread(opta_id: int, h_m: str):
+def pre_match_thread(opta_id: int, t: str):
     """
     """
     thread.pre_match_thread(opta_id)
-    t = datetime.strptime(h_m, '%H:%M')
+    t = datetime.strptime(t, '%H:%M')
     t -= timedelta(hours=1)
     # schedule the match thread for tomorrow at the same time, minus one hour
+    msg.send(f'{msg.user}\nScheduled match thread for {t}')
     schedule.every().day.at(t).do(match_thread, opta_id=opta_id)
     return schedule.CancelJob
 
@@ -75,20 +78,25 @@ def match_thread(opta_id: int):
 
 
 def all_jobs():
+    message = f'Currently scheduled jobs:\n{schedule.get_jobs()}'
+    root.info(message)
+    #msg.send(f'{msg.user}\n{message}')
     return schedule.get_jobs()
 
 
 @util.time_dec(True)
 def main():
     root.info(f'Started {__name__} at {time.time()}')
-    schedule.every().day.at('06:40').do(mls_schedule.main)
+    killer = util.GracefulExit()
+    # update the schedule every day
+    schedule.every().day.at('04:00').do(mls_schedule.main)
     # within get_upcoming_matches, we will schedule pre-match threads
     # pre-match threads will in turn schedule match threads
     # and post-match threads are posted directly after match threads
-    schedule.every().day.at('06:41').do(get_upcoming_matches)
-    schedule.every().day.at('06:42').do(print, all_jobs())
+    schedule.every().day.at('05:00').do(get_upcoming_matches)
+    schedule.every().day.at('05:30').do(all_jobs)
     running = True
-    while running:
+    while running and not killer.kill_now:
         try:
             schedule.run_pending()
             # while maintaining a match thread, we will be stuck in run_pending.
@@ -99,6 +107,8 @@ def main():
         except KeyboardInterrupt:
             root.error(f'Manual shutdown.')
             running = False
+    if killer.kill_now:
+        root.info(f'Stopped {__name__} via kill signal at {time.time()}')
 
 
 if __name__ == '__main__':
