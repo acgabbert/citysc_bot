@@ -120,10 +120,10 @@ def update_results():
 
 @util.time_dec(False)
 def main():
-    #data = get_schedule(comp=None)
-    #update_db(data)
+    data = get_schedule(comp=None)
+    update_db(data)
     #util.write_json(data, 'assets/schedule.json')
-    update_results()
+    #update_results()
 
 if __name__ == '__main__':
     main()
