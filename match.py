@@ -102,7 +102,7 @@ class Player(mls.MlsObject):
 
 def call_match_api(url, filename):
     opta_id = url.split('=')[-1]
-    data, status = mls.call_api(url)
+    data, _ = mls.call_api(url)
     util.write_json(data, f'assets/{filename}-{opta_id}.json')
     return data
 
@@ -151,7 +151,12 @@ def get_match_data(match_obj: Match) -> Match:
     """
     retval = match_obj
     url = BASE_URL + MATCH_DATA + GAME_ID + str(match_obj.opta_id)
-    data = call_match_api(url, 'match-data')[0]
+    try:
+        data = call_match_api(url, 'match-data')[0]
+    except IndexError:
+        message = f'{url} returned no data.'
+        logging.error(message)
+        return retval
     retval.venue = data['venue']['name']
     retval.comp = data['competition']['name']
     retval.home = process_club(data)
@@ -169,7 +174,12 @@ def get_preview(match_obj: Match) -> Match:
     """
     retval = match_obj
     url = BASE_URL + PREVIEW + GAME_ID + str(match_obj.opta_id)
-    data = call_match_api(url, 'preview')
+    try:
+        data = call_match_api(url, 'preview')[0]
+    except IndexError:
+        message = f'{url} returned no data.'
+        logging.error(message)
+        return retval
     comments = []
     for row in data:
         comments.append(row['fact'])
@@ -181,7 +191,12 @@ def get_feed(match_obj: Match) -> Match:
     """Get the full feed from a match."""
     retval = match_obj
     url = BASE_URL + FEED + GAME_ID + str(match_obj.opta_id)
-    data = call_match_api(url, 'feed')
+    try:
+        data = call_match_api(url, 'feed')[0]
+    except IndexError:
+        message = f'{url} returned no data.'
+        logging.error(message)
+        return retval
     comments = process_feed(data)
     retval.feed = comments
     return retval
@@ -194,7 +209,12 @@ def get_summary(match_obj: Match) -> Match:
     """
     retval = match_obj
     url = BASE_URL + SUMMARY + GAME_ID + str(match_obj.opta_id)
-    data = call_match_api(url, 'summary')
+    try:
+        data = call_match_api(url, 'summary')[0]
+    except IndexError:
+        message = f'{url} returned no data.'
+        logging.error(message)
+        return retval
     comments = process_feed(data)
     retval.summary = comments
     return retval
@@ -205,6 +225,12 @@ def get_lineups(match_obj: Match) -> Match:
     retval = match_obj
     url = BASE_URL + LINEUPS + GAME_ID + str(match_obj.opta_id)
     data = call_match_api(url, 'lineups')
+    try:
+        data = call_match_api(url, 'summary')[0]
+    except IndexError:
+        message = f'{url} returned no data.'
+        logging.error(message)
+        return retval
     for player in data:
         team_id = player['club']['opta_id']
         status = player['status']
