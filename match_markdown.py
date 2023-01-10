@@ -42,13 +42,13 @@ def pre_match_thread(match_obj: match.Match):
     if comp == 'US Major League Soccer':
         comp = 'MLS Regular Season'
     title = f'Pre-Match Thread: {home} vs. {away} ({comp})'
-    match_info = match_header(match_obj)
+    markdown = match_header(match_obj)
     match_obj = match.get_preview(match_obj)
-    match_info += '### Match Facts\n'
+    markdown += '### Match Facts\n'
     for comment in match_obj.preview:
-        match_info += comment + '\n\n'
-    match_info += match_footer()
-    return title, match_info
+        markdown += comment + '\n\n'
+    markdown += match_footer()
+    return title, markdown
 
 
 def match_thread(match_obj: match.Match):
@@ -60,22 +60,31 @@ def match_thread(match_obj: match.Match):
         comp = 'MLS Regular Season'
     # TODO add date to title?
     title = f'Match Thread: {home} vs. {away} ({comp})'
-    match_info = match_header(match_obj)
-    match_info += '### Lineups\n'
-    match_info += match_obj.home.lineup_str()
-    match_info += match_obj.away.lineup_str()
-    match_info += '---\n'
+    markdown = match_header(match_obj)
+    markdown += '### Lineups\n'
+    markdown += match_obj.home.lineup_str()
+    markdown += match_obj.away.lineup_str()
+    markdown += '---\n'
     match_obj = match.get_feed(match_obj)
-    match_info += '### Match Events\n'
+    markdown += '### Match Events\n'
     print(len(match_obj.feed))
     for comment in match_obj.feed:
-        match_info += comment + '\n\n'
-    match_info += match_footer()
-    return title, match_info
+        markdown += comment + '\n\n'
+    markdown += match_footer()
+    return title, markdown
 
 
 def post_match_thread(match_obj: match.Match):
-    return None
+    home = match_obj.home.name
+    away = match_obj.away.name
+    comp = match_obj.comp
+    # TODO this will eventually need to handle different values
+    if comp == 'US Major League Soccer':
+        comp = 'MLS Regular Season'
+    title = f'Post-Match Thread: {home} vs. {away} ({comp})'
+    markdown = match_header(match_obj)
+    markdown += match_footer()
+    return title, markdown
 
 
 @util.time_dec(False)
