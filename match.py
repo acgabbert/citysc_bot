@@ -36,7 +36,7 @@ class Team(mls.MlsObject):
     
     def lineup_str(self):
         starters = []
-        subs = []
+        bench = []
         if len(self.lineup) == 0:
             return f'{self.name} lineup has not yet been announced.\n\n'
         for player in self.lineup:
@@ -44,15 +44,16 @@ class Team(mls.MlsObject):
                 index = self.formation_matrix.index(player.formation_place)
                 starters.insert(index, player)
             else:
-                subs.append(player)
+                bench.append(player)
         retval = f'**{self.name}**\n\n'
         for player in starters:
             retval += player.name
-            if player in self.subs:
-                retval += f' ({self.subs["player"]})'
+            # TODO handle case where player is subbed on, then subbed off
+            if player.name in self.subs:
+                retval += f' ({self.subs[player.name]})'
             retval += ', '
         retval = retval[:-2] + '\n\n**Subs:** '
-        for player in subs:
+        for player in bench:
             retval += player.name + ', '
         retval = retval[:-2]
         retval += '\n\n'
@@ -194,7 +195,6 @@ def get_preview(match_obj: Match) -> Match:
     data = call_match_api(url, 'preview')
     comments = []
     for row in data:
-        print(row)
         comments.append(row['fact'])
     retval.preview = comments
     return retval
@@ -229,6 +229,8 @@ def get_lineups(match_obj: Match) -> Match:
     retval = match_obj
     url = BASE_URL + LINEUPS + GAME_ID + str(match_obj.opta_id)
     data = call_match_api(url, 'lineups')
+    subs_url = BASE_URL + SUBS + GAME_ID + str(match_obj.opta_id)
+    subs = call_match_api(subs_url, 'subs')
     for player in data:
         team_id = player['club']['opta_id']
         status = player['status']
@@ -242,7 +244,14 @@ def get_lineups(match_obj: Match) -> Match:
         elif team_id == retval.away.opta_id:
             retval.away.lineup.append(adder)
         else:
-            print('problem, player does not match either team')
+            logger.error(f'Error: player {name}, game {retval.opta_id} does not match either team.')
+    for player in subs:
+        off_name = player['off_player']['full_name']
+        on_name = player['on_player']['full_name']
+        if player['club']['opta_id'] == retval.home.opta_id:
+            retval.home.subs[off_name] = on_name
+        elif player['club']['opta_id'] == retval.away.opta_id:
+            retval.away.subs[off_name] = on_name
     return retval
 
 
