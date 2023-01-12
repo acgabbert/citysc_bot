@@ -7,7 +7,6 @@ import schedule
 import util
 import discord as msg
 import match
-import match_markdown as md
 import match_thread as thread
 import mls_schedule
 
@@ -69,6 +68,7 @@ def pre_match_thread(opta_id: int, t: str):
 def match_thread(opta_id: int):
     """
     """
+    # this will run until the game is final
     thread.match_thread(opta_id)
     return schedule.CancelJob
 
