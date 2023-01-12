@@ -121,8 +121,7 @@ def main():
             # pre-match thread
             pre_match_thread(id)
         elif args.post:
-            # post-match thread
-            pass
+            post_match_thread(id)
         else:
             # match thread
             match_thread(id)
