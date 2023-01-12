@@ -90,7 +90,6 @@ def post_match_thread(match_obj: match.Match):
     title = f'Post-Match Thread: {home.name} {home.goals}-{away.goals} '
     # TODO if pens, add to title here
     title += f'{away.name} ({comp})'
-
     markdown = match_header(match_obj)
 
     markdown += match_footer()
