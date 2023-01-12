@@ -156,6 +156,7 @@ def get_match_data(match_obj: Match) -> Match:
     retval = match_obj
     url = BASE_URL + MATCH_DATA + GAME_ID + str(match_obj.opta_id)
     try:
+        # should only get one dict for match data
         data = call_match_api(url, 'match-data')[0]
     except IndexError:
         message = f'{url} returned no data.'
@@ -182,14 +183,10 @@ def get_preview(match_obj: Match) -> Match:
     """
     retval = match_obj
     url = BASE_URL + PREVIEW + GAME_ID + str(match_obj.opta_id)
-    try:
-        data = call_match_api(url, 'preview')[0]
-    except IndexError:
-        message = f'{url} returned no data.'
-        logging.error(message)
-        return retval
+    data = call_match_api(url, 'preview')
     comments = []
     for row in data:
+        print(row)
         comments.append(row['fact'])
     retval.preview = comments
     return retval
@@ -199,12 +196,7 @@ def get_feed(match_obj: Match) -> Match:
     """Get the full feed from a match."""
     retval = match_obj
     url = BASE_URL + FEED + GAME_ID + str(match_obj.opta_id)
-    try:
-        data = call_match_api(url, 'feed')[0]
-    except IndexError:
-        message = f'{url} returned no data.'
-        logging.error(message)
-        return retval
+    data = call_match_api(url, 'feed')
     comments = process_feed(data)
     retval.feed = comments
     return retval
@@ -217,12 +209,8 @@ def get_summary(match_obj: Match) -> Match:
     """
     retval = match_obj
     url = BASE_URL + SUMMARY + GAME_ID + str(match_obj.opta_id)
-    try:
-        data = call_match_api(url, 'summary')[0]
-    except IndexError:
-        message = f'{url} returned no data.'
-        logging.error(message)
-        return retval
+    # TODO refactor all of these try/except blocks, because not all of them take data[0]
+    data = call_match_api(url, 'summary')
     comments = process_feed(data)
     retval.summary = comments
     return retval
@@ -233,12 +221,6 @@ def get_lineups(match_obj: Match) -> Match:
     retval = match_obj
     url = BASE_URL + LINEUPS + GAME_ID + str(match_obj.opta_id)
     data = call_match_api(url, 'lineups')
-    try:
-        data = call_match_api(url, 'summary')[0]
-    except IndexError:
-        message = f'{url} returned no data.'
-        logging.error(message)
-        return retval
     for player in data:
         team_id = player['club']['opta_id']
         status = player['status']
