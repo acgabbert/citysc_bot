@@ -19,12 +19,17 @@ def match_footer():
 
 def match_header(match_obj: match.Match):
     """Create a match thread header (used by all types of thread)"""
-    home = match_obj.home.name
-    away = match_obj.away.name
+    home = match_obj.home
+    away = match_obj.away
     comp = match_obj.comp
     date, time = match_obj.get_date_time()
     venue = match_obj.venue
-    header = f'# {home} vs. {away}\n'
+    header = ''
+    if len(match_obj.feed) > 1 or match_obj.is_final:
+        # match has started
+        header = f'# {home.name} {home.goals}-{away.goals} {away.name}\n'
+    else:
+        header = f'# {home.name} vs. {away.name}\n'
     header += f'### Match Info\n'
     header += f'**Competition:** {comp}\n\n'
     header += f'**Date:** {date}\n\n'
@@ -60,6 +65,7 @@ def match_thread(match_obj: match.Match):
         comp = 'MLS Regular Season'
     # TODO add date to title?
     title = f'Match Thread: {home} vs. {away} ({comp})'
+    # TODO: if pens, add to title
     markdown = match_header(match_obj)
     markdown += '### Lineups\n'
     markdown += match_obj.home.lineup_str()
@@ -75,14 +81,18 @@ def match_thread(match_obj: match.Match):
 
 
 def post_match_thread(match_obj: match.Match):
-    home = match_obj.home.name
-    away = match_obj.away.name
+    home = match_obj.home
+    away = match_obj.away
     comp = match_obj.comp
     # TODO this will eventually need to handle different values
     if comp == 'US Major League Soccer':
         comp = 'MLS Regular Season'
-    title = f'Post-Match Thread: {home} vs. {away} ({comp})'
+    title = f'Post-Match Thread: {home.name} {home.goals}-{away.goals} '
+    # TODO if pens, add to title here
+    title += f'{away.name} ({comp})'
+
     markdown = match_header(match_obj)
+
     markdown += match_footer()
     return title, markdown
 
