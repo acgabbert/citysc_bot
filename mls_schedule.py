@@ -34,7 +34,7 @@ def get_schedule(**kwargs):
             team = f'&clubOptaId={str(value)}'
     url = BASE_URL + mls.DATE_FROM + date_from + mls.DATE_TO + date_to
     if team is not None:
-        url += team
+        url += str(team)
     if comp is None:
         pass
     else:
