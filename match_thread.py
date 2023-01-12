@@ -18,8 +18,13 @@ parser.add_argument('-i', '--id', help='Match Opta ID')
 subreddit = config.TEST_SUB
 
 
-def get_upcoming_matches(date_from=None, opta_id=None):
-    """Get upcoming matches from the local database."""
+def get_upcoming_matches(date_from: int=None, opta_id=None):
+    """Get upcoming matches from the local database.
+    
+    Keyword arguments:
+        date_from (int): time in epoch format
+        opta_id (int): a team opta_id
+    """
     if date_from is None:
         date_from = int(time.time()) + 86400
     date_to = date_from + 86400
