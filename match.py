@@ -17,6 +17,7 @@ SUMMARY = 'commentaries?commentary_type=secondyellow card&commentary_type=penalt
 FULL_FEED = 'commentaries?commentary_type=secondyellow card&commentary_type=penalty goal&commentary_type=own goal&commentary_type=yellow card&commentary_type=red card&commentary_type=substitution&commentary_type=goal&commentary_type=lineup&commentary_type=start&commentary_type=end 1&commentary_type=end 2&commentary_type=end 3&commentary_type=end 4&commentary_type=end 5&commentary_type=end 14&commentary_type=start delay&commentary_type=end delay&commentary_type=postponed&commentary_type=free kick lost&commentary_type=free kick won&commentary_type=attempt blocked&commentary_type=attempt saved&commentary_type=miss&commentary_type=post&commentary_type=corner&commentary_type=offside&commentary_type=penalty won&commentary_type=penalty lost&commentary_type=penalty miss&commentary_type=penalty saved&commentary_type=player retired&commentary_type=contentious referee decisions&commentary_type=VAR cancelled goal&include=club&include=player&include=player_match&order_by=-commentary_period&order_by=-commentary_minute&order_by=-commentary_second&order_by=-commentary_timestamp&order_by=-commentary_opta_id'
 FEED = 'commentaries?commentary_type=secondyellow card&commentary_type=penalty goal&commentary_type=own goal&commentary_type=yellow card&commentary_type=red card&commentary_type=substitution&commentary_type=goal&commentary_type=lineup&commentary_type=start&commentary_type=end 1&commentary_type=end 2&commentary_type=end 3&commentary_type=end 4&commentary_type=end 5&commentary_type=end 14&commentary_type=start delay&commentary_type=end delay&commentary_type=postponed&commentary_type=penalty won&commentary_type=penalty lost&commentary_type=penalty miss&commentary_type=penalty saved&commentary_type=player retired&commentary_type=contentious referee decisions&commentary_type=VAR cancelled goal&order_by=-commentary_period&order_by=-commentary_minute&order_by=-commentary_second&order_by=-commentary_timestamp&order_by=-commentary_opta_id'
 LINEUPS = 'players/matches?include=player&include=club'
+SUBS = 'substitutions?include=player_match&include=club&include=player'
 MANAGERS = 'managers/matches?include=manager&include=club'
 
 
@@ -26,6 +27,9 @@ class Team(mls.MlsObject):
         self.name = ''
         self.manager = ''
         self.lineup = []
+        # TODO is this the best way to handle it? 
+        # e.g. starter = key, sub = value
+        self.subs = {}
         self.formation_matrix = []
         self.goals = 0
         self.pen_goals = False
@@ -43,7 +47,10 @@ class Team(mls.MlsObject):
                 subs.append(player)
         retval = f'**{self.name}**\n\n'
         for player in starters:
-            retval += player.name + ', '
+            retval += player.name
+            if player in self.subs:
+                retval += f' ({self.subs["player"]})'
+            retval += ', '
         retval = retval[:-2] + '\n\n**Subs:** '
         for player in subs:
             retval += player.name + ', '
@@ -229,6 +236,7 @@ def get_lineups(match_obj: Match) -> Match:
         formation_place  = player['formation_place']
         player_id = player['player']['opta_id']
         adder = Player(player_id, name, status, formation_place, team_id)
+        # TODO figure out a place to get subs
         if team_id == retval.home.opta_id:
             retval.home.lineup.append(adder)
         elif team_id == retval.away.opta_id:
