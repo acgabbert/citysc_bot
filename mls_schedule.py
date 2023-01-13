@@ -45,11 +45,6 @@ def get_schedule(**kwargs):
     return data
 
 
-def craft_url(date_from, date_to, team):
-    url = BASE_URL
-    return url
-
-
 def get_lite_schedule():
     data, _ = mls.call_api(SCHEDULE_LITE)
     return data
