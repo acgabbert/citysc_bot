@@ -62,6 +62,7 @@ def pre_match_thread(opta_id: int, t: str):
     # schedule the match thread for tomorrow at the same time, minus one hour
     msg.send(f'{msg.user}\nScheduled match thread for {t}')
     schedule.every().day.at(t).do(match_thread, opta_id=opta_id)
+    # once complete, cancel the job (i.e. only run once)
     return schedule.CancelJob
 
 
@@ -70,10 +71,11 @@ def match_thread(opta_id: int):
     """
     # this will run until the game is final
     thread.match_thread(opta_id)
+    # once complete, cancel the job (i.e. only run once)
     return schedule.CancelJob
 
 
-def all_jobs():
+def log_all_jobs():
     message = f'Currently scheduled jobs:\n{schedule.get_jobs()}'
     root.info(message)
     #msg.send(f'{msg.user}\n{message}')
@@ -83,13 +85,17 @@ def all_jobs():
 @util.time_dec(True)
 def main():
     root.info(f'Started {__name__} at {time.time()}')
+    # on first run, check the schedule and get upcoming matches
+    mls_schedule.main()
+    get_upcoming_matches()
     # update the schedule every day
     schedule.every().day.at('04:00').do(mls_schedule.main)
     # within get_upcoming_matches, we will schedule pre-match threads
     # pre-match threads will in turn schedule match threads
     # and post-match threads are posted directly after match threads
+    # TODO write scheduled jobs to database to persist in case of failure
     schedule.every().day.at('05:00').do(get_upcoming_matches)
-    schedule.every().day.at('05:30').do(all_jobs)
+    schedule.every().day.at('05:30').do(log_all_jobs)
     running = True
     while running:
         try:
