@@ -1,6 +1,7 @@
 import json
 from datetime import datetime
 
+import discord as msg
 import mls_api as mls
 import util
 
@@ -35,12 +36,11 @@ def get_schedule(**kwargs):
             team = f'&clubOptaId={str(value)}'
     url = BASE_URL + mls.DATE_FROM + date_from + mls.DATE_TO + date_to
     if team is not None:
-        url += str(team)
+        url += f'&clubOptaId={str(team)}'
     if comp is None:
         pass
     else:
         url += comp
-    print(url)
     data, _ = mls.call_api(url)
     return data
 
@@ -52,6 +52,8 @@ def get_lite_schedule():
 
 def update_db(data):
     """Update the database with schedule data."""
+    count_sql = 'SELECT COUNT() FROM match'
+    before_count = util.db_query(count_sql)
     for row in data:
         opta_id = row['optaId']
         try:
@@ -77,6 +79,10 @@ def update_db(data):
         # if it doesn't exist, insert a new row
         sql = 'INSERT OR IGNORE INTO match(opta_id, home, away, time, venue, comp) VALUES (?,?,?,?,?,?)'
         util.db_query(sql, match_data)
+
+    after_count = util.db_query(count_sql)
+    if before_count != after_count:
+        msg.send(f'Database updated. Before: {before_count}. After: {after_count}')
     return None
 
 
@@ -116,10 +122,8 @@ def update_results():
 
 @util.time_dec(False)
 def main():
-    data = get_schedule(comp=None)
+    data = get_schedule()
     update_db(data)
-    #util.write_json(data, 'assets/schedule.json')
-    #update_results()
 
 if __name__ == '__main__':
     main()
