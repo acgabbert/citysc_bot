@@ -1,2 +1,4 @@
-2174821 (cup playoff, a.e.t. no pens)
-2328619 (cup playoff final, a.e.t. pens)
+2174821 (mls cup playoff, a.e.t. no pens)
+2328619 (mls cup playoff final, a.e.t. pens, player subbbed on then off)
+2322143 (us open cup final)
+2284287 (concacaf champions league final, aggregate result)
