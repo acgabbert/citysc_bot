@@ -44,6 +44,11 @@ POST_TEMPLATE = {
     'text': 'asdf'
 }
 
+SORT_TEMPLATE = {
+    'id': '',
+    'sort': 'new'
+}
+
 def get_oauth_token():
     """Request an OAuth token
     Returns headers needed to make Reddit API calls
@@ -101,6 +106,18 @@ def submit(subreddit, title, text, thing_id=None):
     if thing_id is None:
         thing_id = (r.json()['jquery'][10][3][0]).split('/')[-3]
     return r, thing_id
+
+
+def set_sort_order(thing_id, order='new'):
+    """Set a post's default sort order.
+    This can only be done as a moderator."""
+    headers = get_oauth_token()
+    url = REDDIT_OAUTH + '/api/set_suggested_sort'
+    data = SORT_TEMPLATE
+    data['id'] = f't3_{thing_id}'
+    data['sort'] = order
+    r = requests.post(url, data=data, headers=headers)
+    return r
 
 
 if __name__ == '__main__':
