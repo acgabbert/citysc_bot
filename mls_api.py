@@ -51,7 +51,8 @@ def call_api(url: str, params=None):
     r = None
     if params is not None:
         r = requests.get(url, headers=headers, params=params)
-    r = requests.get(url, headers=headers)
+    else:
+        r = requests.get(url, headers=headers)
     if r.status_code != 200:
         message = f'{r.status_code}: {r.reason}'
         logging.error(message)
