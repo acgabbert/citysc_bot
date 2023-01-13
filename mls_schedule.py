@@ -21,6 +21,7 @@ def get_schedule(**kwargs):
     date_from = '2022-12-31'
     date_to = '2023-12-31'
     comp = mls.MLS_REGULAR
+    # default to city SC schedule
     team = 17012
     for key, value in kwargs.items():
         if key == 'date_from':
