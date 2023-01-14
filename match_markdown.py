@@ -27,13 +27,14 @@ def match_header(match_obj: match.Match):
     header = ''
     if len(match_obj.summary) > 1:
         # match has started
-        header = f'# {home.name} {home.goals}-{away.goals} '
+        header = '# '
+        if match_obj.is_final:
+            print(match_obj.result_type)
+            header += f'{match_obj.result_type}: '
+        header += f'{home.name} {home.goals}-{away.goals} '
         if home.shootout_score or away.shootout_score:
             header += f'({home.shootout_score}-{away.shootout_score} pens) '
         header += f'{away.name}\n'
-    elif match_obj.is_final:
-        period = 'FT: '
-        header = f'# {period}{home.name} {home.goals}-{away.goals} {away.name}\n'
     else:
         header = f'# {home.name} vs. {away.name}\n'
     header += f'### Match Info\n'

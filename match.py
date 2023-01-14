@@ -170,7 +170,12 @@ def get_match_data(match_obj: Match) -> Match:
     if retval.date > 999999999999:
         retval.date /= 1000
     retval.minute = data['minute_display']
-    retval.result_type = data['result_type']
+    if data['result_type'] == 'FullTime' or data['result_type'] == 'Aggregate':
+        retval.result_type = 'FT'
+    elif data['result_type'] == 'PenaltyShootout':
+        retval.result_type = 'FT-Pens'
+    elif data['result_type'] == 'AET':
+        retval.result_type = 'AfterExtraTime'
     retval.is_final = data['is_final']
     return retval
 
