@@ -42,10 +42,9 @@ def get_upcoming_matches(date_from=None, opta_id=17012):
         for row in matches:
             id = row[0]
             t = row[1]
-            match_obj = match.Match(id)
             #title, markdown = md.pre_match_thread(match_obj)
             t = time.strftime('%H:%M', time.localtime(t))
-            root.info(f'Match coming up: {match_obj.opta_id}')
+            root.info(f'Match coming up: {id}')
             schedule.every().day.at(t).do(pre_match_thread, opta_id=id, t=t)
             msg.send(f'{msg.user}\nScheduled pre-match thread for {t}')
     else:
@@ -60,7 +59,7 @@ def pre_match_thread(opta_id: int, t: str):
     t = datetime.strptime(t, '%H:%M')
     t -= timedelta(hours=1)
     # schedule the match thread for tomorrow at the same time, minus one hour
-    msg.send(f'{msg.user}\nScheduled match thread for {t}')
+    msg.send(f'{msg.user}\nPosted pre-match thread for {opta_id}\nScheduled match thread for {t}')
     schedule.every().day.at(t).do(match_thread, opta_id=opta_id)
     # once complete, cancel the job (i.e. only run once)
     return schedule.CancelJob
@@ -69,6 +68,7 @@ def pre_match_thread(opta_id: int, t: str):
 def match_thread(opta_id: int):
     """
     """
+    msg.send(f'{msg.user}\Posting match thread for {opta_id}')
     # this will run until the game is final
     thread.match_thread(opta_id)
     # once complete, cancel the job (i.e. only run once)
@@ -100,10 +100,10 @@ def main():
     while running:
         try:
             schedule.run_pending()
-            # while maintaining a match thread, we will be stuck in run_pending.
-            # this is not a problem if only creating match threads for one team
-            # however, if ever used for more than one team/game at a time, 
-            # would need to find a different way to run things
+            # while maintaining a match thread, I think we will be stuck in 
+            # run_pending. this is not a problem if only creating match threads
+            # for one team. however, if ever used for more than one team/game 
+            # at a time, would need to find a different way to run things
             time.sleep(60)
         except KeyboardInterrupt:
             root.error(f'Manual shutdown.')
