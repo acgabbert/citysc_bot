@@ -1,5 +1,3 @@
-import json
-
 import mls_api as mls
 import util
 
