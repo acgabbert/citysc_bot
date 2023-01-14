@@ -70,6 +70,7 @@ def match_thread(opta_id):
         # no thread exists, post a new one
         title, markdown = md.match_thread(match_obj)
         response, thing_id = reddit.submit(config.TEST_SUB, title, markdown, thing_id)
+        reddit.set_sort_order(thing_id)
         if response.status_code == 200 and response.json()['success']:
             # populate its thing_id to match_obj and the database
             sql = f'UPDATE match SET thing_id="{thing_id}" WHERE opta_id = {opta_id}'
