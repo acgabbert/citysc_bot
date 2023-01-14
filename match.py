@@ -83,7 +83,7 @@ class Team(mls.MlsObject):
         self.subs = {}
         self.formation_matrix = []
         self.goals = 0
-        self.pen_goals = False
+        self.shootout_score = False
     
     def lineup_str(self):
         starters = []
@@ -358,11 +358,17 @@ def get_stats(match_obj: Match) -> Match:
     try:
         home_score = data[0]['score']
         match_obj.home.goals = home_score
+        if data[0]['first_penalty_kick'] is not None:
+            home_pens = data[0]['shootout_score']
+            match_obj.home.shootout_score = home_pens
     except KeyError:
         pass
     try:
         away_score = data[1]['score']
         match_obj.away.goals = away_score
+        if data[1]['first_penalty_kick'] is not None:
+            away_pens = data[1]['shootout_score']
+            match_obj.away.shootout_score = away_pens
     except KeyError:
         pass
     return retval
