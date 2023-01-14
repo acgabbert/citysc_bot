@@ -48,7 +48,6 @@ def time_dec(tag):
     def timed_func(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            #logger = setup_logger('MLS API Logger', 'log/mls_api.log')
             start = time()
             try:
                 func()
@@ -76,7 +75,6 @@ def iso_to_epoch(t):
 
 
 def db_query(query: str, data: tuple=None):
-    #logger = setup_logger('MLS Database Logger', 'log/db.log', level=logging.DEBUG)
     retval = None
     try:
         con = sqlite3.connect(mls_db)
