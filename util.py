@@ -5,6 +5,7 @@ import sqlite3
 import inspect
 import json
 import signal
+from datetime import datetime
 
 import discord as msg
 import functools
@@ -64,6 +65,14 @@ def time_dec(tag):
             return func
         return wrapper
     return timed_func
+
+
+def iso_to_epoch(t):
+    """Convert an ISO time (from get_schedule) to epoch time."""
+    retval = datetime.fromisoformat(t)
+    retval = retval.astimezone(tz=None)
+    retval = int(retval.strftime('%s'))
+    return retval
 
 
 def db_query(query: str, data: tuple=None):
