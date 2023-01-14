@@ -18,29 +18,6 @@ parser.add_argument('-i', '--id', help='Match Opta ID')
 subreddit = config.TEST_SUB
 
 
-def get_upcoming_matches(date_from: int=None, opta_id=None):
-    """Get upcoming matches from the local database.
-    
-    Keyword arguments:
-        date_from (int): time in epoch format
-        opta_id (int): a team opta_id
-    """
-    if date_from is None:
-        date_from = int(time.time()) + 86400
-    date_to = date_from + 86400
-    sql = f'SELECT * FROM match WHERE time > {date_from} AND time < {date_to}'
-    if opta_id is not None:
-        sql += f' AND (home = {opta_id} OR away = {opta_id})'
-    matches = util.db_query(sql)
-    if len(matches) > 0:
-        for row in matches:
-            id = row[0]
-            match_obj = match.Match(id)
-            title, markdown = md.pre_match_thread(match_obj)
-            logger.info(f'Match coming up: {match_obj.opta_id}; {title}')
-    return matches
-
-
 def pre_match_thread(opta_id):
     global subreddit
     match_obj = match.Match(opta_id)
@@ -60,10 +37,11 @@ def match_thread(opta_id):
     match_obj = match.Match(opta_id)
     match_obj = match.get_all_data(match_obj)
     
-    # check if thing_id already exists in the database
+    # TODO use something other than a database to track current threads
     sql = f'SELECT thing_id FROM match WHERE opta_id = {opta_id}'
     try:
-        thing_id = util.db_query(sql)[0][0]
+        pass
+        #thing_id = util.db_query(sql)[0][0]
     except IndexError:
         thing_id = None
     if thing_id is None:
@@ -72,9 +50,9 @@ def match_thread(opta_id):
         response, thing_id = reddit.submit(config.TEST_SUB, title, markdown, thing_id)
         reddit.set_sort_order(thing_id)
         if response.status_code == 200 and response.json()['success']:
-            # populate its thing_id to match_obj and the database
-            sql = f'UPDATE match SET thing_id="{thing_id}" WHERE opta_id = {opta_id}'
-            util.db_query(sql)
+            # TODO use something other than a database to track current threads
+            #sql = f'UPDATE match SET thing_id="{thing_id}" WHERE opta_id = {opta_id}'
+            #util.db_query(sql)
             logger.info(f'Posted {title} on {subreddit}')
         else:
             logger.error(
