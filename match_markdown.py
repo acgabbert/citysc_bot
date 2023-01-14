@@ -25,9 +25,12 @@ def match_header(match_obj: match.Match):
     date, time = match_obj.get_date_time()
     venue = match_obj.venue
     header = ''
-    if len(match_obj.feed) > 1:
+    if len(match_obj.summary) > 1:
         # match has started
-        header = f'# {home.name} {home.goals}-{away.goals} {away.name}\n'
+        header = f'# {home.name} {home.goals}-{away.goals} '
+        if home.shootout_score or away.shootout_score:
+            header += f'({home.shootout_score}-{away.shootout_score} pens) '
+        header += f'{away.name}\n'
     elif match_obj.is_final:
         period = 'FT: '
         header = f'# {period}{home.name} {home.goals}-{away.goals} {away.name}\n'
