@@ -42,11 +42,12 @@ def get_upcoming_matches(date_from=None, opta_id=17012):
         for row in matches:
             id = row[0]
             t = row[1]
-            #title, markdown = md.pre_match_thread(match_obj)
             t = time.strftime('%H:%M', time.localtime(t))
             root.info(f'Match coming up: {id}')
             schedule.every().day.at(t).do(pre_match_thread, opta_id=id, t=t)
-            msg.send(f'{msg.user}\nScheduled pre-match thread for {t}')
+            message = f'Scheduled pre-match thread for {t}'
+            root.info(message)
+            msg.send(f'{msg.user}\n{message}')
     else:
         root.info('No upcoming matches.')
     return matches
