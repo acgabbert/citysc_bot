@@ -7,70 +7,6 @@ import match_constants as const
 
 logger = logging.getLogger(__name__)
 
-BASE_URL = 'https://stats-api.mlssoccer.com/v1/'
-GAME_ID = 'match_game_id'
-"""For each api call, add the param 'match_game_id' with
-an integer opta_id to get information about a specific match.
-Multiple match_game_ids can be passed."""
-
-# match_facts gives preview stuff
-PREVIEW_URL = BASE_URL + 'matchfacts'
-PREVIEW_PARAMS = {'matchfact_language': 'en'}
-
-MATCH_DATA_URL = BASE_URL + 'matches'
-MATCH_DATA_PARAMS = {
-    'include': ['competition', 'venue', 'home_club', 'away_club',
-                'home_club_match', 'away_club_match']
-}
-
-STATS_URL = BASE_URL + 'clubs/matches'
-STATS_PARAMS = {'include': ['club', 'match', 'competition', 'statistics']}
-
-# page limit defaults to 100 for summary, feed
-FEED_URL = BASE_URL + 'commentaries'
-SUMMARY_PARAMS = {
-    'commentary_type': ['secondyellow card', 'penalty goal', 'own goal',
-                        'yellow card', 'red card', 'substitution', 'goal',
-                        'penalty miss', 'penalty saved'],
-    'include': ['club', 'player'],
-    # are these alllll necessary? 
-    'order_by': ['commentary_period', 'commentary_minute', 'commentary_second',
-                 'commentary_timestamp', 'commentary_opta_id']
-}
-FULL_FEED_PARAMS = {
-    'commentary_type': ['secondyellow card', 'penalty goal', 'own goal',
-                        'yellow card', 'red card', 'substitution', 'goal',
-                        'penalty miss', 'penalty saved', 'lineup', 'start',
-                        'end 1', 'end 2', 'end 3', 'end 4', 'end 5', 'end 14',
-                        'start delay', 'end delay', 'postponed',
-                        'free kick lost', 'free kick won', 'attempt blocked',
-                        'attempt saved', 'miss', 'post', 'corner', 'offside',
-                        'penalty won', 'penalty lost', 'penalty miss',
-                        'penalty saved', 'player retired',
-                        'contentious referee decision', 'VAR cancelled goal'],
-    'include': ['club', 'player', 'player_match'],
-    # are these alllll necessary? 
-    'order_by': ['commentary_period', 'commentary_minute', 'commentary_second',
-                 'commentary_timestamp', 'commentary_opta_id']
-}
-# TODO implications of ordering by X or -X
-
-LINEUP_URL = BASE_URL + 'players/matches'
-LINEUP_PARAMS = {
-    # add match_game_id
-    'include': ['player', 'club']
-}
-SUBS_URL = BASE_URL + 'substitutions'
-SUBS_PARAMS = {
-    # add match_game_id
-    'include': ['player_match', 'club', 'player']
-}
-MANAGER_URL = BASE_URL + 'managers/matches'
-MANAGER_PARAMS = {
-    # add match_game_id
-    'include': ['manager', 'club']
-}
-
 
 class Team(mls.MlsObject):
     def __init__(self, opta_id):
@@ -165,8 +101,7 @@ class Player(mls.MlsObject):
 
 
 def call_match_api(url, params, filename):
-    # this no longer works
-    opta_id = params[GAME_ID]
+    opta_id = params[const.GAME_ID]
     data, _ = mls.call_api(url, params)
     util.write_json(data, f'assets/{filename}-{opta_id}.json')
     return data
@@ -215,10 +150,9 @@ def get_match_data(match_obj: Match) -> Match:
     Specfically, this is one place to get the formation matrix.
     """
     retval = match_obj
-    #url = BASE_URL + MATCH_DATA + GAME_ID + str(match_obj.opta_id)
-    url = MATCH_DATA_URL
-    params = MATCH_DATA_PARAMS
-    params[GAME_ID] = match_obj.opta_id
+    url = const.MATCH_DATA_URL
+    params = const.MATCH_DATA_PARAMS
+    params[const.GAME_ID] = match_obj.opta_id
     try:
         # should only get one dict for match data
         data = call_match_api(url, params, 'match-data')[0]
@@ -246,10 +180,9 @@ def get_preview(match_obj: Match) -> Match:
     Returns a list of comments.
     """
     retval = match_obj
-    #url = BASE_URL + PREVIEW + GAME_ID + str(match_obj.opta_id)
-    url = PREVIEW_URL
-    params = PREVIEW_PARAMS
-    params[GAME_ID] = match_obj.opta_id
+    url = const.PREVIEW_URL
+    params = const.PREVIEW_PARAMS
+    params[const.GAME_ID] = match_obj.opta_id
     data = call_match_api(url, params, 'preview')
     comments = []
     for row in data:
@@ -261,10 +194,9 @@ def get_preview(match_obj: Match) -> Match:
 def get_feed(match_obj: Match) -> Match:
     """Get the full feed from a match."""
     retval = match_obj
-    #url = BASE_URL + FEED + GAME_ID + str(match_obj.opta_id)
-    url = FEED_URL
-    params = FULL_FEED_PARAMS
-    params[GAME_ID] = match_obj.opta_id
+    url = const.FEED_URL
+    params = const.FULL_FEED_PARAMS
+    params[const.GAME_ID] = match_obj.opta_id
     data = call_match_api(url, params, 'feed')
     comments = process_feed(data)
     retval.feed = comments
@@ -277,10 +209,9 @@ def get_summary(match_obj: Match) -> Match:
     Returns a list of comments.
     """
     retval = match_obj
-    #url = BASE_URL + SUMMARY + GAME_ID + str(match_obj.opta_id)
-    url = FEED_URL
-    params = SUMMARY_PARAMS
-    params[GAME_ID] = match_obj.opta_id
+    url = const.FEED_URL
+    params = const.SUMMARY_PARAMS
+    params[const.GAME_ID] = match_obj.opta_id
     # TODO refactor all of these try/except blocks, because not all of them take data[0]
     data = call_match_api(url, params, 'summary')
     comments = process_feed(data)
@@ -291,15 +222,13 @@ def get_summary(match_obj: Match) -> Match:
 def get_lineups(match_obj: Match) -> Match:
     """Get the lineups from a match."""
     retval = match_obj
-    #url = BASE_URL + LINEUPS + GAME_ID + str(match_obj.opta_id)
-    url = LINEUP_URL
-    params = LINEUP_PARAMS
-    params[GAME_ID] = match_obj.opta_id
+    url = const.LINEUP_URL
+    params = const.LINEUP_PARAMS
+    params[const.GAME_ID] = match_obj.opta_id
     data = call_match_api(url, params, 'lineups')
-    #subs_url = BASE_URL + SUBS + GAME_ID + str(match_obj.opta_id)
-    subs_url = SUBS_URL
-    subs_params = SUBS_PARAMS
-    subs_params[GAME_ID] = match_obj.opta_id
+    subs_url = const.SUBS_URL
+    subs_params = const.SUBS_PARAMS
+    subs_params[const.GAME_ID] = match_obj.opta_id
     subs = call_match_api(subs_url, subs_params, 'subs')
     for player in data:
         team_id = player['club']['opta_id']
@@ -328,10 +257,9 @@ def get_lineups(match_obj: Match) -> Match:
 def get_managers(match_obj: Match) -> Match:
     """Get managers from a match."""
     retval = match_obj
-    #url = BASE_URL + MANAGERS + GAME_ID + str(match_obj.opta_id)
-    url = MANAGER_URL
-    params = MANAGER_PARAMS
-    params[GAME_ID] = match_obj.opta_id
+    url = const.MANAGER_URL
+    params = const.MANAGER_PARAMS
+    params[const.GAME_ID] = match_obj.opta_id
     data = call_match_api(url, params, 'managers')
     for manager in data:
         team_id = manager['club']['opta_id']
@@ -348,10 +276,9 @@ def get_managers(match_obj: Match) -> Match:
 def get_stats(match_obj: Match) -> Match:
     """Get stats from a match."""
     retval = match_obj
-    #url = BASE_URL + STATS + GAME_ID + str(match_obj.opta_id)
-    url = STATS_URL
-    params = STATS_PARAMS
-    params[GAME_ID] = match_obj.opta_id
+    url = const.STATS_URL
+    params = const.STATS_PARAMS
+    params[const.GAME_ID] = match_obj.opta_id
     data = call_match_api(url, params, 'stats')
     home_score = 0
     away_score = 0
