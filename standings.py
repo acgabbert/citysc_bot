@@ -23,25 +23,10 @@ def get_standings(**kwargs):
     return data
 
 
-def update_db(data):
-    for team in data:
-        try:
-            id = int(team['club']['optaId'])
-        except KeyError:
-            # right now STL is blank (no id) in standings results
-            continue
-        points = team['statistics']['total_points']
-        gp = team['statistics']['total_matches']
-        gd = team['statistics']['total_goal_differential']
-        sql = f'UPDATE team SET points={points}, gp={gp}, gd={gd} WHERE opta_id={id}'
-        util.db_query(sql)
-    return None
-
-
 @util.time_dec(False)
 def main():
     data = get_standings()
-    update_db(data)
+    # TODO write standings to markdown
 
 
 if __name__ == '__main__':
