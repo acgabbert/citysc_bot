@@ -60,7 +60,9 @@ def pre_match_thread(opta_id: int, t: str):
     t = datetime.strptime(t, '%H:%M')
     t -= timedelta(hours=1)
     # schedule the match thread for tomorrow at the same time, minus one hour
-    msg.send(f'{msg.user}\nPosted pre-match thread for {opta_id}\nScheduled match thread for {t}')
+    message = f'Posted pre-match thread for {opta_id}\nScheduled match thread for {t}'
+    root.info(message)
+    msg.send(f'{msg.user}\n{message}')
     schedule.every().day.at(t).do(match_thread, opta_id=opta_id)
     # once complete, cancel the job (i.e. only run once)
     return schedule.CancelJob
@@ -69,7 +71,9 @@ def pre_match_thread(opta_id: int, t: str):
 def match_thread(opta_id: int):
     """
     """
-    msg.send(f'{msg.user}\Posting match thread for {opta_id}')
+    message = f'Posting match thread for {opta_id}'
+    root.info(message)
+    msg.send(f'{msg.user}\n{message}')
     # this will run until the game is final
     thread.match_thread(opta_id)
     # once complete, cancel the job (i.e. only run once)
@@ -77,10 +81,11 @@ def match_thread(opta_id: int):
 
 
 def log_all_jobs():
-    message = f'Currently scheduled jobs:\n{schedule.get_jobs()}'
+    jobs = schedule.get_jobs()
+    message = f'Currently scheduled jobs:\n{jobs}'
     root.info(message)
-    #msg.send(f'{msg.user}\n{message}')
-    return schedule.get_jobs()
+    msg.send(f'{message}')
+    return jobs
 
 
 @util.time_dec(True)
