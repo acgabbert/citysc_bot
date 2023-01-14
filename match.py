@@ -16,18 +16,15 @@ Multiple match_game_ids can be passed."""
 # match_facts gives preview stuff
 PREVIEW_URL = BASE_URL + 'matchfacts'
 PREVIEW_PARAMS = {'matchfact_language': 'en'}
-PREVIEW = 'matchfacts?&matchfact_language=en'
 
 MATCH_DATA_URL = BASE_URL + 'matches'
 MATCH_DATA_PARAMS = {
     'include': ['competition', 'venue', 'home_club', 'away_club',
                 'home_club_match', 'away_club_match']
 }
-MATCH_DATA = 'matches?include=away_club_match&include=home_club_match&include=venue&include=home_club&include=away_club&include=competition'
 
 STATS_URL = BASE_URL + 'clubs/matches'
 STATS_PARAMS = {'include': ['club', 'match', 'competition', 'statistics']}
-STATS = 'clubs/matches?include=club&include=match&include=competition&include=statistics'
 
 # page limit defaults to 100 for summary, feed
 FEED_URL = BASE_URL + 'commentaries'
@@ -40,38 +37,39 @@ SUMMARY_PARAMS = {
     'order_by': ['commentary_period', 'commentary_minute', 'commentary_second',
                  'commentary_timestamp', 'commentary_opta_id']
 }
-FULL_FEED_PARAMS = SUMMARY_PARAMS
-FULL_FEED_PARAMS['commentary_type'].extend(
-    ['lineup', 'start', 'end 1', 'end 2', 'end 3', 'end 4', 'end 5', 'end 14',
-    'start delay', 'end delay', 'postponed', 'free kick lost',
-    'free kick won', 'attempt blocked', 'attempt saved', 'miss', 'post',
-    'corner', 'offside', 'penalty won', 'penalty lost', 'penalty miss',
-    'penalty saved', 'player retired', 'contentious referee decision',
-    'VAR cancelled goal']
-    )
-FULL_FEED_PARAMS['include'].append('player_match')
-SUMMARY = 'commentaries?commentary_type=secondyellow card&commentary_type=penalty goal&commentary_type=own goal&commentary_type=yellow card&commentary_type=red card&commentary_type=substitution&commentary_type=goal&commentary_type=penalty miss&commentary_type=penalty saved&include=club&include=player&order_by=commentary_period&order_by=commentary_minute&order_by=commentary_second&order_by=commentary_timestamp&order_by=commentary_opta_id'
+FULL_FEED_PARAMS = {
+    'commentary_type': ['secondyellow card', 'penalty goal', 'own goal',
+                        'yellow card', 'red card', 'substitution', 'goal',
+                        'penalty miss', 'penalty saved', 'lineup', 'start',
+                        'end 1', 'end 2', 'end 3', 'end 4', 'end 5', 'end 14',
+                        'start delay', 'end delay', 'postponed',
+                        'free kick lost', 'free kick won', 'attempt blocked',
+                        'attempt saved', 'miss', 'post', 'corner', 'offside',
+                        'penalty won', 'penalty lost', 'penalty miss',
+                        'penalty saved', 'player retired',
+                        'contentious referee decision', 'VAR cancelled goal'],
+    'include': ['club', 'player', 'player_match'],
+    # are these alllll necessary? 
+    'order_by': ['commentary_period', 'commentary_minute', 'commentary_second',
+                 'commentary_timestamp', 'commentary_opta_id']
+}
 # TODO implications of ordering by X or -X
-FULL_FEED = 'commentaries?commentary_type=secondyellow card&commentary_type=penalty goal&commentary_type=own goal&commentary_type=yellow card&commentary_type=red card&commentary_type=substitution&commentary_type=goal&commentary_type=lineup&commentary_type=start&commentary_type=end 1&commentary_type=end 2&commentary_type=end 3&commentary_type=end 4&commentary_type=end 5&commentary_type=end 14&commentary_type=start delay&commentary_type=end delay&commentary_type=postponed&commentary_type=free kick lost&commentary_type=free kick won&commentary_type=attempt blocked&commentary_type=attempt saved&commentary_type=miss&commentary_type=post&commentary_type=corner&commentary_type=offside&commentary_type=penalty won&commentary_type=penalty lost&commentary_type=penalty miss&commentary_type=penalty saved&commentary_type=player retired&commentary_type=contentious referee decisions&commentary_type=VAR cancelled goal&include=club&include=player&include=player_match&order_by=-commentary_period&order_by=-commentary_minute&order_by=-commentary_second&order_by=-commentary_timestamp&order_by=-commentary_opta_id'
-FEED = 'commentaries?commentary_type=secondyellow card&commentary_type=penalty goal&commentary_type=own goal&commentary_type=yellow card&commentary_type=red card&commentary_type=substitution&commentary_type=goal&commentary_type=lineup&commentary_type=start&commentary_type=end 1&commentary_type=end 2&commentary_type=end 3&commentary_type=end 4&commentary_type=end 5&commentary_type=end 14&commentary_type=start delay&commentary_type=end delay&commentary_type=postponed&commentary_type=penalty won&commentary_type=penalty lost&commentary_type=penalty miss&commentary_type=penalty saved&commentary_type=player retired&commentary_type=contentious referee decisions&commentary_type=VAR cancelled goal&order_by=-commentary_period&order_by=-commentary_minute&order_by=-commentary_second&order_by=-commentary_timestamp&order_by=-commentary_opta_id'
+
 LINEUP_URL = BASE_URL + 'players/matches'
 LINEUP_PARAMS = {
     # add match_game_id
     'include': ['player', 'club']
 }
-LINEUPS = 'players/matches?include=player&include=club'
 SUBS_URL = BASE_URL + 'substitutions'
 SUBS_PARAMS = {
     # add match_game_id
     'include': ['player_match', 'club', 'player']
 }
-SUBS = 'substitutions?include=player_match&include=club&include=player'
 MANAGER_URL = BASE_URL + 'managers/matches'
 MANAGER_PARAMS = {
     # add match_game_id
     'include': ['manager', 'club']
 }
-MANAGERS = 'managers/matches?include=manager&include=club'
 
 
 class Team(mls.MlsObject):

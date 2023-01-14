@@ -51,7 +51,6 @@ def pre_match_thread(match_obj: match.Match):
         comp = 'MLS Regular Season'
     title = f'Pre-Match Thread: {home} vs. {away} ({comp})'
     markdown = match_header(match_obj)
-    match_obj = match.get_preview(match_obj)
     markdown += '### Match Facts\n'
     for comment in match_obj.preview:
         markdown += comment + '\n\n'
@@ -75,7 +74,7 @@ def match_thread(match_obj: match.Match):
     markdown += match_obj.away.lineup_str()
     markdown += '---\n'
     markdown += '### Match Events\n'
-    for comment in match_obj.feed:
+    for comment in match_obj.summary:
         markdown += comment + '\n\n'
     markdown += match_footer()
     return title, markdown
