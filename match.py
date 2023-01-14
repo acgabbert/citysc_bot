@@ -371,12 +371,12 @@ def get_stats(match_obj: Match) -> Match:
 
 
 def get_all_data(match_obj: Match) -> Match:
+    """Get all data for a match thread (only a summary feed)."""
     logger.info(f'Getting all data for {match_obj.opta_id}')
     match_obj = get_match_data(match_obj)
     match_obj = get_preview(match_obj)
     match_obj = get_lineups(match_obj)
     match_obj = get_managers(match_obj)
-    match_obj = get_feed(match_obj)
     match_obj = get_stats(match_obj)
     match_obj = get_summary(match_obj)
     return match_obj

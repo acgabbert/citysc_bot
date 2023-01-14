@@ -25,9 +25,12 @@ def match_header(match_obj: match.Match):
     date, time = match_obj.get_date_time()
     venue = match_obj.venue
     header = ''
-    if len(match_obj.feed) > 1 or match_obj.is_final:
+    if len(match_obj.feed) > 1:
         # match has started
         header = f'# {home.name} {home.goals}-{away.goals} {away.name}\n'
+    elif match_obj.is_final:
+        period = 'FT: '
+        header = f'# {period}{home.name} {home.goals}-{away.goals} {away.name}\n'
     else:
         header = f'# {home.name} vs. {away.name}\n'
     header += f'### Match Info\n'
@@ -71,9 +74,7 @@ def match_thread(match_obj: match.Match):
     markdown += match_obj.home.lineup_str()
     markdown += match_obj.away.lineup_str()
     markdown += '---\n'
-    match_obj = match.get_feed(match_obj)
     markdown += '### Match Events\n'
-    print(len(match_obj.feed))
     for comment in match_obj.feed:
         markdown += comment + '\n\n'
     markdown += match_footer()
@@ -87,6 +88,7 @@ def post_match_thread(match_obj: match.Match):
     # TODO this will eventually need to handle different values
     if comp == 'US Major League Soccer':
         comp = 'MLS Regular Season'
+    # TODO add period/result type
     title = f'Post-Match Thread: {home.name} {home.goals}-{away.goals} '
     # TODO if pens, add to title here
     title += f'{away.name} ({comp})'
