@@ -5,7 +5,14 @@ import discord as msg
 import mls_api as mls
 import util
 
-BASE_URL = 'https://sportapi.mlssoccer.com/api/matches?culture=en-us'
+BASE_URL = 'https://sportapi.mlssoccer.com/api/matches'
+PARAMS = {
+    'culture': 'en-us',
+    'date_from': '2022-12-31',
+    'date_to': '2023-12-31',
+    'competition': 98,
+    'clubOptaId': 17012
+}
 # returns optaId and matchDate for all matches in 2023
 SCHEDULE_LITE = 'https://sportapi.mlssoccer.com/api/matchesLite/2022?culture=en-us&competition=98&matchType=Regular'
 MATCH_RESULT = 'https://stats-api.mlssoccer.com/v1/matches?&include=away_club_match&include=home_club_match'
@@ -19,29 +26,24 @@ def get_schedule(**kwargs):
         team (int): a club opta_id
     """
     url = BASE_URL
-    date_from = '2022-12-31'
-    date_to = '2023-12-31'
-    comp = mls.MLS_REGULAR
-    # default to city SC schedule
-    team = 17012
+    params = PARAMS.copy()
     for key, value in kwargs.items():
         if key == 'date_from':
-            date_from = value
+            params[key] = value
         if key == 'date_to':
-            date_to = value
+            params[key] = value
         # TODO figure out how we want to handle comp here
         if key == 'comp':
-            comp = value
+            if value is None:
+                del params['competition']
+            else:
+                params['competition'] = value
         if key == 'team':
-            team = f'&clubOptaId={str(value)}'
-    url = BASE_URL + mls.DATE_FROM + date_from + mls.DATE_TO + date_to
-    if team is not None:
-        url += f'&clubOptaId={str(team)}'
-    if comp is None:
-        pass
-    else:
-        url += comp
-    data, _ = mls.call_api(url)
+            if value is None:
+                del params['clubOptaId']
+            else:
+                params['clubOptaId'] = value
+    data, _ = mls.call_api(url, params)
     return data
 
 
@@ -102,6 +104,7 @@ def update_results():
     matches = util.db_query(sql)
     i = 0
     p = 50
+    # process rows 50 at a time
     for i in range(0, len(matches), p):
         url = MATCH_RESULT
         temp_list = matches[i:i+p]
