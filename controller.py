@@ -36,7 +36,7 @@ class Main:
         p = Process(target=thread.match_thread, args=(opta_id,), daemon=True)
         p.start()
 
-
+@util.time_dec
 def get_next_match(date_from=None, opta_id=17012):
     """Get upcoming matches."""
     data = mls_schedule.get_schedule(team=opta_id, comp=None)
@@ -54,7 +54,7 @@ def get_next_match(date_from=None, opta_id=17012):
         root.info('No upcoming matches.')
     return data
 
-
+@util.time_dec
 def pre_match_thread(opta_id: int, t: str):
     """
     """
@@ -69,7 +69,7 @@ def pre_match_thread(opta_id: int, t: str):
     # once complete, cancel the job (i.e. only run once)
     return schedule.CancelJob
 
-
+@util.time_dec
 def match_thread(opta_id: int):
     """
     """
@@ -110,10 +110,6 @@ def main():
     while running:
         try:
             schedule.run_pending()
-            # while maintaining a match thread, I think we will be stuck in 
-            # run_pending. this is not a problem if only creating match threads
-            # for one team. however, if ever used for more than one team/game 
-            # at a time, would need to find a different way to run things
             time.sleep(60)
         except KeyboardInterrupt:
             root.error(f'Manual shutdown.')
