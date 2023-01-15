@@ -38,9 +38,9 @@ def match_thread(opta_id):
     match_obj = match.get_all_data(match_obj)
     
     # TODO use something other than a database to track current threads
-    sql = f'SELECT thing_id FROM match WHERE opta_id = {opta_id}'
     try:
-        pass
+        # need to check for a thing_id here, in wherever we decide to keep track of them
+        thing_id = None
         #thing_id = util.db_query(sql)[0][0]
     except IndexError:
         thing_id = None
