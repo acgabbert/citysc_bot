@@ -51,15 +51,14 @@ def match_thread(opta_id):
         reddit.set_sort_order(thing_id)
         if response.status_code == 200 and response.json()['success']:
             # TODO use something other than a database to track current threads
-            #sql = f'UPDATE match SET thing_id="{thing_id}" WHERE opta_id = {opta_id}'
-            #util.db_query(sql)
             logger.info(f'Posted {title} on {subreddit}')
         else:
-            logger.error(
+            message = (
                 f'Error posting {title} on {subreddit}.\n'
                 f'{response.status_code} - {response.reason}\n'
                 f'{response.json()["jquery"][10][3][0]}'
             )
+            logger.error(message)
             # TODO or could raise an exception here
             return
     
@@ -71,12 +70,12 @@ def match_thread(opta_id):
         # edit existing thread with thing_id
         response, _ = reddit.submit(subreddit, title, markdown, thing_id)
         if not response.json()['success']:
-            logger.error(
+            message = (
                 f'Error posting {title} on {subreddit}.\n'
                 f'{response.status_code} - {response.reason}\n'
                 f'{response.json()["jquery"][10][3][0]}'
             )
-        # update the database?
+            logger.error(message)
     if match_obj.is_final:
         # post a post-match thread
         pass
