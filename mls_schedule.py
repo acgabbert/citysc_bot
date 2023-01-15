@@ -59,7 +59,6 @@ def check_pre_match(data, date_from=None):
         date_from = int(time.time()) + 86400
     # until +48h
     date_to = date_from + 86400
-    print(f'checking from {date_from} to {date_to}')
     for match in data:
         match_time = util.iso_to_epoch(match['matchDate'])
         if match_time > date_from and match_time < date_to:
