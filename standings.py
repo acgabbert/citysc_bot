@@ -2,6 +2,11 @@ import mls_api as mls
 import util
 
 BASE_URL = 'https://sportapi.mlssoccer.com/api/standings/live?&isLive=true'
+PARAMS = {
+    'isLive': 'true',
+    'seasonId': 2023,
+    'competitionId': 98
+}
 SEASON = '&seasonId='
 COMP = '&competitionId='
 
