@@ -5,7 +5,7 @@ import mls_api as mls
 import util
 import match_constants as const
 import player
-import team
+import club
 
 logger = logging.getLogger(__name__)
 
@@ -16,8 +16,8 @@ class Match(mls.MlsObject):
         self.venue = ''
         self.comp = ''
         self.date = -1
-        self.home = team.ClubMatch(-1)
-        self.away = team.ClubMatch(-1)
+        self.home = club.ClubMatch(-1)
+        self.away = club.ClubMatch(-1)
         self.minute = ''
         self.result_type = ''
         self.is_final = False
@@ -81,14 +81,14 @@ def process_feed(data) -> list[str]:
     return comments
 
 
-def process_club(data, away=False) -> team.ClubMatch:
+def process_club(data, away=False) -> club.ClubMatch:
     """Process club data. Should be called from get_match_data."""
     t = 'home_club'
     if away:
         t = 'away_club'
     team_match = t + '_match'
     opta_id = data[t]['opta_id']
-    retval = team.ClubMatch(opta_id=opta_id)
+    retval = club.ClubMatch(opta_id=opta_id)
     retval.full_name = data[t]['name']
     formation = data[team_match]['formation_matrix']
     if formation is not None:
