@@ -36,7 +36,7 @@ class Main:
         p = Process(target=thread.match_thread, args=(opta_id,), daemon=True)
         p.start()
 
-@util.time_dec
+@util.time_dec(True)
 def get_next_match(date_from=None, opta_id=17012):
     """Get upcoming matches."""
     data = mls_schedule.get_schedule(team=opta_id, comp=None)
@@ -54,7 +54,7 @@ def get_next_match(date_from=None, opta_id=17012):
         root.info('No upcoming matches.')
     return data
 
-@util.time_dec
+@util.time_dec(True)
 def pre_match_thread(opta_id: int, t: str):
     """
     """
@@ -69,7 +69,7 @@ def pre_match_thread(opta_id: int, t: str):
     # once complete, cancel the job (i.e. only run once)
     return schedule.CancelJob
 
-@util.time_dec
+@util.time_dec(True)
 def match_thread(opta_id: int):
     """
     """
