@@ -4,6 +4,7 @@ import logging
 import mls_api as mls
 import util
 import match_constants as const
+import player
 
 logger = logging.getLogger(__name__)
 
@@ -86,18 +87,12 @@ class Match(mls.MlsObject):
         else:
             return super().__str__()
         return retval
-
-
-class Player(mls.MlsObject):
-    def __init__(self, opta_id, name, status, formation_place, team):
-        super().__init__(opta_id)
-        self.name = name
-        self.status = status
-        self.formation_place = formation_place
-        self.team = team
     
-    def __str__(self):
-        return self.name
+    def __lt__(self, other):
+        if self.date < other.date:
+            return True
+        else:
+            return False
 
 
 def call_match_api(url, params, filename):
@@ -148,6 +143,15 @@ def process_club(data, away=False) -> Team:
 def get_match_data(match_obj: Match) -> Match:
     """Get the match data for a match.
     Specfically, this is one place to get the formation matrix.
+    Populates the following data in the Match object:
+    - venue
+    - comp
+    - home
+    - away
+    - date
+    - minute
+    - result_type
+    - is_final
     """
     retval = match_obj
     url = const.MATCH_DATA_URL
@@ -236,13 +240,13 @@ def get_lineups(match_obj: Match) -> Match:
     subs_params = const.SUBS_PARAMS
     subs_params[const.GAME_ID] = match_obj.opta_id
     subs = call_match_api(subs_url, subs_params, 'subs')
-    for player in data:
-        team_id = player['club']['opta_id']
-        status = player['status']
-        name = player['player']['full_name']
-        formation_place  = player['formation_place']
-        player_id = player['player']['opta_id']
-        adder = Player(player_id, name, status, formation_place, team_id)
+    for p in data:
+        team_id = p['club']['opta_id']
+        status = p['status']
+        name = p['player']['full_name']
+        formation_place  = p['formation_place']
+        player_id = p['player']['opta_id']
+        adder = player.Player(player_id, name, status, formation_place, team_id)
         # TODO figure out a place to get subs
         if team_id == retval.home.opta_id:
             retval.home.lineup.append(adder)
@@ -250,12 +254,12 @@ def get_lineups(match_obj: Match) -> Match:
             retval.away.lineup.append(adder)
         else:
             logger.error(f'Error: player {name}, game {retval.opta_id} does not match either team.')
-    for player in subs:
-        off_name = player['off_player']['full_name']
-        on_name = player['on_player']['full_name']
-        if player['club']['opta_id'] == retval.home.opta_id:
+    for p in subs:
+        off_name = p['off_player']['full_name']
+        on_name = p['on_player']['full_name']
+        if p['club']['opta_id'] == retval.home.opta_id:
             retval.home.subs[off_name] = on_name
-        elif player['club']['opta_id'] == retval.away.opta_id:
+        elif p['club']['opta_id'] == retval.away.opta_id:
             retval.away.subs[off_name] = on_name
     return retval
 
