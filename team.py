@@ -1,6 +1,6 @@
 import mls_api as mls
 
-class TeamNotMatch(mls.MlsObject):
+class Club(mls.MlsObject):
     def __init__(self, opta_id):
         super().__init__(opta_id)
         self.full_name = ''
@@ -8,7 +8,8 @@ class TeamNotMatch(mls.MlsObject):
         self.abbrev = ''
         self.points = -1
 
-class MatchTeam(TeamNotMatch):
+
+class ClubMatch(Club):
     def __init__(self, opta_id):
         super().__init__(opta_id)
         self.full_name = ''
@@ -53,5 +54,5 @@ class MatchTeam(TeamNotMatch):
             return super().__str__()
 
 
-def get_team():
+def get_team(opta_id: int) -> Club:
     pass
