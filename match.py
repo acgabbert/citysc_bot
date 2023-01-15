@@ -5,53 +5,9 @@ import mls_api as mls
 import util
 import match_constants as const
 import player
+import team
 
 logger = logging.getLogger(__name__)
-
-
-class Team(mls.MlsObject):
-    def __init__(self, opta_id):
-        super().__init__(opta_id)
-        self.name = ''
-        self.manager = ''
-        self.lineup = []
-        # TODO is this the best way to handle it? 
-        # e.g. starter = key, sub = value
-        self.subs = {}
-        self.formation_matrix = []
-        self.goals = 0
-        self.shootout_score = False
-    
-    def lineup_str(self):
-        starters = []
-        bench = []
-        if len(self.lineup) == 0:
-            return f'{self.name} lineup has not yet been announced.\n\n'
-        for player in self.lineup:
-            if player.status == 'Start':
-                index = self.formation_matrix.index(player.formation_place)
-                starters.insert(index, player)
-            else:
-                bench.append(player)
-        retval = f'**{self.name}**\n\n'
-        for player in starters:
-            retval += player.name
-            # TODO handle case where player is subbed on, then subbed off
-            if player.name in self.subs:
-                retval += f' ({self.subs[player.name]})'
-            retval += ', '
-        retval = retval[:-2] + '\n\n**Subs:** '
-        for player in bench:
-            retval += player.name + ', '
-        retval = retval[:-2]
-        retval += '\n\n'
-        return retval
-    
-    def __str__(self):
-        if self.name:
-            return self.name
-        else:
-            return super().__str__()
 
 
 class Match(mls.MlsObject):
@@ -60,8 +16,8 @@ class Match(mls.MlsObject):
         self.venue = ''
         self.comp = ''
         self.date = -1
-        self.home = Team(-1)
-        self.away = Team(-1)
+        self.home = team.MatchTeam(-1)
+        self.away = team.MatchTeam(-1)
         self.minute = ''
         self.result_type = ''
         self.is_final = False
@@ -83,7 +39,7 @@ class Match(mls.MlsObject):
     def __str__(self):
         retval = ''
         if self.home.opta_id != -1:
-            retval += f'{self.home.name} vs. {self.away.name}'
+            retval += f'{self.home.full_name} vs. {self.away.full_name}'
         else:
             return super().__str__()
         return retval
@@ -125,15 +81,15 @@ def process_feed(data) -> list[str]:
     return comments
 
 
-def process_club(data, away=False) -> Team:
+def process_club(data, away=False) -> team.MatchTeam:
     """Process club data. Should be called from get_match_data."""
-    team = 'home_club'
+    t = 'home_club'
     if away:
-        team = 'away_club'
-    team_match = team + '_match'
-    opta_id = data[team]['opta_id']
-    retval = Team(opta_id=opta_id)
-    retval.name = data[team]['name']
+        t = 'away_club'
+    team_match = t + '_match'
+    opta_id = data[t]['opta_id']
+    retval = team.MatchTeam(opta_id=opta_id)
+    retval.full_name = data[t]['name']
     formation = data[team_match]['formation_matrix']
     if formation is not None:
         retval.formation_matrix = process_formation(formation)

@@ -30,12 +30,12 @@ def match_header(match_obj: match.Match):
         header = '# '
         if match_obj.is_final:
             header += f'{match_obj.result_type}: '
-        header += f'{home.name} {home.goals}-{away.goals} '
+        header += f'{home.full_name} {home.goals}-{away.goals} '
         if home.shootout_score or away.shootout_score:
             header += f'({home.shootout_score}-{away.shootout_score} pens) '
-        header += f'{away.name}\n'
+        header += f'{away.full_name}\n'
     else:
-        header = f'# {home.name} vs. {away.name}\n'
+        header = f'# {home.full_name} vs. {away.full_name}\n'
     header += f'### Match Info\n'
     header += f'**Competition:** {comp}\n\n'
     header += f'**Date:** {date}\n\n'
@@ -46,8 +46,8 @@ def match_header(match_obj: match.Match):
 
 def pre_match_thread(match_obj: match.Match):
     """Generate markdown for a pre-match thread."""
-    home = match_obj.home.name
-    away = match_obj.away.name
+    home = match_obj.home.full_name
+    away = match_obj.away.full_name
     comp = match_obj.comp
     # TODO this will eventually need to handle different values
     if comp == 'US Major League Soccer':
@@ -62,8 +62,8 @@ def pre_match_thread(match_obj: match.Match):
 
 
 def match_thread(match_obj: match.Match):
-    home = match_obj.home.name
-    away = match_obj.away.name
+    home = match_obj.home.full_name
+    away = match_obj.away.full_name
     comp = match_obj.comp
     # TODO this will eventually need to handle different values
     if comp == 'US Major League Soccer':
@@ -91,9 +91,9 @@ def post_match_thread(match_obj: match.Match):
     if comp == 'US Major League Soccer':
         comp = 'MLS Regular Season'
     # TODO add period/result type
-    title = f'Post-Match Thread: {home.name} {home.goals}-{away.goals} '
+    title = f'Post-Match Thread: {home.full_name} {home.goals}-{away.goals} '
     # TODO if pens, add to title here
-    title += f'{away.name} ({comp})'
+    title += f'{away.full_name} ({comp})'
     markdown = match_header(match_obj)
 
     markdown += match_footer()
