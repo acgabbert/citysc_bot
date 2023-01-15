@@ -15,6 +15,7 @@ PARAMS = {
     'clubOptaId': 17012
 }
 # returns optaId and matchDate for all matches in 2023
+LITE_URL = 'https://sportapi.mlssoccer.com/api/matchesLite/2023'
 SCHEDULE_LITE = 'https://sportapi.mlssoccer.com/api/matchesLite/2022?culture=en-us&competition=98&matchType=Regular'
 MATCH_RESULT = 'https://stats-api.mlssoccer.com/v1/matches?&include=away_club_match&include=home_club_match'
 GAME_ID = '&match_game_id='
@@ -25,6 +26,7 @@ def get_schedule(**kwargs):
         date_from (str): a date in the form YYYY-MM-DD
         date_to (str): a date in the form YYYY-MM-DD
         team (int): a club opta_id
+        comp (int): a competition id (e.g. MLS=98)
     """
     url = BASE_URL
     params = PARAMS.copy()
