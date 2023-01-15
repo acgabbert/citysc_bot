@@ -1,8 +1,8 @@
 import time
 import logging, logging.handlers
-import sys
 from datetime import datetime, timedelta
 import schedule
+from multiprocessing import Process
 
 import util
 import discord as msg
@@ -25,6 +25,16 @@ root.setLevel(logging.DEBUG)
 root.addHandler(fh)
 root.addHandler(fh2)
 root.addHandler(er)
+
+
+class Main:
+    @staticmethod
+    def create_match_thread(opta_id):
+        message = f'Posting match thread for {opta_id}'
+        root.info(message)
+        msg.send(f'{msg.user}\n{message}')
+        p = Process(target=thread.match_thread, args=(opta_id,), daemon=True)
+        p.start()
 
 
 def get_next_match(date_from=None, opta_id=17012):
@@ -63,11 +73,16 @@ def pre_match_thread(opta_id: int, t: str):
 def match_thread(opta_id: int):
     """
     """
-    message = f'Posting match thread for {opta_id}'
-    root.info(message)
-    msg.send(f'{msg.user}\n{message}')
+    Main.create_match_thread(opta_id)
+    #message = f'Posting match thread for {opta_id}'
+    #root.info(message)
+    #msg.send(f'{msg.user}\n{message}')
     # this will run until the game is final
-    thread.match_thread(opta_id)
+    #thread.match_thread(opta_id)
+    # Process class initialization needs to be in a __main__ block
+    #p = Process(target=thread.match_thread, args=(opta_id,))
+    #p.start()
+
     # once complete, cancel the job (i.e. only run once)
     return schedule.CancelJob
 
