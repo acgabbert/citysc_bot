@@ -99,7 +99,6 @@ def log_all_jobs():
 def main():
     root.info(f'Started {__name__} at {time.time()}')
     # on first run, check the schedule and get upcoming matches
-    mls_schedule.main()
     get_next_match()
     # within get_upcoming_matches, we will schedule pre-match threads
     # pre-match threads will in turn schedule match threads
