@@ -6,6 +6,7 @@ import inspect
 import json
 import signal
 from datetime import datetime
+from collections import namedtuple
 
 import discord as msg
 import functools
@@ -101,3 +102,38 @@ def write_json(data, filename):
     """Write json data to filename."""
     with open(filename, 'w') as f:
         f.write(json.dumps(data, indent=4))
+
+Names = namedtuple('Names', 'full_name short_name abbrev')
+
+# a dict of namedtuples with each club's full/short/abbrev names
+names = {
+    15296: Names('Austin FC', 'Austin', 'ATX'),
+    11901: Names('Atlanta United', 'Atlanta', 'ATL'),
+    1616: Names('CF Montréal', 'Montréal', 'MTL'),
+    436: Names('Colorado Rapids', 'Colorado', 'COL'),
+    16629: Names('Charlotte FC', 'Charlotte', 'CLT'),
+    1903: Names('FC Dallas', 'Dallas', 'DAL'),
+    1207: Names('Chicago Fire FC', 'Chicago', 'CHI'),
+    1897: Names('Houston Dynamo FC', 'Houston', 'HOU'),
+    1230: Names('LA Galaxy', 'LA', 'LA'),
+    454: Names('Columbus Crew', 'Columbus', 'CLB'),
+    11690: Names('Los Angeles Football Club', 'LAFC', 'LAFC'),
+    1326: Names('D.C. United', 'D.C.', 'DC'),
+    6977: Names('Minnesota United', 'Minnesota', 'MIN'),
+    11504: Names('FC Cincinnati', 'Cincinnati', 'CIN'),
+    14880: Names('Inter Miami CF', 'Miami', 'MIA'),
+    1581: Names('Portland Timbers', 'Portland', 'POR'),
+    1899: Names('Real Salt Lake', 'Salt Lake', 'RSL'),
+    15154: Names('Nashville SC', 'Nashville', 'NSH'),
+    1131: Names('San Jose Earthquakes', 'Colorado', 'COL'),
+    928: Names('New England Revolution', 'New England', 'NE'),
+    9668: Names('New York City FC', 'New York City', 'NYC'),
+    3500: Names('Seattle Sounders FC', 'Seattle', 'SEA'),
+    399: Names('New York Red Bulls', 'New York', 'RBNY'),
+    421: Names('Sporting Kansas City', 'Kansas City', 'KC'),
+    6900: Names('Orlando City', 'Orlando', 'ORL'),
+    17012: Names('St. Louis CITY SC', 'St. Louis', 'STL'),
+    1708: Names('Vancouver Whitecaps FC', 'Vancouver', 'VAN'),
+    5513: Names('Philadelphia Union', 'Philadelphia', 'PHI'),
+    2077: Names('Toronto FC', 'Toronto', 'TOR')
+}
