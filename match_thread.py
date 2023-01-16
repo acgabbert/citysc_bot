@@ -7,6 +7,7 @@ import match
 import match_markdown as md
 import reddit_interactor as reddit
 import util
+import discord as msg
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +60,7 @@ def match_thread(opta_id):
                 f'{response.json()["jquery"][10][3][0]}'
             )
             logger.error(message)
+            msg.send(message)
             # TODO or could raise an exception here
             return
     
@@ -69,6 +71,7 @@ def match_thread(opta_id):
         title, markdown = md.match_thread(match_obj)
         # edit existing thread with thing_id
         response, _ = reddit.submit(subreddit, title, markdown, thing_id)
+        logger.debug(f'Updated {match_obj.opta_id} at minute {match_obj.minute}')
         if not response.json()['success']:
             message = (
                 f'Error posting {title} on {subreddit}.\n'
@@ -76,9 +79,10 @@ def match_thread(opta_id):
                 f'{response.json()["jquery"][10][3][0]}'
             )
             logger.error(message)
-    if match_obj.is_final:
-        # post a post-match thread
-        pass
+            msg.send(message)
+        if match_obj.is_final:
+            # post a post-match thread before exiting the loop
+            post_match_thread(match_obj.opta_id)
 
 
 def post_match_thread(opta_id):
@@ -87,7 +91,20 @@ def post_match_thread(opta_id):
     match_obj = match.Match(opta_id)
     match_obj = match.get_all_data(match_obj)
     title, markdown = md.post_match_thread(match_obj)
-    reddit.submit(subreddit, title, markdown)
+    response, _ = reddit.submit(subreddit, title, markdown)
+    if response.status_code == 200 and response.json()['success']:
+        # TODO use something other than a database to track current threads
+        logger.info(f'Posted {title} on {subreddit}')
+    else:
+        message = (
+            f'Error posting {title} on {subreddit}.\n'
+            f'{response.status_code} - {response.reason}\n'
+            f'{response.json()["jquery"][10][3][0]}'
+        )
+        logger.error(message)
+        msg.send(message)
+        # TODO or could raise an exception here
+        return
 
 
 @util.time_dec(False)
