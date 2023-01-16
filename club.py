@@ -6,13 +6,20 @@ class Club(mls.MlsObject):
         self.full_name = ''
         self.short_name = ''
         self.abbrev = ''
+        self.position = -1
         self.points = -1
+        self.gd = -1
+        self.gp = -1
     
     def __lt__(self, other):
         # TODO make this comparison more robust
         if self.points < other.points:
             return True
-        else:
+        elif self.points > other.points:
+            return False
+        elif self.gd < other.gd:
+            return True
+        elif self.gd > other.gd:
             return False
 
 
