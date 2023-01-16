@@ -100,11 +100,13 @@ def main():
     root.info(f'Started {__name__} at {time.time()}')
     # on first run, check the schedule and get upcoming matches
     get_next_match()
+    get_next_match(opta_id=596)
     # within get_upcoming_matches, we will schedule pre-match threads
     # pre-match threads will in turn schedule match threads
     # and post-match threads are posted directly after match threads
     # TODO write scheduled jobs to database to persist in case of failure
     schedule.every().day.at('05:00').do(get_next_match)
+    schedule.every().day.at('05:05').do(get_next_match, opta_id=596)
     schedule.every().day.at('05:30').do(log_all_jobs)
     running = True
     while running:
