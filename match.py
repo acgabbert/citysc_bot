@@ -45,6 +45,7 @@ class Match(mls.MlsObject):
         return retval
     
     def __lt__(self, other):
+        """Required in order to properly sort matches by date."""
         if self.date < other.date:
             return True
         else:
@@ -122,8 +123,12 @@ def get_match_data(match_obj: Match) -> Match:
         return retval
     retval.venue = data['venue']['name']
     retval.comp = data['competition']['name']
+    if retval.comp == 'US Major League Soccer':
+        retval.comp = 'MLS'
+        if data['type'] == 'Cup':
+            retval.comp = 'MLS Cup Playoffs'
     if data['type'] == 'Cup':
-        retval.comp = f'MLS Cup Playoffs, {data["round_name"]}'
+        retval.comp += f', {data["round_name"]}'
     retval.home = process_club(data)
     retval.away = process_club(data, True)
     retval.date = data['date']
