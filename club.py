@@ -1,11 +1,18 @@
 import mls_api as mls
+from util import names
 
 class Club(mls.MlsObject):
     def __init__(self, opta_id):
         super().__init__(opta_id)
-        self.full_name = ''
-        self.short_name = ''
-        self.abbrev = ''
+        if opta_id in names:
+            self.full_name = names[opta_id].full_name
+            self.abbrev = names[opta_id].abbrev
+            self.short_name = names[opta_id].short_name
+        else:
+            self.full_name = ''
+            self.abbrev = ''
+            self.short_name = ''
+        self.conference = ''
         self.position = -1
         self.points = -1
         self.gd = -1
@@ -26,7 +33,6 @@ class Club(mls.MlsObject):
 class ClubMatch(Club):
     def __init__(self, opta_id):
         super().__init__(opta_id)
-        self.full_name = ''
         self.manager = ''
         self.lineup = []
         # TODO is this the best way to handle it? 
