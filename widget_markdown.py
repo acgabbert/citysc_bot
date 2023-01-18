@@ -1,6 +1,7 @@
 from datetime import datetime
 from match import Match
 from util import names
+from club import Club
 
 STL_CITY = 17012
 
@@ -24,4 +25,18 @@ def schedule(matches: list[Match]):
             adder += f'{match.comp}|'
         adder += f'{time}\n'
         retval += adder
+    return retval
+
+def western_conference(teams: list[Club]):
+    retval = '## Western Conference Standings\n'
+    retval += 'Pos|Team|Pts|GP|GD\n'
+    retval += ':-:|:-:|:-:|:-:|:-:\n'
+    for team in teams:
+        if team.conference != 'West':
+            continue
+        retval += f'{team.position}|'
+        retval += f'{team.short_name}|'
+        retval += f'{team.points}|'
+        retval += f'{team.gp}|'
+        retval += f'{team.gd}|\n'
     return retval
