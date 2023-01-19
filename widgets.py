@@ -4,6 +4,7 @@ import subprocess
 import discord as msg
 from match import Match, get_match_data
 import mls_schedule
+from standings import get_clubs
 import widget_markdown as md
 
 STL_CITY = 17012
@@ -30,7 +31,10 @@ def upcoming(opta_id=STL_CITY):
 
 
 def standings():
-    """Returns """
+    clubs = get_clubs()
+    markdown = md.western_conference(clubs)
+    write_markdown(markdown, 'markdown/western_conference.md')
+    return markdown
 
 
 def write_markdown(markdown: str, filename: str):
@@ -50,4 +54,6 @@ def write_markdown(markdown: str, filename: str):
 
 if __name__ == '__main__':
     markdown = upcoming()
+    print(markdown)
+    markdown = standings()
     print(markdown)
