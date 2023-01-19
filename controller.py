@@ -111,6 +111,7 @@ def main():
     schedule.every().day.at('05:05').do(get_next_match, opta_id=596)
     schedule.every().day.ad('05:10').do(widgets.upcoming)
     schedule.every().day.at('05:30').do(log_all_jobs)
+    log_all_jobs()
     running = True
     while running:
         try:
