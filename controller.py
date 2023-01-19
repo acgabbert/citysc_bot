@@ -109,7 +109,8 @@ def main():
     # TODO write scheduled jobs to database to persist in case of failure
     schedule.every().day.at('05:00').do(get_next_match)
     schedule.every().day.at('05:05').do(get_next_match, opta_id=596)
-    schedule.every().day.ad('05:10').do(widgets.upcoming)
+    schedule.every().day.at('05:10').do(widgets.upcoming)
+    schedule.every().day.at('05:15').do(widgets.standings)
     schedule.every().day.at('05:30').do(log_all_jobs)
     log_all_jobs()
     running = True
