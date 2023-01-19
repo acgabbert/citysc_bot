@@ -6,7 +6,7 @@ from multiprocessing import Process
 
 import util
 import discord as msg
-import match
+import widgets
 import match_thread as thread
 import mls_schedule
 
@@ -89,7 +89,9 @@ def match_thread(opta_id: int):
 
 def log_all_jobs():
     jobs = schedule.get_jobs()
-    message = f'Currently scheduled jobs:\n{jobs}'
+    message = 'Currently scheduled jobs:\n'
+    for job in jobs:
+        message += f'{job}\n'
     root.info(message)
     msg.send(f'{message}')
     return jobs
@@ -107,6 +109,7 @@ def main():
     # TODO write scheduled jobs to database to persist in case of failure
     schedule.every().day.at('05:00').do(get_next_match)
     schedule.every().day.at('05:05').do(get_next_match, opta_id=596)
+    schedule.every().day.ad('05:10').do(widgets.upcoming)
     schedule.every().day.at('05:30').do(log_all_jobs)
     running = True
     while running:
