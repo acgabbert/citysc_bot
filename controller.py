@@ -106,8 +106,9 @@ def main():
     # within get_upcoming_matches, we will schedule pre-match threads
     # pre-match threads will in turn schedule match threads
     # and post-match threads are posted directly after match threads
-    # TODO write scheduled jobs to database to persist in case of failure
+    # TODO write scheduled jobs to a file to persist in case of failure
     schedule.every().day.at('05:00').do(get_next_match)
+    # USMNT
     schedule.every().day.at('05:05').do(get_next_match, opta_id=596)
     schedule.every().day.at('05:10').do(widgets.upcoming)
     schedule.every().day.at('05:15').do(widgets.standings)
