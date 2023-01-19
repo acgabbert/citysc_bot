@@ -22,9 +22,10 @@ def get_upcoming(opta_id):
     return matches
 
 
-def upcoming(opta_id):
-    matches = get_upcoming(STL_CITY)
+def upcoming(opta_id=STL_CITY):
+    matches = get_upcoming(opta_id)
     markdown = md.schedule(matches)
+    write_markdown(markdown, 'markdown/upcoming.md')
     return markdown
 
 
