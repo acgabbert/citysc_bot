@@ -1,5 +1,6 @@
 import mls_api as mls
 import util
+from club import Club
 
 BASE_URL = 'https://sportapi.mlssoccer.com/api/standings/live?&isLive=true'
 PARAMS = {
@@ -26,10 +27,24 @@ def get_standings(**kwargs):
     return data
 
 
+def get_clubs():
+    data = get_standings()
+    clubs = []
+    for team in data:
+        adder = Club(team['club']['optaId'])
+        adder.conference = team['group_id']
+        adder.position = team['position']
+        adder.points = team['statistics']['total_points']
+        adder.gd = team['statistics']['total_goal_differential']
+        adder.gp = team['statistics']['total_matches']
+        clubs.append(adder)
+    return clubs
+
+
 @util.time_dec(False)
 def main():
     data = get_standings()
-    # TODO write standings to markdown
+    print(data)
 
 
 if __name__ == '__main__':
