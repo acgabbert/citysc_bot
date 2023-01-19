@@ -208,7 +208,6 @@ def get_lineups(match_obj: Match) -> Match:
         formation_place  = p['formation_place']
         player_id = p['player']['opta_id']
         adder = player.Player(player_id, name, status, formation_place, team_id)
-        # TODO figure out a place to get subs
         if team_id == retval.home.opta_id:
             retval.home.lineup.append(adder)
         elif team_id == retval.away.opta_id:
