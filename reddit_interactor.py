@@ -120,6 +120,25 @@ def set_sort_order(thing_id, order='new'):
     return r
 
 
+def get_sidebar_content(subreddit):
+    headers = get_oauth_token()
+    url = REDDIT_OAUTH + subreddit + '/wiki/config/sidebar'
+    print(url)
+    content = requests.get(url, headers=headers)
+    return content.json()['data']['content_md']
+
+
+def craft_sidebar(subreddit, new_content):
+    start_sep = '\r\n[comment]: # (start of bot content)\r\n'
+    end_sep = '\r\n[comment]: # (end of bot content)\r\n'
+    prev_sidebar = get_sidebar_content(subreddit)
+    before = prev_sidebar.split(start_sep)
+    after = before[1].split(end_sep)[1]
+    before = before[0]
+    retval = before + start_sep + new_content + end_sep + after
+    return retval
+
+
 if __name__ == '__main__':
     #HEADERS = get_oauth_token()
     #ids = get_widgets(TEST_SUB, HEADERS)
