@@ -24,6 +24,7 @@ def get_upcoming(opta_id):
 
 
 def upcoming(opta_id=STL_CITY):
+    """Get upcoming matches and write them to file in markdown format"""
     matches = get_upcoming(opta_id)
     markdown = md.schedule(matches)
     write_markdown(markdown, 'markdown/upcoming.md')
@@ -31,6 +32,8 @@ def upcoming(opta_id=STL_CITY):
 
 
 def standings():
+    """Get western conference standings and write them to file in markdown
+    format"""
     clubs = get_clubs()
     markdown = md.western_conference(clubs)
     write_markdown(markdown, 'markdown/western_conference.md')
@@ -38,6 +41,7 @@ def standings():
 
 
 def write_markdown(markdown: str, filename: str):
+    """Write a file to markdown, and check if its content has changed."""
     with open(filename, 'w') as f:
         f.write(markdown)
     changes = subprocess.run(f'git status {filename}', capture_output=True, shell=True, text=True).stdout
