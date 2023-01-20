@@ -129,6 +129,7 @@ def get_sidebar_content(subreddit):
 
 
 def craft_sidebar(subreddit, new_content):
+    """Craft sidebar content using bot content separators"""
     start_sep = '\r\n[comment]: # (start of bot content)\r\n'
     end_sep = '\r\n[comment]: # (end of bot content)\r\n'
     prev_sidebar = get_sidebar_content(subreddit)
@@ -137,6 +138,15 @@ def craft_sidebar(subreddit, new_content):
     before = before[0]
     retval = before + start_sep + new_content + end_sep + after
     return retval
+
+
+def edit_sidebar(subreddit, new_content):
+    """Push new content to the sidebar using bot content separators"""
+    new_sidebar = craft_sidebar(subreddit, new_content)
+    headers = get_oauth_token()
+    url = REDDIT_OAUTH + subreddit + '/api/wiki/edit'
+    data = {'content': new_sidebar, 'page': 'config/sidebar', 'reason': ''}
+    return requests.post(url, data=data, headers=headers)
 
 
 if __name__ == '__main__':
