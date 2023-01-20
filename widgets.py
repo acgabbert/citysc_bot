@@ -5,6 +5,7 @@ import discord as msg
 from match import Match, get_match_data
 import mls_schedule
 from standings import get_clubs
+import util
 import widget_markdown as md
 
 STL_CITY = 17012
@@ -23,6 +24,7 @@ def get_upcoming(opta_id):
     return matches
 
 
+@util.time_dec(False)
 def upcoming(opta_id=STL_CITY):
     """Get upcoming matches and write them to file in markdown format"""
     matches = get_upcoming(opta_id)
@@ -31,6 +33,7 @@ def upcoming(opta_id=STL_CITY):
     return markdown
 
 
+@util.time_dec(False)
 def standings():
     """Get western conference standings and write them to file in markdown
     format"""
