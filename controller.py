@@ -91,7 +91,7 @@ def log_all_jobs():
     jobs = schedule.get_jobs()
     message = 'Currently scheduled jobs:\n'
     for job in jobs:
-        message += f'{job}\n'
+        message += str(job)
     root.info(message)
     msg.send(f'{message}')
     return jobs
