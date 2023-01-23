@@ -45,6 +45,9 @@ class ClubMatch(Club):
         self.xg = -1.1
         self.corners = -1
         self.fouls = -1
+        self.offsides = -1
+        self.yellows = -1
+        self.reds = -1
         self.total_shots = -1
         self.shots_on_target = -1
         self.total_passes = -1
