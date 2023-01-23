@@ -248,6 +248,7 @@ def process_stats(data, team: club.ClubMatch) -> club.ClubMatch:
     if data['first_penalty_kick'] is not None:
         team.shootout_score = data['shootout_score']
     stats = data['statistics']
+    # this will be in float format
     team.possession = stats['possession_percentage']
     team.xg = stats['expected_goals']
     team.corners = stats['corner_taken']

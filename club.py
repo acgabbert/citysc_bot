@@ -41,6 +41,16 @@ class ClubMatch(Club):
         self.formation_matrix = []
         self.goals = -1
         self.shootout_score = False
+        self.possession = -1.1
+        self.xg = -1.1
+        self.corners = -1
+        self.fouls = -1
+        self.total_shots = -1
+        self.shots_on_target = -1
+        self.total_passes = -1
+        self.accurate_passes = -1
+        self.saves = -1
+        self.pass_accuracy = '-1.0'
     
     def lineup_str(self):
         starters = []
