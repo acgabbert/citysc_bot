@@ -12,6 +12,7 @@ HEADERS = {
 }
 
 def send(message, url=conf.MLS_BOT_WEBHOOK, headers=HEADERS):
+    message = f'[{conf.HOST}] {message}'
     content = json.dumps({'content': message})
     r = requests.post(url, headers=headers, data=content)
     return r.content
