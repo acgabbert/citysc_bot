@@ -20,6 +20,7 @@ class Match(mls.MlsObject):
         self.away = club.ClubMatch(-1)
         self.minute = ''
         self.result_type = ''
+        self.started = False
         self.is_final = False
         self.preview = []
         self.feed = []
@@ -109,6 +110,7 @@ def get_match_data(match_obj: Match) -> Match:
     - minute
     - result_type
     - is_final
+    - started
     """
     retval = match_obj
     url = const.MATCH_DATA_URL
@@ -142,6 +144,8 @@ def get_match_data(match_obj: Match) -> Match:
         retval.result_type = 'FT-Pens'
     elif result == 'AfterExtraTime':
         retval.result_type = 'AET'
+    if data['match']['first_half_start'] is not None:
+        retval.started = True
     retval.is_final = data['is_final']
     return retval
 
@@ -255,6 +259,9 @@ def process_stats(data, team: club.ClubMatch) -> club.ClubMatch:
     team.fouls = stats['fk_foul_lost']
     team.total_shots = stats['total_scoring_att']
     team.shots_on_target = stats['ontarget_scoring_att']
+    team.offsides = stats['total_offside']
+    team.yellows = stats['yellow_card']
+    team.reds = stats['red_card']
     team.total_passes = stats['total_pass']
     team.accurate_passes = stats['accurate_pass']
     team.saves = stats['saves']
