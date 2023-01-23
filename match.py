@@ -144,7 +144,7 @@ def get_match_data(match_obj: Match) -> Match:
         retval.result_type = 'FT-Pens'
     elif result == 'AfterExtraTime':
         retval.result_type = 'AET'
-    if data['match']['first_half_start'] is not None:
+    if data['first_half_start'] is not None:
         retval.started = True
     retval.is_final = data['is_final']
     return retval
@@ -248,25 +248,20 @@ def get_managers(match_obj: Match) -> Match:
 
 
 def process_stats(data, team: club.ClubMatch) -> club.ClubMatch:
+    """Process stats fields from const.STATS_FIELDS"""
     team.goals = data['score']
     if data['first_penalty_kick'] is not None:
         team.shootout_score = data['shootout_score']
     stats = data['statistics']
-    # this will be in float format
-    team.possession = stats['possession_percentage']
-    team.xg = stats['expected_goals']
-    team.corners = stats['corner_taken']
-    team.fouls = stats['fk_foul_lost']
-    team.total_shots = stats['total_scoring_att']
-    team.shots_on_target = stats['ontarget_scoring_att']
-    team.offsides = stats['total_offside']
-    team.yellows = stats['yellow_card']
-    team.reds = stats['red_card']
-    team.total_passes = stats['total_pass']
-    team.accurate_passes = stats['accurate_pass']
-    team.saves = stats['saves']
+    for stat in const.STATS_FIELDS:
+        try:
+            setattr(team, stat, stats[stat])
+        except KeyError:
+            # field does not exist from api
+            # set to 0 so we know it was attempted
+            setattr(team, stat, 0)
     # calculate pass accuracy and save it as a string
-    pass_accuracy = (team.accurate_passes / team.total_passes) * 100
+    pass_accuracy = (team.accurate_pass / team.total_pass) * 100
     team.pass_accuracy = '%.1f' % pass_accuracy
     return team
 
