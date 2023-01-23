@@ -61,3 +61,9 @@ MANAGER_PARAMS = {
     # add match_game_id
     'include': ['manager', 'club']
 }
+
+STATS_FIELDS = [
+    'possession_percentage', 'expected_goals', 'corner_taken', 'fk_foul_lost',
+    'total_scoring_att', 'ontarget_scoring_att', 'total_offside', 'yellow_card',
+    'red_card', 'total_pass', 'accurate_pass', 'saves'
+]
