@@ -243,6 +243,13 @@ def get_managers(match_obj: Match) -> Match:
     return retval
 
 
+def process_stats(data, team: club.ClubMatch) -> club.ClubMatch:
+    team.goals = data['score']
+    if data['first_penalty_kick'] is not None:
+        team.shootout_score = data['shootout_score']
+    return team
+
+
 def get_stats(match_obj: Match) -> Match:
     """Get stats from a match."""
     retval = match_obj
@@ -250,24 +257,18 @@ def get_stats(match_obj: Match) -> Match:
     params = const.STATS_PARAMS
     params[const.GAME_ID] = match_obj.opta_id
     data = call_match_api(url, params, 'stats')
-    home_score = 0
-    away_score = 0
-    try:
-        home_score = data[0]['score']
-        match_obj.home.goals = home_score
-        if data[0]['first_penalty_kick'] is not None:
-            home_pens = data[0]['shootout_score']
-            match_obj.home.shootout_score = home_pens
-    except KeyError:
-        pass
-    try:
-        away_score = data[1]['score']
-        match_obj.away.goals = away_score
-        if data[1]['first_penalty_kick'] is not None:
-            away_pens = data[1]['shootout_score']
-            match_obj.away.shootout_score = away_pens
-    except KeyError:
-        pass
+    for team in data:
+        try:
+            if team['side'] == 'home':
+                retval.home = process_stats(team, match_obj.home)
+            elif team['side'] == 'away':
+                retval.away = process_stats(team, match_obj.away)
+            else:
+                # team is neither home nor away...this shouldn't happen
+                pass
+        except KeyError:
+            # data most likely hasn't been populated yet
+            pass
     return retval
 
 
