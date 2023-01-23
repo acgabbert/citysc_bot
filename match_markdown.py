@@ -76,6 +76,9 @@ def match_thread(match_obj: match.Match):
     markdown += match_obj.home.lineup_str()
     markdown += match_obj.away.lineup_str()
     markdown += '---\n'
+    if match_obj.started:
+        # TODO only add stats table after match has started
+        markdown += stats_table(match_obj)
     markdown += '### Match Events\n'
     for comment in match_obj.summary:
         markdown += comment + '\n\n'
@@ -98,6 +101,31 @@ def post_match_thread(match_obj: match.Match):
 
     markdown += match_footer()
     return title, markdown
+
+
+def stats_table(match_obj: match.Match):
+    """Format stats table based on /u/matchcaster
+    https://www.reddit.com/r/MLS/comments/z2x0xs/match_thread_belgium_vs_canada/
+    """
+    home = match_obj.home
+    away = match_obj.away
+    markdown = '### Match Stats:\n'
+    table_header = f'{home.short_name}|{home.goals}-{away.goals}|{away.short_name}'
+    table_header += '\n:-:|:-:|:-:'
+    markdown += table_header
+    markdown += f'\n{home.possession}|Ball Possession|{away.possession}'
+    markdown += f'\n{home.total_shots}|Total Shots|{away.total_shots}'
+    markdown += f'\n{home.shots_on_target}|Shots on Target|{away.shots_on_target}'
+    markdown += f'\n{home.corners}|Corner Kicks|{away.corners}'
+    markdown += f'\n{home.offsides}|Offside|{away.offsides}'
+    markdown += f'\n{home.fouls}|Fouls|{away.fouls}'
+    markdown += f'\n{home.yellows}|Yellow Cards|{away.yellows}'
+    markdown += f'\n{home.reds}|Red Cards|{away.reds}'
+    markdown += f'\n{home.saves}|Goalkeeper Saves|{away.saves}'
+    markdown += f'\n{home.total_passes}|Total Passes|{away.total_passes}'
+    markdown += f'\n{home.pass_accuracy}%|Pass Accuracy|{away.pass_accuracy}%'
+    markdown += '\n---\n'
+    return markdown
 
 
 @util.time_dec(False)
