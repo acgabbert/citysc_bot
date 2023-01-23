@@ -247,6 +247,19 @@ def process_stats(data, team: club.ClubMatch) -> club.ClubMatch:
     team.goals = data['score']
     if data['first_penalty_kick'] is not None:
         team.shootout_score = data['shootout_score']
+    stats = data['statistics']
+    team.possession = stats['possession_percentage']
+    team.xg = stats['expected_goals']
+    team.corners = stats['corner_taken']
+    team.fouls = stats['fk_foul_lost']
+    team.total_shots = stats['total_scoring_att']
+    team.shots_on_target = stats['ontarget_scoring_att']
+    team.total_passes = stats['total_pass']
+    team.accurate_passes = stats['accurate_pass']
+    team.saves = stats['saves']
+    # calculate pass accuracy and save it as a string
+    pass_accuracy = (team.accurate_passes / team.total_passes) * 100
+    team.pass_accuracy = '%.1f' % pass_accuracy
     return team
 
 
