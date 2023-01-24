@@ -40,7 +40,7 @@ class Main:
         p = Process(target=thread.match_thread, args=(opta_id,), daemon=True)
         p.start()
 
-@util.time_dec(True)
+@util.time_dec(False)
 def get_next_match(opta_id, date_from=None):
     """Get upcoming matches."""
     data = mls_schedule.get_schedule(team=opta_id, comp=None)
