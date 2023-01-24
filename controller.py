@@ -28,6 +28,10 @@ root.addHandler(er)
 
 
 class Main:
+    """Use this class to start a match thread in a separate process, 
+    in order to not stop controller.main while we wait for the match
+    thread to complete."""
+    # TODO maybe move this class to match_thread?
     @staticmethod
     def create_match_thread(opta_id):
         message = f'Posting match thread for {opta_id}'
@@ -37,7 +41,7 @@ class Main:
         p.start()
 
 @util.time_dec(True)
-def get_next_match(date_from=None, opta_id=17012):
+def get_next_match(opta_id, date_from=None):
     """Get upcoming matches."""
     data = mls_schedule.get_schedule(team=opta_id, comp=None)
     id, t = mls_schedule.check_pre_match(data, date_from)
@@ -101,15 +105,15 @@ def log_all_jobs():
 def main():
     root.info(f'Started {__name__} at {time.time()}')
     # on first run, check the schedule and get upcoming matches
-    get_next_match()
-    get_next_match(opta_id=596)
+    get_next_match(17012)
+    get_next_match(596)
     # within get_upcoming_matches, we will schedule pre-match threads
     # pre-match threads will in turn schedule match threads
     # and post-match threads are posted directly after match threads
     # TODO write scheduled jobs to a file to persist in case of failure
-    schedule.every().day.at('05:00').do(get_next_match)
+    schedule.every().day.at('05:00').do(get_next_match, 17012)
     # USMNT
-    schedule.every().day.at('05:05').do(get_next_match, opta_id=596)
+    schedule.every().day.at('05:05').do(get_next_match, 596)
     schedule.every().day.at('05:10').do(widgets.upcoming)
     schedule.every().day.at('05:15').do(widgets.standings)
     schedule.every().day.at('05:30').do(log_all_jobs)
