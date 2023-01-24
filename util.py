@@ -51,7 +51,7 @@ def time_dec(tag):
         def wrapper(*args, **kwargs):
             start = time()
             try:
-                func()
+                func(*args, **kwargs)
             except Exception as e:
                 logging.error(f'Critical error: {str(e)}\n{traceback.format_exc()}')
             end = time()
