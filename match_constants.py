@@ -61,6 +61,14 @@ MANAGER_PARAMS = {
     # add match_game_id
     'include': ['manager', 'club']
 }
+RECENT_FORM_URL = 'https://sportapi.mlssoccer.com/api/previousMatches/'
+RECENT_FORM_PARAMS = {
+    'culture': 'en-us',
+    # add secondClub
+    # add matchDate
+    'maxItems': 3,
+    'formGuideMatchesCount': 5
+}
 
 STATS_FIELDS = [
     'possession_percentage', 'expected_goals', 'corner_taken', 'fk_foul_lost',
