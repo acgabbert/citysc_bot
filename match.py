@@ -261,8 +261,9 @@ def process_stats(data, team: club.ClubMatch) -> club.ClubMatch:
             # set to 0 so we know it was attempted
             setattr(team, stat, 0)
     # calculate pass accuracy and save it as a string
-    pass_accuracy = (team.accurate_pass / team.total_pass) * 100
-    team.pass_accuracy = '%.1f' % pass_accuracy
+    if team.total_pass > 0:
+        pass_accuracy = (team.accurate_pass / team.total_pass) * 100
+        team.pass_accuracy = '%.1f' % pass_accuracy
     return team
 
 
