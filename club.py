@@ -33,6 +33,7 @@ class Club(mls.MlsObject):
 class ClubMatch(Club):
     def __init__(self, opta_id):
         super().__init__(opta_id)
+        self.recent_form = ''
         self.manager = ''
         self.lineup = []
         # TODO is this the best way to handle it? 
