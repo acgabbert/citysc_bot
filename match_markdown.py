@@ -133,7 +133,7 @@ def stats_table(match_obj: match.Match):
     markdown += f'\n{home.yellow_card}|Yellow Cards|{away.yellow_card}'
     markdown += f'\n{home.red_card}|Red Cards|{away.red_card}'
     markdown += f'\n{home.saves}|Goalkeeper Saves|{away.saves}'
-    markdown += f'\n{home.expected_goals}|Expected Goals (xG)|{away.expected_goals}'
+    markdown += f'\n{"%.2f" % home.expected_goals}|Expected Goals (xG)|{"%.2f" % away.expected_goals}'
     markdown += f'\n{home.total_pass}|Total Passes|{away.total_pass}'
     markdown += f'\n{home.pass_accuracy}%|Pass Accuracy|{away.pass_accuracy}%'
     markdown += '\n---\n'
