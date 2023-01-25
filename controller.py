@@ -69,6 +69,9 @@ def pre_match_thread(opta_id: int, t: str):
     message = f'Posted pre-match thread for {opta_id}\nScheduled match thread for {t}'
     root.info(message)
     msg.send(f'{msg.user}\n{message}')
+    # TODO match threads are only scheduled from pre-match threads
+    # so if a pre-match thread fails, we don't get a match thread scheduled
+    # fix that
     schedule.every().day.at(t).do(match_thread, opta_id=opta_id)
     # once complete, cancel the job (i.e. only run once)
     return schedule.CancelJob
@@ -78,14 +81,6 @@ def match_thread(opta_id: int):
     """
     """
     Main.create_match_thread(opta_id)
-    #message = f'Posting match thread for {opta_id}'
-    #root.info(message)
-    #msg.send(f'{msg.user}\n{message}')
-    # this will run until the game is final
-    #thread.match_thread(opta_id)
-    # Process class initialization needs to be in a __main__ block
-    #p = Process(target=thread.match_thread, args=(opta_id,))
-    #p.start()
 
     # once complete, cancel the job (i.e. only run once)
     return schedule.CancelJob
