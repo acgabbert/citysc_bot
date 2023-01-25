@@ -9,11 +9,11 @@ import util
 SELECT * FROM match WHERE time > 1677304800 and time < 1677391200 and (home = 17012 or away = 17012)
 """
 
-def match_footer():
+def match_footer(match_obj: match.Match):
     retval = '\n\n---\n'
     retval += '^^Last ^^updated: '
     update = time.strftime('^^%b ^^%d, ^^%I:%M%p', time.localtime())
-    retval += update
+    retval += update + '.' + f' ^^Opta ^^ID: ^^{str(match_obj.opta_id)}'
     return retval
 
 
@@ -68,7 +68,7 @@ def pre_match_thread(match_obj: match.Match):
         markdown += '### Match Facts\n'
         for comment in match_obj.preview:
             markdown += comment + '\n\n'
-    markdown += match_footer()
+    markdown += match_footer(match_obj)
     return title, markdown
 
 
@@ -93,7 +93,7 @@ def match_thread(match_obj: match.Match):
     markdown += '### Match Events\n'
     for comment in match_obj.summary:
         markdown += comment + '\n\n'
-    markdown += match_footer()
+    markdown += match_footer(match_obj)
     return title, markdown
 
 
@@ -110,7 +110,7 @@ def post_match_thread(match_obj: match.Match):
     title += f'{away.full_name} ({comp})'
     markdown = match_header(match_obj)
 
-    markdown += match_footer()
+    markdown += match_footer(match_obj)
     return title, markdown
 
 
