@@ -1,5 +1,6 @@
 import time
 import logging
+from datetime import datetime
 
 import mls_api as mls
 import util
@@ -54,9 +55,13 @@ class Match(mls.MlsObject):
 
 
 def call_match_api(url, params, filename):
-    opta_id = params[const.GAME_ID]
+    try:
+        opta_id = params[const.GAME_ID]
+        filename = f'{filename}-{opta_id}'
+    except KeyError:
+        pass
     data, _ = mls.call_api(url, params)
-    util.write_json(data, f'assets/{filename}-{opta_id}.json')
+    util.write_json(data, f'assets/{filename}.json')
     return data
 
 
@@ -289,10 +294,33 @@ def get_stats(match_obj: Match) -> Match:
     return retval
 
 
+def get_recent_form(match_obj: Match) -> Match:
+    """Get recent form for the teams participating in a match"""
+    retval = match_obj
+    url = const.RECENT_FORM_URL + str(match_obj.home.opta_id) + '?'
+    params = const.RECENT_FORM_PARAMS
+    params['secondClub'] = match_obj.away.opta_id
+    params['matchDate'] = datetime.fromtimestamp(match_obj.date).isoformat()
+    data = call_match_api(url, params, 'recent-form')
+    retval.home.recent_form = data['firstClubFormGuide']
+    retval.away.recent_form = data['secondClubFormGuide']
+    return retval
+
+
+def get_prematch_data(match_obj: Match) -> Match:
+    """Get data for a pre-match thread (no stats, lineups, etc)"""
+    logger.info(f'Getting pre-match data for {match_obj.opta_id}')
+    match_obj = get_match_data(match_obj)
+    match_obj = get_recent_form(match_obj)
+    match_obj = get_preview(match_obj)
+    return match_obj
+
+
 def get_all_data(match_obj: Match) -> Match:
     """Get all data for a match thread (only a summary feed)."""
     logger.info(f'Getting all data for {match_obj.opta_id}')
     match_obj = get_match_data(match_obj)
+    match_obj = get_recent_form(match_obj)
     match_obj = get_preview(match_obj)
     match_obj = get_lineups(match_obj)
     match_obj = get_managers(match_obj)
