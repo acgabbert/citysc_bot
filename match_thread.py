@@ -22,7 +22,7 @@ subreddit = config.TEST_SUB
 def pre_match_thread(opta_id):
     global subreddit
     match_obj = match.Match(opta_id)
-    match_obj = match.get_all_data(match_obj)
+    match_obj = match.get_prematch_data(match_obj)
     title, markdown = md.pre_match_thread(match_obj)
     response, thing_id = reddit.submit(subreddit, title, markdown)
     if response.status_code == 200:
