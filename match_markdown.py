@@ -109,7 +109,14 @@ def post_match_thread(match_obj: match.Match):
     # TODO if pens, add to title here
     title += f'{away.full_name} ({comp})'
     markdown = match_header(match_obj)
-
+    markdown += '### Lineups\n'
+    markdown += match_obj.home.lineup_str()
+    markdown += match_obj.away.lineup_str()
+    markdown += '---\n'
+    markdown += stats_table(match_obj)
+    markdown += '### Match Events\n'
+    for comment in match_obj.summary:
+        markdown += comment + '\n\n'
     markdown += match_footer(match_obj)
     return title, markdown
 
