@@ -129,7 +129,7 @@ def stats_table(match_obj: match.Match):
         table_header = f'{home.short_name}|{home.goals}-{away.goals}|{away.short_name}'
     table_header += '\n:-:|:-:|:-:'
     markdown += table_header
-    markdown += f'\n{home.possession_percentage}|Ball Possession|{away.possession_percentage}'
+    markdown += f'\n{home.possession_percentage}%|Ball Possession|{away.possession_percentage}%'
     markdown += f'\n{home.total_scoring_att}|Total Shots|{away.total_scoring_att}'
     markdown += f'\n{home.ontarget_scoring_att}|Shots on Target|{away.ontarget_scoring_att}'
     markdown += f'\n{home.corner_taken}|Corner Kicks|{away.corner_taken}'
