@@ -66,8 +66,7 @@ def match_thread(opta_id):
     
     while not match_obj.is_final:
         time.sleep(60)
-        match_obj = match.get_stats(match_obj)
-        match_obj = match.get_feed(match_obj)
+        match_obj = match.get_all_data(match_obj)
         title, markdown = md.match_thread(match_obj)
         # edit existing thread with thing_id
         response, _ = reddit.submit(subreddit, title, markdown, thing_id)
