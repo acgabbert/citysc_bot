@@ -122,10 +122,11 @@ def stats_table(match_obj: match.Match):
     away = match_obj.away
     markdown = '### Match Stats:\n'
     table_header = ''
-    if home.short_name is not None and away.short_name is not None:
-        table_header = f'{home.short_name}|{home.goals}-{away.goals}|{away.short_name}'
-    else:
+    if home.short_name == '' or away.short_name == '':
         table_header = f'{home.full_name}|{home.goals}-{away.goals}|{away.full_name}'
+    else:
+        # both short names are populated
+        table_header = f'{home.short_name}|{home.goals}-{away.goals}|{away.short_name}'
     table_header += '\n:-:|:-:|:-:'
     markdown += table_header
     markdown += f'\n{home.possession_percentage}|Ball Possession|{away.possession_percentage}'
