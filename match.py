@@ -214,6 +214,8 @@ def get_lineups(match_obj: Match) -> Match:
         team_id = p['club']['opta_id']
         status = p['status']
         name = p['player']['full_name']
+        if name is None:
+            name = p['player']['first_name'] + ' ' + p['player']['last_name']
         formation_place  = p['formation_place']
         player_id = p['player']['opta_id']
         adder = player.Player(player_id, name, status, formation_place, team_id)
@@ -222,7 +224,7 @@ def get_lineups(match_obj: Match) -> Match:
         elif team_id == retval.away.opta_id:
             retval.away.lineup.append(adder)
         else:
-            logger.error(f'Error: player {name}, game {retval.opta_id} does not match either team.')
+            logger.error(f'Error: player {name}, game {retval.opta_id} does not match either team. {team_id}')
     for p in subs:
         off_name = p['off_player']['full_name']
         on_name = p['on_player']['full_name']
@@ -331,10 +333,11 @@ def get_all_data(match_obj: Match) -> Match:
 
 @util.time_dec(False)
 def main():
-    opta_id = 2277793
+    opta_id = 2335158
     match_obj = Match(opta_id)
-    match_obj = get_preview(match_obj)
-    print(match_obj.preview)
+    match_obj = get_match_data(match_obj)
+    match_obj = get_lineups(match_obj)
+    print(match_obj.away.lineup_str())
 
 
 if __name__ == '__main__':
