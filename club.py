@@ -70,9 +70,17 @@ class ClubMatch(Club):
         retval = f'**{self.full_name}**\n\n'
         for player in starters:
             retval += player.name
-            # TODO handle case where player is subbed on, then subbed off
             if player.name in self.subs:
-                retval += f' ({self.subs[player.name]})'
+                p = self.subs[player.name]
+                sub_name = p[0]
+                sub_min = p[1]
+                retval += f' ({sub_name}, {sub_min})'
+                # TODO theoretically, this could happen more than twice
+                if sub_name in self.subs:
+                    p2 = self.subs[p[0]]
+                    sub_name_2 = p2[0]
+                    sub_min_2 = p2[1]
+                    retval += f' ({sub_name_2}, {sub_min_2})'
             retval += ', '
         retval = retval[:-2] + '\n\n**Subs:** '
         for player in bench:

@@ -228,10 +228,11 @@ def get_lineups(match_obj: Match) -> Match:
     for p in subs:
         off_name = p['off_player']['full_name']
         on_name = p['on_player']['full_name']
+        minute = p['minute_display']
         if p['club']['opta_id'] == retval.home.opta_id:
-            retval.home.subs[off_name] = on_name
+            retval.home.subs[off_name] = (on_name, minute)
         elif p['club']['opta_id'] == retval.away.opta_id:
-            retval.away.subs[off_name] = on_name
+            retval.away.subs[off_name] = (on_name, minute)
     return retval
 
 
