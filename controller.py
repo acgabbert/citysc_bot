@@ -65,6 +65,7 @@ def pre_match_thread(opta_id: int, t: str):
     thread.pre_match_thread(opta_id)
     t = datetime.strptime(t, '%H:%M')
     t -= timedelta(hours=1)
+    t = datetime.strftime(t, '%H:%M')
     # schedule the match thread for tomorrow at the same time, minus one hour
     message = f'Posted pre-match thread for {opta_id}\nScheduled match thread for {t}'
     root.info(message)
@@ -74,6 +75,7 @@ def pre_match_thread(opta_id: int, t: str):
     # fix that
     schedule.every().day.at(t).do(match_thread, opta_id=opta_id)
     # once complete, cancel the job (i.e. only run once)
+    #TODO this probably doesn't work
     return schedule.CancelJob
 
 @util.time_dec(True)
