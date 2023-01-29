@@ -199,6 +199,13 @@ def get_summary(match_obj: Match) -> Match:
     return retval
 
 
+def get_player_name(player):
+    name = player['full_name']
+    if name is None:
+        name = player['first_name'] + ' ' + player['last_name']
+    return name
+
+
 def get_lineups(match_obj: Match) -> Match:
     """Get the lineups from a match."""
     retval = match_obj
@@ -213,9 +220,7 @@ def get_lineups(match_obj: Match) -> Match:
     for p in data:
         team_id = p['club']['opta_id']
         status = p['status']
-        name = p['player']['full_name']
-        if name is None:
-            name = p['player']['first_name'] + ' ' + p['player']['last_name']
+        name = get_player_name(p['player'])
         formation_place  = p['formation_place']
         player_id = p['player']['opta_id']
         adder = player.Player(player_id, name, status, formation_place, team_id)
@@ -226,8 +231,8 @@ def get_lineups(match_obj: Match) -> Match:
         else:
             logger.error(f'Error: player {name}, game {retval.opta_id} does not match either team. {team_id}')
     for p in subs:
-        off_name = p['off_player']['full_name']
-        on_name = p['on_player']['full_name']
+        off_name = get_player_name(p['off_player'])
+        on_name = get_player_name(p['on_player'])
         minute = p['minute_display']
         if p['club']['opta_id'] == retval.home.opta_id:
             retval.home.subs[off_name] = (on_name, minute)
