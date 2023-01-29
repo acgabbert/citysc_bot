@@ -103,14 +103,18 @@ def main():
     root.info(f'Started {__name__} at {time.time()}')
     # on first run, check the schedule and get upcoming matches
     get_next_match(17012)
-    get_next_match(596)
     # within get_upcoming_matches, we will schedule pre-match threads
     # pre-match threads will in turn schedule match threads
     # and post-match threads are posted directly after match threads
     # TODO write scheduled jobs to a file to persist in case of failure
+    # St. Louis City SC
     schedule.every().day.at('05:00').do(get_next_match, 17012)
     # USMNT
     schedule.every().day.at('05:05').do(get_next_match, 596)
+    # Seattle Sounders (club world cup)
+    schedule.every().day.at('05:06').do(get_next_match, 3500)
+    # Auckland City (club world cup)
+    schedule.every().day.at('05:07').do(get_next_match, 5431)
     schedule.every().day.at('05:10').do(widgets.upcoming)
     schedule.every().day.at('05:15').do(widgets.standings)
     schedule.every().day.at('05:30').do(log_all_jobs)
