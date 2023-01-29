@@ -81,16 +81,21 @@ def match_thread(opta_id):
             msg.send(message)
         if match_obj.is_final:
             # post a post-match thread before exiting the loop
-            post_match_thread(match_obj.opta_id)
+            post_match_thread(match_obj.opta_id, thing_id)
 
 
-def post_match_thread(opta_id):
+def post_match_thread(opta_id, match_thing_id=None):
     global subreddit
     # initialize an empty Match object with the opta_id
     match_obj = match.Match(opta_id)
     match_obj = match.get_all_data(match_obj)
     title, markdown = md.post_match_thread(match_obj)
-    response, _ = reddit.submit(subreddit, title, markdown)
+    response, thing_id = reddit.submit(subreddit, title, markdown)
+    if match_thing_id is not None:
+        # somehow gonna hve to get the full link text
+        text = f'[Post-match thread has been posted.](https://www.reddit.com{subreddit}/comments/{thing_id})'
+        # TODO verify this works LOL
+        reddit.comment(match_thing_id, text)
     if response.status_code == 200 and response.json()['success']:
         # TODO use something other than a database to track current threads
         logger.info(f'Posted {title} on {subreddit}')
