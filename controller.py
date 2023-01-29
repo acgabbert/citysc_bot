@@ -75,7 +75,7 @@ def pre_match_thread(opta_id: int, t: str):
     # fix that
     schedule.every().day.at(t).do(match_thread, opta_id=opta_id)
     # once complete, cancel the job (i.e. only run once)
-    #TODO this probably doesn't work
+    #TODO this may not work...but it also may have bugged out before
     return schedule.CancelJob
 
 @util.time_dec(True)
