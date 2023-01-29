@@ -30,6 +30,8 @@ def match_header(match_obj: match.Match):
         header = '# '
         if match_obj.is_final:
             header += f'{match_obj.result_type}: '
+        elif match_obj.started:
+            header += f'{match_obj.minute}: '
         header += f'{home.full_name} {home.goals}-{away.goals} '
         if home.shootout_score or away.shootout_score:
             header += f'({home.shootout_score}-{away.shootout_score} pens) '
