@@ -49,6 +49,11 @@ SORT_TEMPLATE = {
     'sort': 'new'
 }
 
+COMMENT_TEMPLATE = {
+    'text': '',
+    'thing_id': ''
+}
+
 def get_oauth_token():
     """Request an OAuth token
     Returns headers needed to make Reddit API calls
@@ -146,6 +151,15 @@ def edit_sidebar(subreddit, new_content):
     headers = get_oauth_token()
     url = REDDIT_OAUTH + subreddit + '/api/wiki/edit'
     data = {'content': new_sidebar, 'page': 'config/sidebar', 'reason': ''}
+    return requests.post(url, data=data, headers=headers)
+
+
+def comment(thing_id, text):
+    headers = get_oauth_token()
+    url = REDDIT_OAUTH + '/api/comment'
+    data = COMMENT_TEMPLATE
+    data['thing_id'] = f't3_{thing_id}'
+    data['text'] = text
     return requests.post(url, data=data, headers=headers)
 
 
