@@ -74,14 +74,14 @@ class ClubMatch(Club):
                 p = self.subs[player.name]
                 sub_name = p[0]
                 sub_min = p[1]
-                retval += f' ({sub_name}, {sub_min})'
+                retval += f' (🔄 {sub_name}, {sub_min})'
                 # TODO theoretically, this could happen more than twice
                 # ...but probably not
                 if sub_name in self.subs:
                     p2 = self.subs[sub_name]
                     sub_name_2 = p2[0]
                     sub_min_2 = p2[1]
-                    retval += f' ({sub_name_2}, {sub_min_2})'
+                    retval += f' (🔄 {sub_name_2}, {sub_min_2})'
             retval += ', '
         retval = retval[:-2] + '\n\n**Subs:** '
         for player in bench:
