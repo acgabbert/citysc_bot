@@ -81,9 +81,12 @@ def process_feed(data) -> list[str]:
         # in order from earliest to latest
         adder = ''
         if comment['minute_display'] is None or comment['period'] == 'FullTime':
-            adder = f'{comment["comment"]}'
+            adder = f'⏱️ {comment["comment"]}'
         else:
-            adder = f'{comment["minute_display"]} {comment["comment"]}'
+            adder = f'{comment["minute_display"]} '
+            if comment['type'] in const.FEED_EMOJI:
+                adder += const.FEED_EMOJI[comment['type']]
+            adder += f' {comment["comment"]}'
         comments.append(adder)
     return comments
 
