@@ -22,7 +22,9 @@ FEED_URL = BASE_URL + 'commentaries'
 SUMMARY_PARAMS = {
     'commentary_type': ['secondyellow card', 'penalty goal', 'own goal',
                         'yellow card', 'red card', 'substitution', 'goal',
-                        'penalty miss', 'penalty saved'],
+                        'penalty miss', 'penalty saved', 'lineup', 'start',
+                        'end 1', 'end 2', 'end 3', 'end 4', 'end 5', 'end 14',
+                        'start delay', 'end delay', 'postponed'],
     'include': ['club', 'player'],
     # are these alllll necessary? 
     'order_by': ['commentary_period', 'commentary_minute', 'commentary_second',
@@ -75,3 +77,26 @@ STATS_FIELDS = [
     'total_scoring_att', 'ontarget_scoring_att', 'total_offside', 'yellow_card',
     'red_card', 'total_pass', 'accurate_pass', 'saves'
 ]
+
+FEED_EMOJI = {
+    'red card': '🟥',
+    'yellow card': '🟨',
+    'substitution': '🔄',
+    'own goal': '⚽️',
+    'goal': '⚽️',
+    'penalty goal': '⚽️',
+    'penalty miss': '❌',
+    'penalty saved': '❌',
+    'secondyellow card': '🟨➡️🟥',
+    'lineup': '⏱️',
+    'start': '⏱️',
+    'end 1': '⏱️',
+    'end 2': '⏱️',
+    'end 3': '⏱️',
+    'end 4': '⏱️',
+    'end 5': '⏱️', 
+    'end 14': '⏱️', 
+    'start delay': '⏱️', 
+    'end delay': '⏱️', 
+    'postponed': '⏱️'
+}
