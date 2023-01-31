@@ -51,7 +51,7 @@ def recent_form(match_obj: match.Match):
     away = match_obj.away
     retval = '### Recent Form\n'
     retval += f'{home.full_name}: {home.recent_form}\n\n'
-    retval += f'{away.full_name}: {away.recent_form}\n\n---\n'
+    retval += f'{away.full_name}: {away.recent_form}\n\n'
     return retval
 
 
@@ -67,7 +67,7 @@ def pre_match_thread(match_obj: match.Match):
     markdown = match_header(match_obj)
     markdown += recent_form(match_obj)
     if len(match_obj.preview) > 0:
-        markdown += '### Match Facts\n'
+        markdown += '---\n### Match Facts\n'
         for comment in match_obj.preview:
             markdown += comment + '\n\n'
     markdown += match_footer(match_obj)
