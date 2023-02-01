@@ -83,9 +83,15 @@ def get_upcoming_matches(data):
     return upcoming
 
 
+def get_apple_info(data):
+    for row in data:
+        print(f'{row["slug"]}: {row["appleSubscriptionTier"]}, {row["appleStreamURL"]}')
+
+
 @util.time_dec(False)
 def main():
     data = get_schedule()
+    get_apple_info(data)
 
 if __name__ == '__main__':
     main()
