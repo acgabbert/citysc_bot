@@ -327,10 +327,11 @@ def get_recent_form(match_obj: Match) -> Match:
 def get_broadcasters(match_obj: Match) -> Match:
     retval = match_obj
     url = mls_schedule.BASE_URL + f'/{match_obj.opta_id}'
-    data = mls.call_api(url)
+    # for some reason this was returning a tuple (data, response_code)
+    data = mls.call_api(url)[0]
     util.write_json(data, f'assets/match-{match_obj.opta_id}.json')
     match_obj.apple_tier = data['appleSubscriptionTier']
-    match_obj.apple_url = data['appleStreamURL']
+    match_obj.apple_url = data['appleStreamURL'].split('?')[0]
     broadcasters = data['broadcasters']
     for b in broadcasters:
         if b['broadcasterType'] != 'US TV':
