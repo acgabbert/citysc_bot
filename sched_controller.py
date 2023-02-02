@@ -47,6 +47,11 @@ class Main:
 
 
 def daily_setup():
+    """This function runs daily and is the core component of the bot.
+    It will first check, for each team, if there is a match in the next 48 hours.
+    If so, it will schedule a pre-match or match thread, whichever is appropriate.
+    Then, it will hold in `scheduler.run()` until all threads are posted.
+    """
     global scheduler
     for team in clubs:
         data = mls_schedule.get_schedule(team=team, comp=None)
@@ -81,6 +86,10 @@ def daily_setup():
         message = 'Currently scheduled jobs:\n'
         for job in q:
             message += f'- {repr(job)}\n'
+        root.info(message)
+        msg.send(message)
+    else:
+        message = 'No scheduled jobs.'
         root.info(message)
         msg.send(message)
     scheduler.run()
