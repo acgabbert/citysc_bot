@@ -42,7 +42,15 @@ def match_header(match_obj: match.Match):
     header += f'**Competition:** {comp}\n\n'
     header += f'**Date:** {date}\n\n'
     header += f'**Time:** {time}\n\n'
-    header += f'**Venue:** {venue}\n\n---\n'
+    header += f'**Venue:** {venue}\n\n'
+    header += f'**US TV/Streaming:** '
+    for b in match_obj.broadcasters:
+        header += f'{b}, '
+    if len(match_obj.broadcasters) == 0:
+        header += 'Not yet available.'
+    else:
+        header = header[:-2]
+    header += '\n\n---\n'
     return header
 
 
