@@ -3,6 +3,7 @@ import logging
 from datetime import datetime
 
 import mls_api as mls
+import mls_schedule
 import util
 import match_constants as const
 import player
@@ -26,6 +27,9 @@ class Match(mls.MlsObject):
         self.preview = []
         self.feed = []
         self.summary = []
+        self.broadcasters = []
+        self.apple_tier = ''
+        self.apple_url = ''
     
     def get_date_time(self):
         """Return date, time in match thread format."""
@@ -320,12 +324,28 @@ def get_recent_form(match_obj: Match) -> Match:
     return retval
 
 
+def get_broadcasters(match_obj: Match) -> Match:
+    retval = match_obj
+    url = mls_schedule.BASE_URL + f'/{match_obj.opta_id}'
+    data = mls.call_api(url)
+    util.write_json(data, f'assets/match-{match_obj.opta_id}.json')
+    match_obj.apple_tier = data['appleSubscriptionTier']
+    match_obj.apple_url = data['appleStreamURL']
+    broadcasters = data['broadcasters']
+    for b in broadcasters:
+        if b['broadcasterType'] != 'US TV':
+            continue
+        match_obj.broadcasters.append(b['broadcasterName'])
+    return retval
+
+
 def get_prematch_data(match_obj: Match) -> Match:
     """Get data for a pre-match thread (no stats, lineups, etc)"""
     logger.info(f'Getting pre-match data for {match_obj.opta_id}')
     match_obj = get_match_data(match_obj)
     match_obj = get_recent_form(match_obj)
     match_obj = get_preview(match_obj)
+    match_obj = get_broadcasters(match_obj)
     return match_obj
 
 
@@ -339,6 +359,7 @@ def get_all_data(match_obj: Match) -> Match:
     match_obj = get_managers(match_obj)
     match_obj = get_stats(match_obj)
     match_obj = get_summary(match_obj)
+    match_obj = get_broadcasters(match_obj)
     return match_obj
 
 
