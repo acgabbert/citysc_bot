@@ -113,8 +113,6 @@ def main():
     schedule.every().day.at('05:05').do(get_next_match, 596)
     # Seattle Sounders (club world cup)
     schedule.every().day.at('05:06').do(get_next_match, 3500)
-    # Auckland City (club world cup)
-    schedule.every().day.at('05:07').do(get_next_match, 5431)
     schedule.every().day.at('05:10').do(widgets.upcoming)
     schedule.every().day.at('05:15').do(widgets.standings)
     schedule.every().day.at('05:30').do(log_all_jobs)
