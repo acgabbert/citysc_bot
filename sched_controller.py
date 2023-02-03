@@ -30,7 +30,7 @@ root.addHandler(er)
 scheduler = sched.scheduler(time.time, time.sleep)
 
 """List of club opta IDs that we want to make threads for"""
-clubs = [17012, 3500, 5431]
+clubs = [17012, 3500]
 
 class Main:
     """Use this class to start a match thread in a separate process, 
