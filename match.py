@@ -158,6 +158,8 @@ def get_match_data(match_obj: Match) -> Match:
         retval.result_type = 'FT-Pens'
     elif result == 'AfterExtraTime':
         retval.result_type = 'AET'
+    if result is None and data['period'] == 'FullTime':
+        retval.result_type = 'FT'
     if data['first_half_start'] is not None:
         retval.started = True
     retval.is_final = data['is_final']
