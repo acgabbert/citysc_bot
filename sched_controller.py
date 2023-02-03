@@ -69,6 +69,7 @@ def daily_setup():
                 message = f'Scheduled match thread for {t}. Team {team}, Opta ID {id}'
                 root.info(message)
                 msg.send(f'{msg.user}\n{message}')
+                break
             if t < tomo:
                 # schedule a pre-match thread for 24h before gametime
                 t -= 86400
