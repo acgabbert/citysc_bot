@@ -335,10 +335,12 @@ def get_broadcasters(match_obj: Match) -> Match:
     match_obj.apple_tier = data['appleSubscriptionTier']
     match_obj.apple_url = data['appleStreamURL'].split('?')[0]
     broadcasters = data['broadcasters']
+    adder = []
     for b in broadcasters:
         if b['broadcasterType'] != 'US TV':
             continue
-        match_obj.broadcasters.append(b['broadcasterName'])
+        adder.append(b['broadcasterName'])
+    match_obj.broadcasters = adder
     return retval
 
 
