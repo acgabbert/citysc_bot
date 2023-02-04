@@ -94,6 +94,9 @@ def daily_setup():
         root.info(message)
         msg.send(message)
     scheduler.run()
+    message = 'Sending control back to main.'
+    root.info(message)
+    msg.send(message)
 
 
 def main():
