@@ -38,6 +38,16 @@ def match_header(match_obj: match.Match):
         header += f'{away.full_name}\n'
     else:
         header = f'# {home.full_name} vs. {away.full_name}\n'
+    if home.goalscorers:
+        header += f'\n{home.full_name} scorers: '
+        for p in home.goalscorers:
+            header += p + ', '
+        header = header[:-2] + '\n\n'
+    if away.goalscorers:
+        header += f'\n{away.full_name} scorers: '
+        for p in away.goalscorers:
+            header += p + ', '
+        header = header[:-2] + '\n\n'
     header += f'### Match Info\n'
     header += f'**Competition:** {comp}\n\n'
     header += f'**Date:** {date}\n\n'
