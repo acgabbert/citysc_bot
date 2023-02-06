@@ -81,6 +81,7 @@ def process_formation(data):
 def process_feed(data) -> list[str]:
     """Process a feed (summary or full feed)."""
     comments = []
+    scorers = {}
     for comment in data:
         # in order from earliest to latest
         adder = ''
@@ -91,8 +92,42 @@ def process_feed(data) -> list[str]:
             if comment['type'] in const.FEED_EMOJI:
                 adder += const.FEED_EMOJI[comment['type']]
             adder += f' {comment["comment"]}'
+        if comment['type'] in ['goal', 'own goal']:
+            p = comment['first_player'] # goalscorer
+            name = get_player_name(p)
+            minute = comment['minute_display']
+            scorer = f'{minute}, {name}'
+            if comment['type'] == 'own goal':
+                scorer += ' (OG)'
+            tm = comment['first_club']['opta_id']
+            if tm in scorers.keys():
+                scorers[tm].append(scorer)
+            else:
+                scorers[tm] = [scorer]
         comments.append(adder)
-    return comments
+    return comments, scorers
+
+
+def process_scorers(match_obj: Match, scorers: dict) -> Match:
+    retval = match_obj
+    tms = scorers.keys()
+    for id in tms:
+        # TODO do this more gracefully
+        if id == match_obj.home.opta_id:
+            for p in scorers[id]:
+                if '(OG)' in p:
+                    retval.away.goalscorers.append(p)
+                else:
+                    retval.home.goalscorers.append(p)
+        elif id == match_obj.away.opta_id:
+            for p in scorers[id]:
+                if '(OG)' in p:
+                    retval.home.goalscorers.append(p)
+                else:
+                    retval.away.goalscorers.append(p)
+        else:
+            logger.error('Scorers ID does not match either team.')
+    return retval
 
 
 def process_club(data, away=False) -> club.ClubMatch:
@@ -189,7 +224,8 @@ def get_feed(match_obj: Match) -> Match:
     params = const.FULL_FEED_PARAMS
     params[const.GAME_ID] = match_obj.opta_id
     data = call_match_api(url, params, 'feed')
-    comments = process_feed(data)
+    comments, scorers = process_feed(data)
+    retval = process_scorers(retval, scorers)
     retval.feed = comments
     return retval
 
@@ -205,7 +241,8 @@ def get_summary(match_obj: Match) -> Match:
     params[const.GAME_ID] = match_obj.opta_id
     # TODO refactor all of these try/except blocks, because not all of them take data[0]
     data = call_match_api(url, params, 'summary')
-    comments = process_feed(data)
+    comments, scorers = process_feed(data)
+    retval = process_scorers(retval, scorers)
     retval.summary = comments
     return retval
 
