@@ -29,8 +29,11 @@ root.addHandler(er)
 
 scheduler = sched.scheduler(time.time, time.sleep)
 
-"""List of club opta IDs that we want to make threads for"""
-clubs = [17012, 3500]
+"""List of club opta IDs that we want to make threads for
+- 17012: St. Louis City SC
+- 186: Real Madrid (Club World Cup)
+"""
+clubs = [17012, 186]
 
 class Main:
     """Use this class to start a match thread in a separate process, 
