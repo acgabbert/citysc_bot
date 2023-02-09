@@ -69,8 +69,16 @@ def match_thread(opta_id):
         match_obj = match.get_all_data(match_obj)
         title, markdown = md.match_thread(match_obj)
         # edit existing thread with thing_id
-        response, _ = reddit.submit(subreddit, title, markdown, thing_id)
-        logger.debug(f'Updated {match_obj.opta_id} at minute {match_obj.minute}')
+        try:
+            response, _ = reddit.submit(subreddit, title, markdown, thing_id)
+        except Exception as e:
+            message = (
+                f'Error while posting match thread.\n'
+                f'{str(e)}\n'
+                f'Continuing while loop.'
+            )
+            logger.error(message)
+            continue
         if not response.json()['success']:
             message = (
                 f'Error posting {title} on {subreddit}.\n'
@@ -79,6 +87,8 @@ def match_thread(opta_id):
             )
             logger.error(message)
             msg.send(message)
+            continue
+        logger.debug(f'Successfully updated {match_obj.opta_id} at minute {match_obj.minute}')
         if match_obj.is_final:
             # post a post-match thread before exiting the loop
             post_match_thread(match_obj.opta_id, thing_id)
