@@ -17,7 +17,7 @@ def match_footer(match_obj: match.Match):
     return retval
 
 
-def match_header(match_obj: match.Match):
+def match_header(match_obj: match.Match, pre=False):
     """Create a match thread header (used by all types of thread)"""
     home = match_obj.home
     away = match_obj.away
@@ -48,20 +48,30 @@ def match_header(match_obj: match.Match):
         for p in away.goalscorers:
             header += p + ', '
         header = header[:-2] + '*\n\n'
-    header += f'### Match Info\n'
-    header += f'**Competition:** {comp}\n\n'
-    header += f'**Date:** {date}\n\n'
-    header += f'**Time:** {time}\n\n'
-    header += f'**Venue:** {venue}\n\n'
-    header += f'**US TV/Streaming:** '
-    for b in match_obj.broadcasters:
-        header += f'{b}, '
-    if len(match_obj.broadcasters) == 0:
-        header += 'Not yet available.'
-    else:
-        header = header[:-2]
+    if pre:
+        header += match_info(match_obj)
     header += '\n\n---\n'
     return header
+
+
+def match_info(match_obj: match.Match):
+    """Add match info to a header (pre-match threads only)"""
+    comp = match_obj.comp
+    date, time = match_obj.get_date_time()
+    venue = match_obj.venue
+    info = f'### Match Info\n'
+    info += f'**Competition:** {comp}\n\n'
+    info += f'**Date:** {date}\n\n'
+    info += f'**Time:** {time}\n\n'
+    info += f'**Venue:** {venue}\n\n'
+    info += f'**US TV/Streaming:** '
+    for b in match_obj.broadcasters:
+        info += f'{b}, '
+    if len(match_obj.broadcasters) == 0:
+        info += 'Not yet available.'
+    else:
+        info = info[:-2]
+    return info
 
 
 def recent_form(match_obj: match.Match):
@@ -82,7 +92,7 @@ def pre_match_thread(match_obj: match.Match):
     if comp == 'US Major League Soccer':
         comp = 'MLS Regular Season'
     title = f'Pre-Match Thread: {home} vs. {away} ({comp})'
-    markdown = match_header(match_obj)
+    markdown = match_header(match_obj, True)
     markdown += recent_form(match_obj)
     if len(match_obj.preview) > 0:
         markdown += '---\n### Match Facts\n'
