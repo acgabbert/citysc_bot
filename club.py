@@ -61,7 +61,7 @@ class ClubMatch(Club):
         starters = []
         bench = []
         if len(self.lineup) == 0:
-            return f'{self.full_name} lineup is not yet available.\n\n'
+            return f'{self.full_name} lineup is not yet available via mlssoccer.com.\n\n'
         for player in self.lineup:
             if player.status == 'Start':
                 index = self.formation_matrix.index(player.formation_place)
