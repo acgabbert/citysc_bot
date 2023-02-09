@@ -60,6 +60,8 @@ def get_oauth_token():
     """
     headers = USER_AGENT
     res = requests.post('https://www.reddit.com/api/v1/access_token', auth=APP_AUTH, data=USER_DATA, headers=headers)
+    if res.status_code != 200:
+        raise Exception(f'Status code {res.status_code} when getting Reddit OAuth token.')
     token = res.json()['access_token']
     headers['Authorization'] = 'bearer {}'.format(token)
     return headers
@@ -95,7 +97,10 @@ def edit_widget(subreddit, widget_id, name, text, headers=None):
 def submit(subreddit, title, text, thing_id=None):
     """Submit a post to the given subreddit.
     If thing_id is not None, edit the existing post."""
-    headers = get_oauth_token()
+    try:
+        headers = get_oauth_token()
+    except:
+        raise
     url = ''
     data = POST_TEMPLATE
     data['sr'] = subreddit
