@@ -96,7 +96,7 @@ def process_feed(data) -> list[str]:
             p = comment['first_player'] # goalscorer
             name = get_player_name(p)
             minute = comment['minute_display']
-            scorer = f'{minute}, {name}'
+            scorer = f'{name} {minute}'
             if comment['type'] == 'own goal':
                 scorer += ' (OG)'
             tm = comment['first_club']['opta_id']
