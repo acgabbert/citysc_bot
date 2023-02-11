@@ -21,9 +21,6 @@ def match_header(match_obj: match.Match, pre=False):
     """Create a match thread header (used by all types of thread)"""
     home = match_obj.home
     away = match_obj.away
-    comp = match_obj.comp
-    date, time = match_obj.get_date_time()
-    venue = match_obj.venue
     header = ''
     if len(match_obj.summary) > 1:
         # match has started
