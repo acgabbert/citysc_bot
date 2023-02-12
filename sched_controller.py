@@ -1,3 +1,4 @@
+import argparse
 import time
 import sched
 import logging, logging.handlers
@@ -27,6 +28,9 @@ root.addHandler(fh)
 root.addHandler(fh2)
 root.addHandler(er)
 
+parser = argparse.ArgumentParser(prog='sched_controller.py', usage='%(prog)s [options]', description='')
+parser.add_argument('-s', '--sub', help='Subreddit; default = /r/citysc_bot_test')
+
 scheduler = sched.scheduler(time.time, time.sleep)
 
 """List of club opta IDs that we want to make threads for
@@ -41,15 +45,15 @@ class Main:
     thread to complete."""
     # TODO maybe move this class to match_thread?
     @staticmethod
-    def create_match_thread(opta_id):
-        message = f'Posting match thread for {opta_id}'
+    def create_match_thread(opta_id, sub):
+        message = f'Posting match thread for {opta_id} on subreddit {sub}'
         root.info(message)
         msg.send(f'{msg.user}\n{message}')
-        p = Process(target=thread.match_thread, args=(opta_id,), daemon=True)
+        p = Process(target=thread.match_thread, args=(opta_id,sub), daemon=True)
         p.start()
 
 
-def daily_setup():
+def daily_setup(sub):
     """This function runs daily and is the core component of the bot.
     It will first check, for each team, if there is a match in the next 48 hours.
     If so, it will schedule a pre-match or match thread, whichever is appropriate.
@@ -65,20 +69,20 @@ def daily_setup():
             today = time.time() + 86400
             tomo = today + 86400
             if t < today:
-                # schedule a match thread for 1h before gametime
-                t -= 3600
-                scheduler.enterabs(t, 1, Main.create_match_thread, argument=(id,))
+                # schedule a match thread for 30m before gametime
+                t -= 1800
+                scheduler.enterabs(t, 1, Main.create_match_thread, argument=(id,sub))
                 t = time.strftime('%H:%M', time.localtime(t))
-                message = f'Scheduled match thread for {t}. Team {team}, Opta ID {id}'
+                message = f'Scheduled match thread for {t}. Team {team}, Opta ID {id}, Subreddit {sub}'
                 root.info(message)
                 msg.send(f'{msg.user}\n{message}')
                 break
             if t < tomo:
                 # schedule a pre-match thread for 24h before gametime
                 t -= 86400
-                scheduler.enterabs(t, 1, thread.pre_match_thread, argument=(id,))
+                scheduler.enterabs(t, 1, thread.pre_match_thread, argument=(id,sub))
                 t = time.strftime('%H:%M', time.localtime(t))
-                message = f'Scheduled pre-match thread for {t}. Team {team}, Opta ID {id}'
+                message = f'Scheduled pre-match thread for {t}. Team {team}, Opta ID {id}, Subreddit {sub}'
                 root.info(message)
                 msg.send(f'{msg.user}\n{message}')
         else:
@@ -102,12 +106,12 @@ def daily_setup():
     msg.send(message)
 
 
-def main():
+def main(sub):
     root.info(f'Started {__name__} at {time.time()}')
-    daily_setup()
+    daily_setup(sub)
     schedule.every().day.at('05:10').do(widgets.upcoming)
     schedule.every().day.at('05:15').do(widgets.standings)
-    schedule.every().day.at('05:30').do(daily_setup)
+    schedule.every().day.at('05:30').do(daily_setup, sub)
     running = True
     while running:
         try:
@@ -118,4 +122,11 @@ def main():
             running = False
 
 if __name__ == '__main__':
-    main()
+    args = parser.parse_args()
+    sub = args.sub
+    if sub:
+        if '/r/' not in sub:
+            sub = f'/r/{sub}'
+    else:
+        sub = '/r/citysc_bot_test'
+    main(sub)
