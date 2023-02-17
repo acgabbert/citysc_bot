@@ -374,7 +374,7 @@ def get_broadcasters(match_obj: Match) -> Match:
     broadcasters = data['broadcasters']
     adder = []
     for b in broadcasters:
-        if b['broadcasterType'] != 'US TV':
+        if b['broadcasterType'] not in ['US TV', 'International Streaming']:
             continue
         adder.append(b['broadcasterName'])
     match_obj.broadcasters = adder
