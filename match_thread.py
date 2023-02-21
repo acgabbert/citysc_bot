@@ -127,7 +127,7 @@ def main():
     args = parser.parse_args()
     id = args.id
     sub = args.sub
-    if '/r/' not in sub:
+    if sub and '/r/' not in sub:
         sub = f'/r/{sub}'
     if id:
         if args.pre:
