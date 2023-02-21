@@ -8,3 +8,5 @@ env/*
 *.db
 mls_test.db
 __pycache__
+*.sh
+
