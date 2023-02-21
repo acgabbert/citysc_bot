@@ -1,14 +1,10 @@
 import time
 import argparse
 import logging
-import argparse
-import logging
 
-import config
 import config
 import match
 import match_markdown as md
-import reddit_interactor as reddit
 import reddit_interactor as reddit
 import util
 import discord as msg
@@ -22,17 +18,6 @@ parser.add_argument('-i', '--id', help='Match Opta ID')
 parser.add_argument('-s', '--sub', help='Subreddit')
 
 test_sub = config.TEST_SUB
-import discord as msg
-
-logger = logging.getLogger(__name__)
-
-parser = argparse.ArgumentParser(prog='match_thread.py', usage='%(prog)s [options]', description='')
-parser.add_argument('--pre', action='store_true', help='Create a pre-match thread')
-parser.add_argument('--post', action='store_true', help='Create a pre-match thread')
-parser.add_argument('-i', '--id', help='Match Opta ID')
-parser.add_argument('-s', '--sub', help='Subreddit')
-
-test_sub = config.TEST_SUB
 
 
 def pre_match_thread(opta_id, sub=test_sub):
@@ -47,54 +32,12 @@ def pre_match_thread(opta_id, sub=test_sub):
         logger.error(f'Error posting {title} on {sub}.\n{response.status_code}')
     return thing_id
 
-def pre_match_thread(opta_id, sub=test_sub):
-    #global subreddit
-    match_obj = match.Match(opta_id)
-    match_obj = match.get_prematch_data(match_obj)
-    title, markdown = md.pre_match_thread(match_obj)
-    response, thing_id = reddit.submit(sub, title, markdown)
-    if response.status_code == 200:
-        logger.info(f'Posted {title} on {sub} with thing_id {thing_id}')
-    else:
-        logger.error(f'Error posting {title} on {sub}.\n{response.status_code}')
-    return thing_id
 
-
-def match_thread(opta_id, sub=test_sub):
-    #global subreddit
-    # initialize an empty Match object with the opta_id
 def match_thread(opta_id, sub=test_sub):
     #global subreddit
     # initialize an empty Match object with the opta_id
     match_obj = match.Match(opta_id)
     match_obj = match.get_all_data(match_obj)
-    
-    # TODO use something other than a database to track current threads
-    try:
-        # need to check for a thing_id here, in wherever we decide to keep track of them
-        thing_id = None
-        #thing_id = util.db_query(sql)[0][0]
-    except IndexError:
-        thing_id = None
-    if thing_id is None:
-        # no thread exists, post a new one
-        title, markdown = md.match_thread(match_obj)
-        response, thing_id = reddit.submit(sub, title, markdown, thing_id)
-        reddit.set_sort_order(thing_id)
-        if response.status_code == 200 and response.json()['success']:
-            # TODO use something other than a database to track current threads
-            logger.info(f'Posted {title} on {sub}')
-        else:
-            message = (
-                f'Error posting {title} on {sub}.\n'
-                f'{response.status_code} - {response.reason}\n'
-                f'{response.json()["jquery"][10][3][0]}'
-            )
-            logger.error(message)
-            msg.send(message)
-            # TODO or could raise an exception here
-            return
-    
     
     # TODO use something other than a database to track current threads
     try:
@@ -124,59 +67,6 @@ def match_thread(opta_id, sub=test_sub):
     
     while not match_obj.is_final:
         time.sleep(60)
-        match_obj = match.get_all_data(match_obj)
-        title, markdown = md.match_thread(match_obj)
-        # edit existing thread with thing_id
-        try:
-            response, _ = reddit.submit(sub, title, markdown, thing_id)
-        except Exception as e:
-            message = (
-                f'Error while posting match thread.\n'
-                f'{str(e)}\n'
-                f'Continuing while loop.'
-            )
-            logger.error(message)
-            continue
-        if not response.json()['success']:
-            message = (
-                f'Error posting {title} on {sub}.\n'
-                f'{response.status_code} - {response.reason}\n'
-                f'{response.json()["jquery"][10][3][0]}'
-            )
-            logger.error(message)
-            msg.send(message)
-            continue
-        logger.debug(f'Successfully updated {match_obj.opta_id} at minute {match_obj.minute}')
-        if match_obj.is_final:
-            # post a post-match thread before exiting the loop
-            post_match_thread(match_obj.opta_id, thing_id, sub)
-
-
-def post_match_thread(opta_id, match_thing_id=None, sub=test_sub):
-    #global subreddit
-    # initialize an empty Match object with the opta_id
-    match_obj = match.Match(opta_id)
-    match_obj = match.get_all_data(match_obj)
-    title, markdown = md.post_match_thread(match_obj)
-    response, thing_id = reddit.submit(sub, title, markdown)
-    if match_thing_id is not None:
-        # somehow gonna hve to get the full link text
-        text = f'[Post-match thread has been posted.](https://www.reddit.com{sub}/comments/{thing_id})'
-        # TODO verify this works LOL
-        reddit.comment(match_thing_id, text)
-    if response.status_code == 200 and response.json()['success']:
-        # TODO use something other than a database to track current threads
-        logger.info(f'Posted {title} on {sub}')
-    else:
-        message = (
-            f'Error posting {title} on {sub}.\n'
-            f'{response.status_code} - {response.reason}\n'
-            f'{response.json()["jquery"][10][3][0]}'
-        )
-        logger.error(message)
-        msg.send(message)
-        # TODO or could raise an exception here
-        return
         match_obj = match.get_all_data(match_obj)
         title, markdown = md.match_thread(match_obj)
         # edit existing thread with thing_id
