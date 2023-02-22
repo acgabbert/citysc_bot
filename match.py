@@ -36,7 +36,8 @@ class Match(mls.MlsObject):
         secs = int(self.date)
         date = time.strptime(time.ctime(secs))
         date_val = time.strftime('%B %d, %Y', date)
-        time_val = time.strftime('%I:%M%p', date)
+        time_val = time.strftime('%I:%M %p ', date)
+        time_val += datetime.now().astimezone().tzname()
         # remove leading zero from time
         if time_val[0] == '0':
             time_val = time_val[1:]
