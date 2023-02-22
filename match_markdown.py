@@ -88,7 +88,8 @@ def pre_match_thread(match_obj: match.Match):
     # TODO this will eventually need to handle different values
     if comp == 'US Major League Soccer':
         comp = 'MLS Regular Season'
-    title = f'Pre-Match Thread: {home} vs. {away} ({comp})'
+    #title = f'Pre-Match Thread: {home} vs. {away} ({comp})'
+    title = f'Matchday Thread: {home} vs. {away} ({comp})'
     markdown = match_header(match_obj, True)
     markdown += recent_form(match_obj)
     if len(match_obj.preview) > 0:
