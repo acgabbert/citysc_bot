@@ -168,6 +168,14 @@ def comment(thing_id, text):
     return requests.post(url, data=data, headers=headers)
 
 
+def disable_replies(thing_id):
+    headers = get_oauth_token()
+    url = REDDIT_OAUTH + '/api/sendreplies'
+    data = {'id': f't3_{thing_id}', 'state': False}
+    return requests.post(url, data=data, headers=headers)
+    
+
+
 if __name__ == '__main__':
     #HEADERS = get_oauth_token()
     #ids = get_widgets(TEST_SUB, HEADERS)
