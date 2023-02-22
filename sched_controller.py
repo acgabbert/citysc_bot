@@ -104,7 +104,9 @@ def daily_setup(sub):
 
 
 def main(sub):
-    root.info(f'Started {__name__} at {time.time()}')
+    message = f'Started {__name__} at {time.time()}. Subreddit {sub}'
+    root.info(message)
+    msg.send(message)
     daily_setup(sub)
     schedule.every().day.at('01:00').do(widgets.upcoming)
     schedule.every().day.at('01:15').do(widgets.standings)
