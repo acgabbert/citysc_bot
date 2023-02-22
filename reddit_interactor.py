@@ -94,7 +94,7 @@ def edit_widget(subreddit, widget_id, name, text, headers=None):
     return requests.put(REDDIT_OAUTH + subreddit + '/api/widget/' + widget_id, headers=headers, data=json.dumps(payload))
 
 
-def submit(subreddit, title, text, thing_id=None):
+def submit(subreddit, title, text, thing_id=None, no_replies=True):
     """Submit a post to the given subreddit.
     If thing_id is not None, edit the existing post."""
     try:
@@ -115,6 +115,8 @@ def submit(subreddit, title, text, thing_id=None):
     r = requests.post(url, data=data, headers=headers)
     if thing_id is None:
         thing_id = (r.json()['jquery'][10][3][0]).split('/')[-3]
+    if no_replies:
+        disable_replies(thing_id, headers)
     return r, thing_id
 
 
@@ -168,8 +170,9 @@ def comment(thing_id, text):
     return requests.post(url, data=data, headers=headers)
 
 
-def disable_replies(thing_id):
-    headers = get_oauth_token()
+def disable_replies(thing_id, headers=None):
+    if not headers:
+        headers = get_oauth_token()
     url = REDDIT_OAUTH + '/api/sendreplies'
     data = {'id': f't3_{thing_id}', 'state': False}
     return requests.post(url, data=data, headers=headers)
