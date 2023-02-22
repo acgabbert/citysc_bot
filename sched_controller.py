@@ -67,6 +67,7 @@ def daily_setup(sub):
             # there is a match in less than 48 hours
             today = time.time() + 86400
             if t < today:
+                # there is a match today (next 24 hours)
                 # schedule a match thread for 30m before gametime
                 t -= 1800
                 scheduler.enterabs(t, 1, Main.create_match_thread, argument=(id,sub))
@@ -81,10 +82,10 @@ def daily_setup(sub):
                 message = f'Scheduled pre-match thread for {prematch_time}. Team {team}, Opta ID {id}, Subreddit {sub}'
                 root.info(message)
                 msg.send(f'{msg.user}\n{message}')
-        else:
-            message = f'No matches today for {team}.'
-            root.info(message)
-            msg.send(message)
+            else:
+                message = f'No matches today for {team}.'
+                root.info(message)
+                msg.send(message)
     q = scheduler.queue
     if len(q) > 0:
         message = 'Currently scheduled jobs:\n'
