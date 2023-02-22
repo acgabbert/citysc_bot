@@ -1,6 +1,7 @@
 import time
 import argparse
 import logging
+import json
 
 import config
 import match
@@ -18,6 +19,7 @@ parser.add_argument('-i', '--id', help='Match Opta ID')
 parser.add_argument('-s', '--sub', help='Subreddit')
 
 test_sub = config.TEST_SUB
+threads_json = config.THREADS_JSON
 
 
 def pre_match_thread(opta_id, sub=test_sub):
@@ -30,6 +32,14 @@ def pre_match_thread(opta_id, sub=test_sub):
         logger.info(f'Posted {title} on {sub} with thing_id {thing_id}')
     else:
         logger.error(f'Error posting {title} on {sub}.\n{response.status_code}')
+    data = {}
+    with open(threads_json, 'r') as f:
+        data = json.loads(f.read())
+    if opta_id not in data.keys():
+        data[opta_id] = {}
+    data[opta_id]['pre'] = thing_id
+    with open(threads_json, 'w') as f:
+        f.write(json.dumps(data))
     return thing_id
 
 
@@ -64,6 +74,18 @@ def match_thread(opta_id, sub=test_sub):
             msg.send(message)
             # TODO or could raise an exception here
             return
+
+        data = {}
+        with open(threads_json, 'r') as f:
+            data = json.loads(f.read())
+        if opta_id not in data.keys():
+            data[opta_id] = {}
+        elif data[opta_id]['pre']:
+            # unpin pre-match thread
+            reddit.sticky(data[opta_id]['pre'], False)
+        data[opta_id]['match'] = thing_id
+        with open(threads_json, 'w') as f:
+            f.write(json.dumps(data))
     
     while not match_obj.is_final:
         time.sleep(60)
@@ -120,6 +142,17 @@ def post_match_thread(opta_id, match_thing_id=None, sub=test_sub):
         msg.send(message)
         # TODO or could raise an exception here
         return
+    data = {}
+    with open(threads_json, 'r') as f:
+        data = json.loads(f.read())
+    if opta_id not in data.keys():
+        data[opta_id] = {}
+    elif data[opta_id]['pre']:
+        # unpin match thread
+        reddit.sticky(data[opta_id]['match'], False)
+    data[opta_id]['post'] = thing_id
+    with open(threads_json, 'w') as f:
+        f.write(json.dumps(data))
 
 
 @util.time_dec(False)
