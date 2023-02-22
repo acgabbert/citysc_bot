@@ -94,7 +94,7 @@ def edit_widget(subreddit, widget_id, name, text, headers=None):
     return requests.put(REDDIT_OAUTH + subreddit + '/api/widget/' + widget_id, headers=headers, data=json.dumps(payload))
 
 
-def submit(subreddit, title, text, thing_id=None, no_replies=True):
+def submit(subreddit, title, text, thing_id=None, no_replies=True, pin=True):
     """Submit a post to the given subreddit.
     If thing_id is not None, edit the existing post."""
     try:
@@ -117,6 +117,8 @@ def submit(subreddit, title, text, thing_id=None, no_replies=True):
         thing_id = (r.json()['jquery'][10][3][0]).split('/')[-3]
     if no_replies:
         disable_replies(thing_id, headers)
+    if pin:
+        sticky(thing_id, True, headers)
     return r, thing_id
 
 
@@ -176,7 +178,14 @@ def disable_replies(thing_id, headers=None):
     url = REDDIT_OAUTH + '/api/sendreplies'
     data = {'id': f't3_{thing_id}', 'state': False}
     return requests.post(url, data=data, headers=headers)
-    
+
+
+def sticky(thing_id, state=True, headers=None):
+    if not headers:
+        headers = get_oauth_token()
+    url = REDDIT_OAUTH + '/api/set_subreddit_sticky'
+    data = {'id': f't3_{thing_id}', 'state': state}
+    return requests.post(url, data=data, headers=headers)
 
 
 if __name__ == '__main__':
