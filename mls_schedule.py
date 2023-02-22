@@ -99,7 +99,10 @@ def get_upcoming_matches(data):
 
 def get_apple_info(data):
     for row in data:
-        print(f'{row["slug"]}: {row["appleSubscriptionTier"]}, {row["appleStreamURL"]}')
+        print(f'{row["optaId"]}, {row["slug"]}: {row["appleSubscriptionTier"]}, {row["appleStreamURL"]}')
+        for b in row['broadcasters']:
+            if 'Apple' in b['broadcasterName']:
+                print(f'- {b["broadcasterName"]}')
 
 
 @util.time_dec(False)
