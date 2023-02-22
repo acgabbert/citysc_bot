@@ -66,26 +66,23 @@ def daily_setup(sub):
         if id is not None:
             # there is a match in less than 48 hours
             today = time.time() + 86400
-            tomo = today + 86400
             if t < today:
                 # schedule a match thread for 30m before gametime
                 t -= 1800
                 scheduler.enterabs(t, 1, Main.create_match_thread, argument=(id,sub))
-                t = time.strftime('%H:%M', time.localtime(t))
-                message = f'Scheduled match thread for {t}. Team {team}, Opta ID {id}, Subreddit {sub}'
+                match_time = time.strftime('%H:%M', time.localtime(t))
+                message = f'Scheduled match thread for {match_time}. Team {team}, Opta ID {id}, Subreddit {sub}'
                 root.info(message)
                 msg.send(f'{msg.user}\n{message}')
-                break
-            if t < tomo:
-                # schedule a pre-match thread for 24h before gametime
-                t -= 86400
-                scheduler.enterabs(t, 1, thread.pre_match_thread, argument=(id,sub))
-                t = time.strftime('%H:%M', time.localtime(t))
-                message = f'Scheduled pre-match thread for {t}. Team {team}, Opta ID {id}, Subreddit {sub}'
+                # schedule a pre-match thread for 5:00am
+                t = int(datetime.now().replace(hour=5, minute=0).timestamp())
+                scheduler.enterabs(t, 1, thread.pre_match_thread, argument=(id, sub))
+                prematch_time = time.strftime('%H:%M', time.localtime(t))
+                message = f'Scheduled pre-match thread for {prematch_time}. Team {team}, Opta ID {id}, Subreddit {sub}'
                 root.info(message)
                 msg.send(f'{msg.user}\n{message}')
         else:
-            message = f'No upcoming matches for {team}.'
+            message = f'No matches today for {team}.'
             root.info(message)
             msg.send(message)
     q = scheduler.queue
@@ -108,9 +105,9 @@ def daily_setup(sub):
 def main(sub):
     root.info(f'Started {__name__} at {time.time()}')
     daily_setup(sub)
-    schedule.every().day.at('05:10').do(widgets.upcoming)
-    schedule.every().day.at('05:15').do(widgets.standings)
-    schedule.every().day.at('05:30').do(daily_setup, sub)
+    schedule.every().day.at('01:00').do(widgets.upcoming)
+    schedule.every().day.at('01:15').do(widgets.standings)
+    schedule.every().day.at('01:30').do(daily_setup, sub)
     running = True
     while running:
         try:
