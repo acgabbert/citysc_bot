@@ -76,7 +76,7 @@ def daily_setup(sub):
                 root.info(message)
                 msg.send(f'{msg.user}\n{message}')
                 # schedule a pre-match thread for 5:00am
-                t = int(datetime.now().replace(hour=5, minute=0).timestamp())
+                t = int(datetime.now().replace(hour=4, minute=0).timestamp())
                 scheduler.enterabs(t, 1, thread.pre_match_thread, argument=(id, sub))
                 prematch_time = time.strftime('%H:%M', time.localtime(t))
                 message = f'Scheduled pre-match thread for {prematch_time}. Team {team}, Opta ID {id}, Subreddit {sub}'
