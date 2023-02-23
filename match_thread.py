@@ -82,9 +82,12 @@ def match_thread(opta_id, sub=test_sub):
             data = json.loads(f.read())
         if opta_id not in data.keys():
             data[opta_id] = {}
-        elif data[opta_id]['pre']:
-            # unpin pre-match thread
-            reddit.sticky(data[opta_id]['pre'], False)
+        else:
+            # un-sticky pre-match thread
+            try:
+                reddit.sticky(data[opta_id]['pre'], False)
+            except KeyError:
+                pass
         data[opta_id]['match'] = thing_id
         with open(threads_json, 'w') as f:
             f.write(json.dumps(data))
@@ -149,9 +152,12 @@ def post_match_thread(opta_id, match_thing_id=None, sub=test_sub):
         data = json.loads(f.read())
     if opta_id not in data.keys():
         data[opta_id] = {}
-    elif data[opta_id]['pre']:
-        # unpin match thread
-        reddit.sticky(data[opta_id]['match'], False)
+    else:
+        # un-sticky match thread
+        try:
+            reddit.sticky(data[opta_id]['match'], False)
+        except KeyError:
+            pass
     data[opta_id]['post'] = thing_id
     with open(threads_json, 'w') as f:
         f.write(json.dumps(data))
