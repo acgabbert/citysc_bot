@@ -32,6 +32,7 @@ def pre_match_thread(opta_id, sub=test_sub):
         logger.info(f'Posted {title} on {sub} with thing_id {thing_id}')
     else:
         logger.error(f'Error posting {title} on {sub}.\n{response.status_code}')
+        return
     data = {}
     with open(threads_json, 'r') as f:
         data = json.loads(f.read())
