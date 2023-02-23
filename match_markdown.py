@@ -3,11 +3,6 @@ import time
 import match
 import util
 
-"""
-# select STL City matches coming up
-# just edit the time
-SELECT * FROM match WHERE time > 1677304800 and time < 1677391200 and (home = 17012 or away = 17012)
-"""
 
 def match_footer(match_obj: match.Match):
     retval = '\n\n---\n'
@@ -24,7 +19,7 @@ def match_header(match_obj: match.Match, pre=False):
     header = ''
     if len(match_obj.summary) > 1:
         # match has started
-        header = '# '
+        header = '## '
         if match_obj.is_final:
             header += f'{match_obj.result_type}: '
         elif match_obj.started:
@@ -101,7 +96,10 @@ def pre_match_thread(match_obj: match.Match):
         comp = 'MLS Regular Season'
     #title = f'Pre-Match Thread: {home} vs. {away} ({comp})'
     title = f'Matchday Thread: {home} vs. {away} ({comp}) [{date}]'
-    markdown = match_header(match_obj, True)
+    markdown = ''
+    if date == 'February 25, 2023':
+        markdown += '**IT\'S THE FIRST EVER MLS MATCHDAY FOR ST. LOUIS CITY SC!**\n'
+    markdown += match_header(match_obj, True)
     markdown += recent_form(match_obj)
     if len(match_obj.preview) > 0:
         markdown += '---\n### Match Facts\n'
