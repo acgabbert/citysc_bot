@@ -71,6 +71,11 @@ def match_info(match_obj: match.Match):
     return info
 
 
+def video_highlights(match_obj: match.Match):
+    """Add video highlights to a footer"""
+
+
+
 def recent_form(match_obj: match.Match):
     home = match_obj.home
     away = match_obj.away
@@ -85,11 +90,12 @@ def pre_match_thread(match_obj: match.Match):
     home = match_obj.home.full_name
     away = match_obj.away.full_name
     comp = match_obj.comp
+    date, time = match_obj.get_date_time()
     # TODO this will eventually need to handle different values
     if comp == 'US Major League Soccer':
         comp = 'MLS Regular Season'
     #title = f'Pre-Match Thread: {home} vs. {away} ({comp})'
-    title = f'Matchday Thread: {home} vs. {away} ({comp})'
+    title = f'Matchday Thread: {home} vs. {away} ({comp}) [{date}]'
     markdown = match_header(match_obj, True)
     markdown += recent_form(match_obj)
     if len(match_obj.preview) > 0:
@@ -109,8 +115,8 @@ def match_thread(match_obj: match.Match):
     # TODO this will eventually need to handle different values
     if comp == 'US Major League Soccer':
         comp = 'MLS Regular Season'
-    # TODO add date to title?
-    title = f'Match Thread: {home} vs. {away} ({comp})'
+    date, time = match_obj.get_date_time()
+    title = f'Match Thread: {home} vs. {away} ({comp}) [{date}, {time}]'
     # TODO: if pens, add to title
     markdown = match_header(match_obj)
     markdown += '### Lineups\n'
@@ -131,13 +137,14 @@ def post_match_thread(match_obj: match.Match):
     home = match_obj.home
     away = match_obj.away
     comp = match_obj.comp
+    date, time = match_obj.get_date_time()
     # TODO this will eventually need to handle different values
     if comp == 'US Major League Soccer':
         comp = 'MLS Regular Season'
     # TODO add period/result type
     title = f'Post-Match Thread: {home.full_name} {home.goals}-{away.goals} '
     # TODO if pens, add to title here
-    title += f'{away.full_name} ({comp})'
+    title += f'{away.full_name} ({comp}) [{date}]'
     markdown = match_header(match_obj)
     markdown += '### Lineups\n'
     markdown += match_obj.home.lineup_str()
