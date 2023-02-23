@@ -419,6 +419,7 @@ def get_all_data(match_obj: Match) -> Match:
     match_obj = get_stats(match_obj)
     match_obj = get_summary(match_obj)
     match_obj = get_broadcasters(match_obj)
+    match_obj = get_videos(match_obj)
     return match_obj
 
 
