@@ -125,13 +125,13 @@ def match_thread(match_obj: match.Match):
     markdown += '### Lineups\n'
     markdown += match_obj.home.lineup_str()
     markdown += match_obj.away.lineup_str()
-    markdown += '---\n'
     if match_obj.started:
         # TODO only add stats table after match has started
         markdown += stats_table(match_obj)
-    markdown += '### Match Events\n'
-    for comment in match_obj.summary:
-        markdown += f'- {comment}\n'
+    if len(match_obj.summary) > 0:
+        markdown += '---\n### Match Events\n'
+        for comment in match_obj.summary:
+            markdown += f'- {comment}\n'
     videos = video_highlights(match_obj)
     if videos is not None:
         markdown += videos
@@ -174,7 +174,7 @@ def stats_table(match_obj: match.Match):
     """
     home = match_obj.home
     away = match_obj.away
-    markdown = '### Match Stats:\n'
+    markdown = '---\n### Match Stats:\n'
     table_header = ''
     if home.short_name == '' or away.short_name == '':
         table_header = f'{home.full_name}|{home.goals}-{away.goals}|{away.full_name}'
@@ -195,7 +195,7 @@ def stats_table(match_obj: match.Match):
     markdown += f'\n{"%.2f" % home.expected_goals}|Expected Goals (xG)|{"%.2f" % away.expected_goals}'
     markdown += f'\n{home.total_pass}|Total Passes|{away.total_pass}'
     markdown += f'\n{home.pass_accuracy}%|Pass Accuracy|{away.pass_accuracy}%'
-    markdown += '\n---\n'
+    markdown += '\n'
     return markdown
 
 
