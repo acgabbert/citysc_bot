@@ -26,6 +26,7 @@ class Match(mls.MlsObject):
         self.is_final = False
         self.preview = []
         self.feed = []
+        self.videos = []
         self.summary = []
         self.broadcasters = []
         self.apple_tier = ''
@@ -382,6 +383,18 @@ def get_broadcasters(match_obj: Match) -> Match:
         else:
             adder.append(b['broadcasterName'])
     match_obj.broadcasters = adder
+    return retval
+
+
+def get_videos(match_obj: Match) -> Match:
+    retval = match_obj
+    vid_url = 'https://mlssoccer.com/video/'
+    url = 'https://dapi.mlssoccer.com/v2/content/en-us/brightcovevideos'
+    params = {'fields.optaMatchId': match_obj.opta_id}
+    data = mls.call_api(url, params)[0]['items']
+    print(data)
+    for vid in data:
+        retval.videos.append((vid['title'],f'{vid_url}{vid["slug"]}'))
     return retval
 
 
