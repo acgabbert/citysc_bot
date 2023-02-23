@@ -57,11 +57,11 @@ def match_info(match_obj: match.Match):
     date, time = match_obj.get_date_time()
     venue = match_obj.venue
     info = f'### Match Info\n'
-    info += f'**Competition:** {comp}\n\n'
-    info += f'**Date:** {date}\n\n'
-    info += f'**Time:** {time}\n\n'
-    info += f'**Venue:** {venue}\n\n'
-    info += f'**US TV/Streaming:** '
+    info += f'- **Competition:** {comp}\n'
+    info += f'- **Date:** {date}\n'
+    info += f'- **Time:** {time}\n'
+    info += f'- **Venue:** {venue}\n'
+    info += f'- **US TV/Streaming:** '
     for b in match_obj.broadcasters:
         info += f'{b}, '
     if len(match_obj.broadcasters) == 0:
@@ -75,8 +75,8 @@ def recent_form(match_obj: match.Match):
     home = match_obj.home
     away = match_obj.away
     retval = '### Recent Form\n'
-    retval += f'{home.full_name}: {home.recent_form}\n\n'
-    retval += f'{away.full_name}: {away.recent_form}\n\n'
+    retval += f'- {home.full_name}: {home.recent_form}\n'
+    retval += f'- {away.full_name}: {away.recent_form}\n'
     return retval
 
 
@@ -95,7 +95,9 @@ def pre_match_thread(match_obj: match.Match):
     if len(match_obj.preview) > 0:
         markdown += '---\n### Match Facts\n'
         for comment in match_obj.preview:
-            markdown += comment + '\n\n'
+            comment = comment.replace('\u2019', "'")
+            comment = comment.replace('\u2014', '-')
+            markdown += f'- {comment}\n'
     markdown += match_footer(match_obj)
     return title, markdown
 
@@ -120,7 +122,7 @@ def match_thread(match_obj: match.Match):
         markdown += stats_table(match_obj)
     markdown += '### Match Events\n'
     for comment in match_obj.summary:
-        markdown += comment + '\n\n'
+        markdown += f'- {comment}\n'
     markdown += match_footer(match_obj)
     return title, markdown
 
