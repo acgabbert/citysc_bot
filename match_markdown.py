@@ -73,7 +73,12 @@ def match_info(match_obj: match.Match):
 
 def video_highlights(match_obj: match.Match):
     """Add video highlights to a footer"""
-
+    if len(match_obj.videos) < 1:
+        return None
+    retval = '---\n### Match Highlights\n'
+    for g in match_obj.videos:
+        retval += f'- [{g[0]}]({g[1]})\n'
+    return retval
 
 
 def recent_form(match_obj: match.Match):
@@ -129,6 +134,9 @@ def match_thread(match_obj: match.Match):
     markdown += '### Match Events\n'
     for comment in match_obj.summary:
         markdown += f'- {comment}\n'
+    videos = video_highlights(match_obj)
+    if videos is not None:
+        markdown += videos
     markdown += match_footer(match_obj)
     return title, markdown
 
