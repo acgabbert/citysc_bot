@@ -23,7 +23,7 @@ threads_json = config.THREADS_JSON
 
 
 def pre_match_thread(opta_id, sub=test_sub):
-    #global subreddit
+    """This function posts a pre-match/matchday thread"""
     match_obj = match.Match(opta_id)
     match_obj = match.get_prematch_data(match_obj)
     title, markdown = md.pre_match_thread(match_obj)
@@ -44,7 +44,9 @@ def pre_match_thread(opta_id, sub=test_sub):
 
 
 def match_thread(opta_id, sub=test_sub):
-    #global subreddit
+    """This function posts a match thread.
+    It maintains the thread until the game is finished
+    in order to present up-to-date match events and stats"""
     # initialize an empty Match object with the opta_id
     match_obj = match.Match(opta_id)
     match_obj = match.get_all_data(match_obj)
@@ -118,7 +120,7 @@ def match_thread(opta_id, sub=test_sub):
 
 
 def post_match_thread(opta_id, match_thing_id=None, sub=test_sub):
-    #global subreddit
+    """This function posts a post-match thread"""
     # initialize an empty Match object with the opta_id
     match_obj = match.Match(opta_id)
     match_obj = match.get_all_data(match_obj)
