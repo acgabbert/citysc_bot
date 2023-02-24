@@ -23,8 +23,9 @@ def schedule(matches: list[Match]):
             adder += 'MLS|'
         else:
             adder += f'{match.comp}|'
-        adder += f'{time}\n'
-        retval += adder
+        # remove the timezone for length
+        adder += f'{time[:-3]}'
+        retval += f'{adder}\n'
     return retval
 
 def western_conference(teams: list[Club]):
