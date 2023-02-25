@@ -29,9 +29,13 @@ def pre_match_thread(opta_id, sub=test_sub):
     title, markdown = md.pre_match_thread(match_obj)
     response, thing_id = reddit.submit(sub, title, markdown)
     if response.status_code == 200:
-        logger.info(f'Posted {title} on {sub} with thing_id {thing_id}')
+        message = f'Posted {title} on {sub} with thing_id {thing_id}'
+        logger.info(message)
+        msg.send(f'{msg.user} {message}')
     else:
-        logger.error(f'Error posting {title} on {sub}.\n{response.status_code}')
+        message = f'Error posting {title} on {sub}.\n{response.status_code}'
+        logger.error(message)
+        msg.send(f'{msg.user} {message}')
         return
     data = {}
     with open(threads_json, 'r') as f:
@@ -52,7 +56,6 @@ def match_thread(opta_id, sub=test_sub):
     match_obj = match.Match(opta_id)
     match_obj = match.get_all_data(match_obj)
     
-    # TODO use something other than a database to track current threads
     try:
         # need to check for a thing_id here, in wherever we decide to keep track of them
         thing_id = None
@@ -65,8 +68,9 @@ def match_thread(opta_id, sub=test_sub):
         response, thing_id = reddit.submit(sub, title, markdown, thing_id)
         reddit.set_sort_order(thing_id)
         if response.status_code == 200 and response.json()['success']:
-            # TODO use something other than a database to track current threads
-            logger.info(f'Posted {title} on {sub}')
+            message = f'Posted {title} on {sub}'
+            logger.info(message)
+            msg.send(f'{msg.user} {message}')
         else:
             message = (
                 f'Error posting {title} on {sub}.\n'
@@ -74,7 +78,7 @@ def match_thread(opta_id, sub=test_sub):
                 f'{response.json()["jquery"][10][3][0]}'
             )
             logger.error(message)
-            msg.send(message)
+            msg.send(f'{msg.user} {message}')
             # TODO or could raise an exception here
             return
 
@@ -107,6 +111,7 @@ def match_thread(opta_id, sub=test_sub):
                 f'Continuing while loop.'
             )
             logger.error(message)
+            msg.send(f'{msg.user} {message}')
             continue
         if not response.json()['success']:
             message = (
@@ -115,7 +120,7 @@ def match_thread(opta_id, sub=test_sub):
                 f'{response.json()["jquery"][10][3][0]}'
             )
             logger.error(message)
-            msg.send(message)
+            msg.send(f'{msg.user} {message}')
             continue
         logger.debug(f'Successfully updated {match_obj.opta_id} at minute {match_obj.minute}')
         if match_obj.is_final:
@@ -133,11 +138,11 @@ def post_match_thread(opta_id, match_thing_id=None, sub=test_sub):
     if match_thing_id is not None:
         # somehow gonna hve to get the full link text
         text = f'[Post-match thread has been posted.](https://www.reddit.com{sub}/comments/{thing_id})'
-        # TODO verify this works LOL
         reddit.comment(match_thing_id, text)
     if response.status_code == 200 and response.json()['success']:
-        # TODO use something other than a database to track current threads
-        logger.info(f'Posted {title} on {sub}')
+        message = f'Posted {title} on {sub}'
+        logger.info(message)
+        msg.send(f'{msg.user} {message}')
     else:
         message = (
             f'Error posting {title} on {sub}.\n'
@@ -145,7 +150,7 @@ def post_match_thread(opta_id, match_thing_id=None, sub=test_sub):
             f'{response.json()["jquery"][10][3][0]}'
         )
         logger.error(message)
-        msg.send(message)
+        msg.send(f'{msg.user} {message}')
         # TODO or could raise an exception here
         return
     data = {}
