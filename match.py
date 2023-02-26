@@ -422,6 +422,17 @@ def get_all_data(match_obj: Match) -> Match:
     return match_obj
 
 
+def get_match_update(match_obj: Match) -> Match:
+    """Get data for updating a match thread."""
+    logger.info(f'Getting updated data for {match_obj.opta_id}')
+    match_obj = get_match_data(match_obj)
+    match_obj = get_lineups(match_obj)
+    match_obj = get_stats(match_obj)
+    match_obj = get_summary(match_obj)
+    match_obj = get_videos(match_obj)
+    return match_obj
+
+
 @util.time_dec(False)
 def main():
     opta_id = 2335158
