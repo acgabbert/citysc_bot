@@ -81,7 +81,7 @@ def recent_form(match_obj: match.Match):
     away = match_obj.away
     retval = '### Recent Form\n'
     retval += f'- {home.full_name}: {home.recent_form}\n'
-    retval += f'- {away.full_name}: {away.recent_form}\n'
+    retval += f'- {away.full_name}: {away.recent_form}\n\n'
     return retval
 
 
