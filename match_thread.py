@@ -40,7 +40,7 @@ def pre_match_thread(opta_id, sub=test_sub):
     data = {}
     with open(threads_json, 'r') as f:
         data = json.loads(f.read())
-    if opta_id not in data.keys():
+    if str(opta_id) not in data.keys():
         data[opta_id] = {}
     data[opta_id]['pre'] = thing_id
     with open(threads_json, 'w') as f:
@@ -85,7 +85,7 @@ def match_thread(opta_id, sub=test_sub):
         data = {}
         with open(threads_json, 'r') as f:
             data = json.loads(f.read())
-        if opta_id not in data.keys():
+        if str(opta_id) not in data.keys():
             data[opta_id] = {}
         else:
             # un-sticky pre-match thread
@@ -99,7 +99,7 @@ def match_thread(opta_id, sub=test_sub):
     
     while not match_obj.is_final:
         time.sleep(60)
-        match_obj = match.get_all_data(match_obj)
+        match_obj = match.get_match_update(match_obj)
         title, markdown = md.match_thread(match_obj)
         # edit existing thread with thing_id
         try:
@@ -156,7 +156,7 @@ def post_match_thread(opta_id, match_thing_id=None, sub=test_sub):
     data = {}
     with open(threads_json, 'r') as f:
         data = json.loads(f.read())
-    if opta_id not in data.keys():
+    if str(opta_id) not in data.keys():
         data[opta_id] = {}
     else:
         # un-sticky match thread
