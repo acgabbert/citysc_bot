@@ -115,10 +115,11 @@ def submit(subreddit, title, text, thing_id=None, no_replies=True, pin=True):
     r = requests.post(url, data=data, headers=headers)
     if thing_id is None:
         thing_id = (r.json()['jquery'][10][3][0]).split('/')[-3]
-    if no_replies:
-        disable_replies(thing_id, headers)
-    if pin:
-        sticky(thing_id, True, headers)
+        if no_replies:
+            disable_replies(thing_id, headers)
+        if pin:
+            sticky(thing_id, True, headers)
+    #approve_post(thing_id, headers)
     return r, thing_id
 
 
@@ -169,7 +170,10 @@ def comment(thing_id, text):
     data = COMMENT_TEMPLATE
     data['thing_id'] = f't3_{thing_id}'
     data['text'] = text
-    return requests.post(url, data=data, headers=headers)
+    r = requests.post(url, data=data, headers=headers)
+    thing_id = (r.json()['jquery'][10][3][0]).split('/')[-3]
+    #approve_post(thing_id, headers, True)
+    return r
 
 
 def disable_replies(thing_id, headers=None):
@@ -185,6 +189,17 @@ def sticky(thing_id, state=True, headers=None):
         headers = get_oauth_token()
     url = REDDIT_OAUTH + '/api/set_subreddit_sticky'
     data = {'id': f't3_{thing_id}', 'state': state}
+    return requests.post(url, data=data, headers=headers)
+
+
+def approve_post(thing_id, headers=None, comment=False):
+    if not headers:
+        headers = get_oauth_token()
+    url = REDDIT_OAUTH + '/api/approve'
+    if not comment:
+        data = {'id': f't3_{thing_id}'}
+    else:
+        data = {'id': f't1_{thing_id}'}
     return requests.post(url, data=data, headers=headers)
 
 
