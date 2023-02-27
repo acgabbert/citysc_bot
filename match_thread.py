@@ -41,8 +41,8 @@ def pre_match_thread(opta_id, sub=test_sub):
     with open(threads_json, 'r') as f:
         data = json.loads(f.read())
     if str(opta_id) not in data.keys():
-        data[opta_id] = {}
-    data[opta_id]['pre'] = thing_id
+        data[str(opta_id)] = {}
+    data[str(opta_id)]['pre'] = thing_id
     with open(threads_json, 'w') as f:
         f.write(json.dumps(data))
     return thing_id
@@ -86,14 +86,14 @@ def match_thread(opta_id, sub=test_sub):
         with open(threads_json, 'r') as f:
             data = json.loads(f.read())
         if str(opta_id) not in data.keys():
-            data[opta_id] = {}
+            data[str(opta_id)] = {}
         else:
             # un-sticky pre-match thread
             try:
-                reddit.sticky(data[opta_id]['pre'], False)
+                reddit.sticky(data[str(opta_id)]['pre'], False)
             except KeyError:
                 pass
-        data[opta_id]['match'] = thing_id
+        data[str(opta_id)]['match'] = thing_id
         with open(threads_json, 'w') as f:
             f.write(json.dumps(data))
     
@@ -157,14 +157,14 @@ def post_match_thread(opta_id, match_thing_id=None, sub=test_sub):
     with open(threads_json, 'r') as f:
         data = json.loads(f.read())
     if str(opta_id) not in data.keys():
-        data[opta_id] = {}
+        data[str(opta_id)] = {}
     else:
         # un-sticky match thread
         try:
-            reddit.sticky(data[opta_id]['match'], False)
+            reddit.sticky(data[str(opta_id)]['match'], False)
         except KeyError:
             pass
-    data[opta_id]['post'] = thing_id
+    data[str(opta_id)]['post'] = thing_id
     with open(threads_json, 'w') as f:
         f.write(json.dumps(data))
 
