@@ -97,8 +97,6 @@ def pre_match_thread(match_obj: match.Match):
     #title = f'Pre-Match Thread: {home} vs. {away} ({comp})'
     title = f'Matchday Thread: {home} vs. {away} ({comp}) [{date}]'
     markdown = ''
-    if date == 'February 25, 2023':
-        markdown += '**IT\'S THE FIRST EVER MLS MATCHDAY FOR ST. LOUIS CITY SC!**\n'
     markdown += match_header(match_obj, True)
     markdown += recent_form(match_obj)
     if len(match_obj.preview) > 0:
