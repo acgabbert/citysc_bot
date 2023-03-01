@@ -61,6 +61,7 @@ def submit_thread(subreddit: str, title: str, text: str, mod: bool=False, new: b
                 if type(unsticky) is str:
                     unsticky = praw.models.Submission(reddit=reddit, id=unsticky)
                 if type(unsticky) is praw.models.Submission:
+                    print('*******\nHANDLING A SUBMISSION OBJECT\n*******')
                     unsticky_mod = unsticky.mod
                     unsticky_mod.sticky(state=False)
         except:
@@ -168,19 +169,32 @@ def match_thread(opta_id, sub=test_sub, pre_thread=None, thread=None):
             post_match_thread(opta_id, sub, thread)
 
 
-def post_match_thread(opta_id, sub=test_sub, pre_thread=None):
+def post_match_thread(opta_id, sub=test_sub, thread=None):
     """This function posts a post-match thread"""
+    # get reddit ids of any threads that may already exist for this match
+    data = get_threads()
+    if str(opta_id) not in data.keys():
+        # add it as an empty dict
+        data[str(opta_id)] = {}
+    else:
+        gm = data[str(opta_id)]
+        if 'match' in gm.keys():
+            thread = gm['match']
+
+    if '/r/' in sub:
+        sub = sub[3:]
+
     match_obj = match.Match(opta_id)
     match_obj = match.get_all_data(match_obj)
     title, markdown = md.post_match_thread(match_obj)
-    post_thread = submit_thread(sub, title, markdown, mod=True, unsticky=pre_thread)
-    if pre_thread is not None:
+    post_thread = submit_thread(sub, title, markdown, mod=True, unsticky=thread)
+    if thread is not None:
         text = f'[Continue the discussion in the post-match thread.](https://www.reddit.com/r/{sub}/comments/{post_thread.id_from_url(post_thread.shortlink)})'
-        comment(pre_thread, text)
+        comment(thread, text)
     data = get_threads()
     if str(opta_id) not in data.keys():
         data[str(opta_id)] = {}
-    data[str(opta_id)]['post'] = post_thread.id_from_url(post_thread)
+    data[str(opta_id)]['post'] = post_thread.id_from_url(post_thread.shortlink)
     write_threads(data)
     return
 
