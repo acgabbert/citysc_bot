@@ -9,7 +9,7 @@ from multiprocessing import Process
 import util
 import discord as msg
 import widgets
-import match_thread as thread
+import match_thread_praw as thread
 import mls_schedule
 
 fh = logging.handlers.RotatingFileHandler('log/debug.log', maxBytes=1000000, backupCount=10)
