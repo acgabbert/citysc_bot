@@ -45,7 +45,7 @@ def write_threads(data: dict):
     return
 
 
-def submit_thread(subreddit: str, title: str, text: str, mod: bool=False, unsticky=None):
+def submit_thread(subreddit: str, title: str, text: str, mod: bool=False, new: bool=False, unsticky=None):
     """Submit a thread to the provided subreddit. """
     reddit = get_reddit()
     subreddit = reddit.subreddit(subreddit)
@@ -54,7 +54,8 @@ def submit_thread(subreddit: str, title: str, text: str, mod: bool=False, unstic
     if mod:
         thread_mod = thread.mod
         try:
-            thread_mod.suggested_sort(sort='new')
+            if new:
+                thread_mod.suggested_sort(sort='new')
             thread_mod.sticky()
             if unsticky is not None:
                 if type(unsticky) is str:
@@ -63,8 +64,23 @@ def submit_thread(subreddit: str, title: str, text: str, mod: bool=False, unstic
                     unsticky_mod = unsticky.mod
                     unsticky_mod.sticky(state=False)
         except:
-            logger.error('Error in moderation clause.')
+            logger.error(f'Error in moderation clause. Thread {thread.id}, {unsticky.id}')
     return thread
+
+
+def comment(pre_thread, text):
+    reddit = get_reddit()
+    comment = None
+    if type(pre_thread) is str:
+        pre_thread = praw.models.Submission(reddit=reddit, id=pre_thread)
+    if type(pre_thread) is praw.models.Submission:
+        comment = pre_thread.reply(text)
+        comment_mod = comment.mod
+        try:
+            comment_mod.distinguish(sticky=True)
+        except:
+            logger.error(f'Error in moderation clause. Comment {comment.id}')
+    return comment
 
 
 def pre_match_thread(opta_id, sub=test_sub):
@@ -78,7 +94,7 @@ def pre_match_thread(opta_id, sub=test_sub):
     if '/r/' in sub:
         sub = sub[3:]
     # TODO implement PRAW exception handling here or in submit_thread
-    thread = submit_thread(sub, title, markdown, True)
+    thread = submit_thread(sub, title, markdown, mod=True)
     # keep track of threads
     data = get_threads()
     if str(opta_id) not in data.keys():
@@ -119,8 +135,7 @@ def match_thread(opta_id, sub=test_sub, pre_thread=None, thread=None):
         title, markdown = md.match_thread(match_obj)
         if '/r/' in sub:
             sub = sub[3:]
-        thread = submit_thread(sub, title, markdown, True, pre_thread)
-    
+        thread = submit_thread(sub, title, markdown, mod=True, new=True, unsticky=pre_thread)
         data[str(opta_id)]['match'] = thread.id_from_url(thread.shortlink)
         write_threads(data)
     else:
@@ -155,9 +170,9 @@ def post_match_thread(opta_id, sub=test_sub, pre_thread=None):
     match_obj = match.Match(opta_id)
     match_obj = match.get_all_data(match_obj)
     title, markdown = md.post_match_thread(match_obj)
-    post_thread = submit_thread(sub, title, markdown, True, pre_thread)
+    post_thread = submit_thread(sub, title, markdown, mod=True, unsticky=pre_thread)
     if pre_thread is not None:
-        text = f'[Post-match thread has been posted.](https://www.reddit.com/r/{sub}/comments/{post_thread.id_from_url(post_thread.shortlink)})'
+        text = f'[Continue the discussion in the post-match thread.](https://www.reddit.com/r/{sub}/comments/{post_thread.id_from_url(post_thread.shortlink)})'
     data = get_threads()
     if str(opta_id) not in data.keys():
         data[str(opta_id)] = {}
