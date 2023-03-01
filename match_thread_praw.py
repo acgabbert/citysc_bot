@@ -61,7 +61,6 @@ def submit_thread(subreddit: str, title: str, text: str, mod: bool=False, new: b
                 if type(unsticky) is str:
                     unsticky = praw.models.Submission(reddit=reddit, id=unsticky)
                 if type(unsticky) is praw.models.Submission:
-                    print('*******\nHANDLING A SUBMISSION OBJECT\n*******')
                     unsticky_mod = unsticky.mod
                     unsticky_mod.sticky(state=False)
         except:
@@ -149,7 +148,10 @@ def match_thread(opta_id, sub=test_sub, pre_thread=None, thread=None):
     
     while not match_obj.is_final:
         time.sleep(60)
+        before = time.time()
         match_obj = match.get_match_update(match_obj)
+        after = time.time()
+        logger.info(f'Match update took {round(after-before, 2)} secs')
         _, markdown = md.match_thread(match_obj)
         try:
             thread.edit(markdown)
