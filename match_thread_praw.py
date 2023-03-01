@@ -41,7 +41,7 @@ def get_threads():
 
 def write_threads(data: dict):
     with open(threads_json, 'w') as f:
-        f.write(json.dumps(data))
+        f.write(json.dumps(data, indent=4))
     return
 
 
@@ -101,8 +101,7 @@ def pre_match_thread(opta_id, sub=test_sub):
         # add it as an empty dict
         data[str(opta_id)] = {}
     data[str(opta_id)]['pre'] = thread.id_from_url(thread.shortlink)
-    with open(threads_json, 'w') as f:
-        f.write(json.dumps(data))
+    write_threads(data)
     return thread
 
 
