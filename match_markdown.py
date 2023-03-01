@@ -153,15 +153,10 @@ def post_match_thread(match_obj: match.Match):
     markdown += '### Lineups\n'
     markdown += match_obj.home.lineup_str()
     markdown += match_obj.away.lineup_str()
-    markdown += '---\n'
     markdown += stats_table(match_obj)
-    markdown += '### Match Events\n'
-    for comment in match_obj.summary:
-        markdown += comment + '\n\n'
     videos = video_highlights(match_obj)
     if videos is not None:
         markdown += videos
-    markdown += match_footer(match_obj)
     markdown += match_footer(match_obj)
     return title, markdown
 
