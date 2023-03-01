@@ -18,7 +18,7 @@ def schedule(matches: list[Match]):
             adder += f'{team.short_name}|'
         else:
             team = names[match.home.opta_id]
-            adder += f'{team.short_name}|'
+            adder += f'@ {team.short_name}|'
         if match.comp == 'US Major League Soccer':
             adder += 'MLS|'
         else:
