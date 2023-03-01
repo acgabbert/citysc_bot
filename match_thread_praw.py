@@ -138,6 +138,9 @@ def match_thread(opta_id, sub=test_sub, pre_thread=None, thread=None):
         thread = submit_thread(sub, title, markdown, mod=True, new=True, unsticky=pre_thread)
         data[str(opta_id)]['match'] = thread.id_from_url(thread.shortlink)
         write_threads(data)
+        if pre_thread is not None:
+            text = f'[Continue the discussion in the match thread.](https://www.reddit.com/r/{sub}/comments/{thread.id_from_url(thread.shortlink)})'
+            comment(pre_thread, text)
     else:
         # thread already exists in the json
         reddit = get_reddit()
@@ -173,6 +176,7 @@ def post_match_thread(opta_id, sub=test_sub, pre_thread=None):
     post_thread = submit_thread(sub, title, markdown, mod=True, unsticky=pre_thread)
     if pre_thread is not None:
         text = f'[Continue the discussion in the post-match thread.](https://www.reddit.com/r/{sub}/comments/{post_thread.id_from_url(post_thread.shortlink)})'
+        comment(pre_thread, text)
     data = get_threads()
     if str(opta_id) not in data.keys():
         data[str(opta_id)] = {}
