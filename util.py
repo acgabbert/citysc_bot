@@ -4,10 +4,12 @@ import logging
 import sqlite3
 import inspect
 import json
+import praw
 import signal
 from datetime import datetime
 from collections import namedtuple
 
+import config
 import discord as msg
 import functools
 
@@ -137,3 +139,15 @@ names = {
     5513: Names('Philadelphia Union', 'Philadelphia', 'PHI'),
     2077: Names('Toronto FC', 'Toronto', 'TOR')
 }
+
+
+def get_reddit() -> praw.Reddit:
+    reddit = praw.Reddit(
+        client_id=config.CLIENT_ID,
+        client_secret=config.SECRET_TOKEN,
+        password=config.PASSWORD,
+        user_agent=config.USER_AGENT_STR,
+        username=config.USERNAME
+    )
+    reddit.validate_on_submit = True
+    return reddit
