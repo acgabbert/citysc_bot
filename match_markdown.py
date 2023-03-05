@@ -1,14 +1,17 @@
+import logging
 import time
 
 import match
 import util
+
+logger = logging.getLogger(__name__)
 
 
 def match_footer(match_obj: match.Match):
     retval = '\n\n---\n'
     retval += '^^Last ^^updated: '
     update = time.strftime('^^%b ^^%d, ^^%I:%M%p', time.localtime())
-    retval += update + '.' + f' ^^Opta ^^ID: ^^{str(match_obj.opta_id)}'
+    retval += update + '.' + f' ^^All ^^data ^^via ^^mlssoccer.com. ^^Opta ^^ID: ^^{str(match_obj.opta_id)}'
     return retval
 
 
