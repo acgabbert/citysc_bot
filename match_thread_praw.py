@@ -21,18 +21,6 @@ parser.add_argument('-s', '--sub', help='Subreddit')
 test_sub = config.TEST_SUB
 threads_json = config.THREADS_JSON
 
-def get_reddit():
-    reddit = praw.Reddit(
-        client_id=config.CLIENT_ID,
-        client_secret=config.SECRET_TOKEN,
-        password=config.PASSWORD,
-        user_agent=config.USER_AGENT_STR,
-        username=config.USERNAME
-    )
-    reddit.validate_on_submit = True
-    return reddit
-
-
 def get_threads():
     with open(threads_json, 'r') as f:
         data = json.loads(f.read())
@@ -47,7 +35,7 @@ def write_threads(data: dict):
 
 def submit_thread(subreddit: str, title: str, text: str, mod: bool=False, new: bool=False, unsticky=None):
     """Submit a thread to the provided subreddit. """
-    reddit = get_reddit()
+    reddit = util.get_reddit()
     subreddit = reddit.subreddit(subreddit)
     # TODO implement PRAW exception handling? 
     thread = subreddit.submit(title, selftext=text, send_replies=False)
@@ -69,7 +57,7 @@ def submit_thread(subreddit: str, title: str, text: str, mod: bool=False, new: b
 
 
 def comment(pre_thread, text):
-    reddit = get_reddit()
+    reddit = util.get_reddit()
     comment = None
     if type(pre_thread) is str:
         pre_thread = praw.models.Submission(reddit=reddit, id=pre_thread)
@@ -142,7 +130,7 @@ def match_thread(opta_id, sub=test_sub, pre_thread=None, thread=None):
             comment(pre_thread, text)
     else:
         # thread already exists in the json
-        reddit = get_reddit()
+        reddit = util.get_reddit()
         thread = praw.models.Submission(reddit=reddit, id=thread)
     
     while not match_obj.is_final:
