@@ -107,7 +107,7 @@ def get_apple_info(data):
 
 @util.time_dec(False)
 def main():
-    data = get_schedule()
+    data = get_schedule(comp=None)
     get_apple_info(data)
 
 if __name__ == '__main__':
