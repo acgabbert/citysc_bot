@@ -1,5 +1,6 @@
 import logging
 import subprocess
+import praw
 
 import discord as msg
 from match import Match, get_match_data
@@ -26,17 +27,22 @@ def get_upcoming(opta_id):
 
 @util.time_dec(False)
 def upcoming(opta_id=STL_CITY):
-    """Get upcoming matches and write them to file in markdown format"""
+    """Get upcoming matches and write them to file in markdown format
+    Also, update the widget"""
     matches = get_upcoming(opta_id)
     markdown = md.schedule(matches)
-    write_markdown(markdown, 'markdown/upcoming.md')
+    changed = write_markdown(markdown, 'markdown/upcoming.md')
+    if changed:
+        name = 'Upcoming Matches'
+        update_widget(name, markdown)
     return markdown
 
 
 @util.time_dec(False)
 def standings():
     """Get western conference standings and write them to file in markdown
-    format"""
+    format
+    Also, update the widget"""
     clubs = get_clubs()
     markdown = md.western_conference(clubs)
     write_markdown(markdown, 'markdown/western_conference.md')
@@ -53,10 +59,50 @@ def write_markdown(markdown: str, filename: str):
         message = f'{filename} changed.'
         logging.info(message)
         msg.send(f'{msg.user}\n{message}')
+        return True
     else:
         message = f'No changes to {filename}.'
         logging.info(message)
         msg.send(message)
+        return False
+
+
+def get_widgets(reddit, subreddit) -> list[praw.models.Widget]:
+    """Returns a list of the widgets in a subreddit's sidebar"""
+    if reddit is None:
+        reddit = util.get_reddit()
+    sub = reddit.subreddit(subreddit)
+    return sub.widgets.sidebar
+
+
+def update_widget(widget_name, text, subreddit='stlouiscitysc'):
+    r = util.get_reddit()
+    sidebar = get_widgets(r, subreddit)
+    updated = False
+    for w in sidebar:
+        print(w.shortName)
+        if w.shortName == widget_name:
+            print('matched')
+            try:
+                mod = w.mod
+                mod.update(text=text)
+                updated = True
+                break
+            except Exception as e:
+                message = (
+                    f'Error while updating {widget_name} widget.\n'
+                    f'{str(e)}\n'
+                )
+                msg.send(f'{msg.user}\n{message}')
+    return updated
+
+
+def update_sidebar():
+    pass
+
+
+def main():
+    pass
 
 
 if __name__ == '__main__':
