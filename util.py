@@ -127,7 +127,7 @@ names = {
     1581: Names('Portland Timbers', 'Portland', 'POR'),
     1899: Names('Real Salt Lake', 'Salt Lake', 'RSL'),
     15154: Names('Nashville SC', 'Nashville', 'NSH'),
-    1131: Names('San Jose Earthquakes', 'Colorado', 'COL'),
+    1131: Names('San Jose Earthquakes', 'San Jose', 'SJ'),
     928: Names('New England Revolution', 'New England', 'NE'),
     9668: Names('New York City FC', 'New York City', 'NYC'),
     3500: Names('Seattle Sounders FC', 'Seattle', 'SEA'),
