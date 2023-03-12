@@ -1,6 +1,8 @@
+import argparse
 import time
+import sched
 import logging, logging.handlers
-from datetime import datetime, timedelta
+from datetime import datetime
 import schedule
 from multiprocessing import Process
 
@@ -26,6 +28,15 @@ root.addHandler(fh)
 root.addHandler(fh2)
 root.addHandler(er)
 
+parser = argparse.ArgumentParser(prog='sched_controller.py', usage='%(prog)s [options]', description='')
+parser.add_argument('-s', '--sub', help='Subreddit; default = /r/citysc_bot_test')
+
+scheduler = sched.scheduler(time.time, time.sleep)
+
+"""List of club opta IDs that we want to make threads for
+- 17012: St. Louis City SC
+"""
+clubs = [17012]
 
 class Main:
     """Use this class to start a match thread in a separate process, 
@@ -33,99 +44,89 @@ class Main:
     thread to complete."""
     # TODO maybe move this class to match_thread?
     @staticmethod
-    def create_match_thread(opta_id):
-        message = f'Posting match thread for {opta_id}'
+    def create_match_thread(opta_id, sub):
+        message = f'Posting match thread for {opta_id} on subreddit {sub}'
         root.info(message)
         msg.send(f'{msg.user}\n{message}')
-        p = Process(target=thread.match_thread, args=(opta_id,), daemon=True)
+        p = Process(target=thread.match_thread, args=(opta_id,sub), daemon=True)
         p.start()
 
-@util.time_dec(False)
-def get_next_match(opta_id, date_from=None):
-    """Get upcoming matches."""
-    data = mls_schedule.get_schedule(team=opta_id, comp=None)
-    id, t = mls_schedule.check_pre_match(data, date_from)
-    if id is not None:
-        message = f'Match coming up: {id}'
+
+def daily_setup(sub):
+    """This function runs daily and is the core component of the bot.
+    It will first check, for each team, if there is a match in the next 48 hours.
+    If so, it will schedule a pre-match or match thread, whichever is appropriate.
+    Then, it will hold in `scheduler.run()` until all threads are posted.
+    """
+    global scheduler
+    for team in clubs:
+        data = mls_schedule.get_schedule(team=team, comp=None)
+        # TODO refactor check_pre_match to check for any match in the next 48 hours
+        id, t = mls_schedule.check_pre_match_sched(data)
+        if id is not None:
+            # there is a match in less than 48 hours
+            today = time.time() + 86400
+            if t < today:
+                # there is a match today (next 24 hours)
+                # schedule a match thread for 30m before gametime
+                t -= 1800
+                scheduler.enterabs(t, 1, Main.create_match_thread, argument=(id,sub))
+                match_time = time.strftime('%H:%M', time.localtime(t))
+                message = f'Scheduled match thread for {match_time}. Team {team}, Opta ID {id}, Subreddit {sub}'
+                root.info(message)
+                msg.send(f'{msg.user}\n{message}')
+                # schedule a matchday/pre-match thread for 4:00am
+                if datetime.now().hour < 4:
+                    t = int(datetime.now().replace(hour=4, minute=0).timestamp())
+                    scheduler.enterabs(t, 1, thread.pre_match_thread, argument=(id, sub))
+                    prematch_time = time.strftime('%H:%M', time.localtime(t))
+                    message = f'Scheduled pre-match thread for {prematch_time}. Team {team}, Opta ID {id}, Subreddit {sub}'
+                    root.info(message)
+                    msg.send(f'{msg.user}\n{message}')
+            else:
+                message = f'No matches today for {team}.'
+                root.info(message)
+                msg.send(message)
+    q = scheduler.queue
+    if len(q) > 0:
+        message = 'Currently scheduled jobs:\n'
+        for job in q:
+            message += f'- {repr(job)}\n'
         root.info(message)
         msg.send(message)
-        t = time.strftime('%H:%M', time.localtime(t))
-        schedule.every().day.at(t).do(pre_match_thread, opta_id=id, t=t)
-        message = f'Scheduled pre-match thread for {t}'
-        root.info(message)
-        msg.send(f'{msg.user}\n{message}')
     else:
-        root.info('No upcoming matches.')
-    return data
-
-@util.time_dec(True)
-def pre_match_thread(opta_id: int, t: str):
-    """
-    """
-    thread.pre_match_thread(opta_id)
-    t = datetime.strptime(t, '%H:%M')
-    t -= timedelta(hours=1)
-    t = datetime.strftime(t, '%H:%M')
-    # schedule the match thread for tomorrow at the same time, minus one hour
-    message = f'Posted pre-match thread for {opta_id}\nScheduled match thread for {t}'
+        message = 'No scheduled jobs.'
+        root.info(message)
+        msg.send(message)
+    scheduler.run()
+    message = 'Sending control back to main.'
     root.info(message)
-    msg.send(f'{msg.user}\n{message}')
-    # TODO match threads are only scheduled from pre-match threads
-    # so if a pre-match thread fails, we don't get a match thread scheduled
-    # fix that
-    schedule.every().day.at(t).do(match_thread, opta_id=opta_id)
-    # once complete, cancel the job (i.e. only run once)
-    #TODO this may not work...but it also may have bugged out before
-    return schedule.CancelJob
-
-@util.time_dec(True)
-def match_thread(opta_id: int):
-    """
-    """
-    Main.create_match_thread(opta_id)
-
-    # once complete, cancel the job (i.e. only run once)
-    return schedule.CancelJob
+    msg.send(message)
 
 
-def log_all_jobs():
-    jobs = schedule.get_jobs()
-    message = 'Currently scheduled jobs:\n'
-    for job in jobs:
-        message += '- ' + repr(job) + '\n'
+def main(sub):
+    message = f'Started {__name__} at {time.time()}. Subreddit {sub}'
     root.info(message)
-    msg.send(f'{message}')
-    return jobs
-
-
-@util.time_dec(True)
-def main():
-    root.info(f'Started {__name__} at {time.time()}')
-    # on first run, check the schedule and get upcoming matches
-    get_next_match(17012)
-    # within get_upcoming_matches, we will schedule pre-match threads
-    # pre-match threads will in turn schedule match threads
-    # and post-match threads are posted directly after match threads
-    # TODO write scheduled jobs to a file to persist in case of failure
-    # St. Louis City SC
-    schedule.every().day.at('05:00').do(get_next_match, 17012)
-    # USMNT
-    schedule.every().day.at('05:05').do(get_next_match, 596)
-    # Seattle Sounders (club world cup)
-    schedule.every().day.at('05:06').do(get_next_match, 3500)
-    schedule.every().day.at('05:10').do(widgets.upcoming)
-    schedule.every().day.at('05:15').do(widgets.standings)
-    schedule.every().day.at('05:30').do(log_all_jobs)
-    log_all_jobs()
+    msg.send(message)
+    daily_setup(sub)
+    schedule.every().day.at('01:00').do(widgets.upcoming)
+    schedule.every().day.at('01:15').do(widgets.standings)
+    schedule.every().day.at('01:30').do(daily_setup, sub)
     running = True
     while running:
         try:
             schedule.run_pending()
-            time.sleep(60)
+            time.sleep(300)
         except KeyboardInterrupt:
-            root.error(f'Manual shutdown.')
+            root.error('Manual shutdown.')
             running = False
 
-
 if __name__ == '__main__':
-    main()
+    args = parser.parse_args()
+    sub = args.sub
+    if sub:
+        if '/r/' not in sub:
+            sub = f'/r/{sub}'
+    else:
+        sub = '/r/citysc_bot_test'
+    main(sub)
