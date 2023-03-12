@@ -45,7 +45,10 @@ def standings():
     Also, update the widget"""
     clubs = get_clubs()
     markdown = md.western_conference(clubs)
-    write_markdown(markdown, 'markdown/western_conference.md')
+    changed = write_markdown(markdown, 'markdown/western_conference.md')
+    if changed:
+        name = 'Western Conference Standings'
+        update_widget(name, markdown)
     return markdown
 
 
