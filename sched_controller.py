@@ -2,7 +2,7 @@ import argparse
 import time
 import sched
 import logging, logging.handlers
-from datetime import datetime, timedelta
+from datetime import datetime
 import schedule
 from multiprocessing import Process
 
@@ -75,13 +75,14 @@ def daily_setup(sub):
                 message = f'Scheduled match thread for {match_time}. Team {team}, Opta ID {id}, Subreddit {sub}'
                 root.info(message)
                 msg.send(f'{msg.user}\n{message}')
-                # schedule a pre-match thread for 5:00am
-                t = int(datetime.now().replace(hour=4, minute=0).timestamp())
-                scheduler.enterabs(t, 1, thread.pre_match_thread, argument=(id, sub))
-                prematch_time = time.strftime('%H:%M', time.localtime(t))
-                message = f'Scheduled pre-match thread for {prematch_time}. Team {team}, Opta ID {id}, Subreddit {sub}'
-                root.info(message)
-                msg.send(f'{msg.user}\n{message}')
+                # schedule a matchday/pre-match thread for 4:00am
+                if datetime.now().hour < 4:
+                    t = int(datetime.now().replace(hour=4, minute=0).timestamp())
+                    scheduler.enterabs(t, 1, thread.pre_match_thread, argument=(id, sub))
+                    prematch_time = time.strftime('%H:%M', time.localtime(t))
+                    message = f'Scheduled pre-match thread for {prematch_time}. Team {team}, Opta ID {id}, Subreddit {sub}'
+                    root.info(message)
+                    msg.send(f'{msg.user}\n{message}')
             else:
                 message = f'No matches today for {team}.'
                 root.info(message)

@@ -2,11 +2,11 @@ import time
 import argparse
 import logging
 import json
+import praw
 
 import config
 import match
 import match_markdown as md
-import reddit_interactor as reddit
 import util
 import discord as msg
 
@@ -19,154 +19,174 @@ parser.add_argument('-i', '--id', help='Match Opta ID')
 parser.add_argument('-s', '--sub', help='Subreddit')
 
 test_sub = config.TEST_SUB
+prod_sub = 'stlouiscitysc'
 threads_json = config.THREADS_JSON
 
-
-def pre_match_thread(opta_id, sub=test_sub):
-    """This function posts a pre-match/matchday thread"""
-    match_obj = match.Match(opta_id)
-    match_obj = match.get_prematch_data(match_obj)
-    title, markdown = md.pre_match_thread(match_obj)
-    response, thing_id = reddit.submit(sub, title, markdown)
-    if response.status_code == 200:
-        message = f'Posted {title} on {sub} with thing_id {thing_id}'
-        logger.info(message)
-        msg.send(f'{msg.user} {message}')
-    else:
-        message = f'Error posting {title} on {sub}.\n{response.status_code}'
-        logger.error(message)
-        msg.send(f'{msg.user} {message}')
-        return
-    data = {}
+def get_threads():
     with open(threads_json, 'r') as f:
         data = json.loads(f.read())
-    if str(opta_id) not in data.keys():
-        data[str(opta_id)] = {}
-    data[str(opta_id)]['pre'] = thing_id
+        return data
+
+
+def write_threads(data: dict):
     with open(threads_json, 'w') as f:
-        f.write(json.dumps(data))
-    return thing_id
+        f.write(json.dumps(data, indent=4))
+    return
 
 
-def match_thread(opta_id, sub=test_sub):
-    """This function posts a match thread.
-    It maintains the thread until the game is finished
-    in order to present up-to-date match events and stats"""
-    # initialize an empty Match object with the opta_id
+def submit_thread(subreddit: str, title: str, text: str, mod: bool=False, new: bool=False, unsticky=None):
+    """Submit a thread to the provided subreddit. """
+    reddit = util.get_reddit()
+    subreddit = reddit.subreddit(subreddit)
+    # TODO implement PRAW exception handling? 
+    thread = subreddit.submit(title, selftext=text, send_replies=False)
+    if mod:
+        thread_mod = thread.mod
+        try:
+            if new:
+                thread_mod.suggested_sort(sort='new')
+            thread_mod.sticky()
+            if unsticky is not None:
+                if type(unsticky) is str:
+                    unsticky = praw.models.Submission(reddit=reddit, id=unsticky)
+                if type(unsticky) is praw.models.Submission:
+                    unsticky_mod = unsticky.mod
+                    unsticky_mod.sticky(state=False)
+        except:
+            logger.error(f'Error in moderation clause. Thread {thread.id}, {unsticky.id}')
+    return thread
+
+
+def comment(pre_thread, text):
+    reddit = util.get_reddit()
+    comment = None
+    if type(pre_thread) is str:
+        pre_thread = praw.models.Submission(reddit=reddit, id=pre_thread)
+    if type(pre_thread) is praw.models.Submission:
+        comment = pre_thread.reply(text)
+        comment_mod = comment.mod
+        try:
+            comment_mod.distinguish(sticky=True)
+        except:
+            logger.error(f'Error in moderation clause. Comment {comment.id}')
+    return comment
+
+
+def pre_match_thread(opta_id, sub=prod_sub):
+    """This function posts a pre-match/matchday thread
+    Returns a PRAW submission object representing the pre-match thread"""
+    # get a match object
+    match_obj = match.Match(opta_id)
+    match_obj = match.get_prematch_data(match_obj)
+    # get post details for the match object
+    title, markdown = md.pre_match_thread(match_obj)
+    if '/r/' in sub:
+        sub = sub[3:]
+    # TODO implement PRAW exception handling here or in submit_thread
+    thread = submit_thread(sub, title, markdown, mod=True)
+    # keep track of threads
+    data = get_threads()
+    if str(opta_id) not in data.keys():
+        # add it as an empty dict
+        data[str(opta_id)] = {}
+    data[str(opta_id)]['pre'] = thread.id_from_url(thread.shortlink)
+    write_threads(data)
+    return thread
+
+
+def match_thread(opta_id, sub=prod_sub, pre_thread=None, thread=None):
+    """This function posts a match thread. It maintains and updates the thread
+    until the game is finished.
+    
+    pre_thread is the pre-match thread PRAW object so that it can be
+    un-stickied
+    
+    thread is the current match thread PRAW object so that it can be maintained
+    if still active"""
+    # get a match object
     match_obj = match.Match(opta_id)
     match_obj = match.get_all_data(match_obj)
-    
-    try:
-        # need to check for a thing_id here, in wherever we decide to keep track of them
-        thing_id = None
-        #thing_id = util.db_query(sql)[0][0]
-    except IndexError:
-        thing_id = None
-    if thing_id is None:
-        # no thread exists, post a new one
-        title, markdown = md.match_thread(match_obj)
-        response, thing_id = reddit.submit(sub, title, markdown, thing_id)
-        reddit.set_sort_order(thing_id)
-        if response.status_code == 200 and response.json()['success']:
-            message = f'Posted {title} on {sub}'
-            logger.info(message)
-            msg.send(f'{msg.user} {message}')
-        else:
-            message = (
-                f'Error posting {title} on {sub}.\n'
-                f'{response.status_code} - {response.reason}\n'
-                f'{response.json()["jquery"][10][3][0]}'
-            )
-            logger.error(message)
-            msg.send(f'{msg.user} {message}')
-            # TODO or could raise an exception here
-            return
 
-        data = {}
-        with open(threads_json, 'r') as f:
-            data = json.loads(f.read())
-        if str(opta_id) not in data.keys():
-            data[str(opta_id)] = {}
-        else:
-            # un-sticky pre-match thread
-            try:
-                reddit.sticky(data[str(opta_id)]['pre'], False)
-            except KeyError:
-                pass
-        data[str(opta_id)]['match'] = thing_id
-        with open(threads_json, 'w') as f:
-            f.write(json.dumps(data))
+    # get reddit ids of any threads that may already exist for this match
+    data = get_threads()
+    if str(opta_id) not in data.keys():
+        # add it as an empty dict
+        data[str(opta_id)] = {}
+    else:
+        gm = data[str(opta_id)]
+        if 'pre' in gm.keys():
+            pre_thread = gm['pre']
+        if 'match' in gm.keys():
+            thread = gm['match']
+
+    if thread is None:
+        title, markdown = md.match_thread(match_obj)
+        if '/r/' in sub:
+            sub = sub[3:]
+        thread = submit_thread(sub, title, markdown, mod=True, new=True, unsticky=pre_thread)
+        data[str(opta_id)]['match'] = thread.id_from_url(thread.shortlink)
+        write_threads(data)
+        if pre_thread is not None:
+            text = f'[Continue the discussion in the match thread.](https://www.reddit.com/r/{sub}/comments/{thread.id_from_url(thread.shortlink)})'
+            comment(pre_thread, text)
+    else:
+        # thread already exists in the json
+        reddit = util.get_reddit()
+        thread = praw.models.Submission(reddit=reddit, id=thread)
     
     while not match_obj.is_final:
         time.sleep(60)
+        before = time.time()
         match_obj = match.get_match_update(match_obj)
-        title, markdown = md.match_thread(match_obj)
-        # edit existing thread with thing_id
+        after = time.time()
+        logger.info(f'Match update took {round(after-before, 2)} secs')
+        _, markdown = md.match_thread(match_obj)
         try:
-            response, _ = reddit.submit(sub, title, markdown, thing_id)
+            thread.edit(markdown)
         except Exception as e:
             message = (
-                f'Error while posting match thread.\n'
+                f'Error while editing match thread.\n'
                 f'{str(e)}\n'
                 f'Continuing while loop.'
             )
             logger.error(message)
             msg.send(f'{msg.user} {message}')
             continue
-        if not response.json()['success']:
-            message = (
-                f'Error posting {title} on {sub}.\n'
-                f'{response.status_code} - {response.reason}\n'
-                f'{response.json()["jquery"][10][3][0]}'
-            )
-            logger.error(message)
-            msg.send(f'{msg.user} {message}')
-            continue
+        
         logger.debug(f'Successfully updated {match_obj.opta_id} at minute {match_obj.minute}')
         if match_obj.is_final:
             # post a post-match thread before exiting the loop
-            post_match_thread(match_obj.opta_id, thing_id, sub)
+            post_match_thread(opta_id, sub, thread)
 
 
-def post_match_thread(opta_id, match_thing_id=None, sub=test_sub):
+def post_match_thread(opta_id, sub=prod_sub, thread=None):
     """This function posts a post-match thread"""
-    # initialize an empty Match object with the opta_id
+    # get reddit ids of any threads that may already exist for this match
+    data = get_threads()
+    if str(opta_id) not in data.keys():
+        # add it as an empty dict
+        data[str(opta_id)] = {}
+    else:
+        gm = data[str(opta_id)]
+        if 'match' in gm.keys():
+            thread = gm['match']
+
+    if '/r/' in sub:
+        sub = sub[3:]
+
     match_obj = match.Match(opta_id)
     match_obj = match.get_all_data(match_obj)
     title, markdown = md.post_match_thread(match_obj)
-    response, thing_id = reddit.submit(sub, title, markdown)
-    if match_thing_id is not None:
-        # somehow gonna hve to get the full link text
-        text = f'[Post-match thread has been posted.](https://www.reddit.com{sub}/comments/{thing_id})'
-        reddit.comment(match_thing_id, text)
-    if response.status_code == 200 and response.json()['success']:
-        message = f'Posted {title} on {sub}'
-        logger.info(message)
-        msg.send(f'{msg.user} {message}')
-    else:
-        message = (
-            f'Error posting {title} on {sub}.\n'
-            f'{response.status_code} - {response.reason}\n'
-            f'{response.json()["jquery"][10][3][0]}'
-        )
-        logger.error(message)
-        msg.send(f'{msg.user} {message}')
-        # TODO or could raise an exception here
-        return
-    data = {}
-    with open(threads_json, 'r') as f:
-        data = json.loads(f.read())
+    post_thread = submit_thread(sub, title, markdown, mod=True, unsticky=thread)
+    if thread is not None:
+        text = f'[Continue the discussion in the post-match thread.](https://www.reddit.com/r/{sub}/comments/{post_thread.id_from_url(post_thread.shortlink)})'
+        comment(thread, text)
+    data = get_threads()
     if str(opta_id) not in data.keys():
         data[str(opta_id)] = {}
-    else:
-        # un-sticky match thread
-        try:
-            reddit.sticky(data[str(opta_id)]['match'], False)
-        except KeyError:
-            pass
-    data[str(opta_id)]['post'] = thing_id
-    with open(threads_json, 'w') as f:
-        f.write(json.dumps(data))
+    data[str(opta_id)]['post'] = post_thread.id_from_url(post_thread.shortlink)
+    write_threads(data)
+    return
 
 
 @util.time_dec(False)
@@ -174,8 +194,6 @@ def main():
     args = parser.parse_args()
     id = args.id
     sub = args.sub
-    if sub and '/r/' not in sub:
-        sub = f'/r/{sub}'
     if id:
         if args.pre:
             # pre-match thread
@@ -188,7 +206,7 @@ def main():
             if sub:
                 post_match_thread(id, sub)
             else:
-                post_match_thread(id, sub=sub)
+                post_match_thread(id)
         else:
             # match thread
             if sub:
