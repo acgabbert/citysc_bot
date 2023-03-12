@@ -19,6 +19,7 @@ parser.add_argument('-i', '--id', help='Match Opta ID')
 parser.add_argument('-s', '--sub', help='Subreddit')
 
 test_sub = config.TEST_SUB
+prod_sub = 'stlouiscitysc'
 threads_json = config.THREADS_JSON
 
 def get_threads():
@@ -71,7 +72,7 @@ def comment(pre_thread, text):
     return comment
 
 
-def pre_match_thread(opta_id, sub=test_sub):
+def pre_match_thread(opta_id, sub=prod_sub):
     """This function posts a pre-match/matchday thread
     Returns a PRAW submission object representing the pre-match thread"""
     # get a match object
@@ -93,7 +94,7 @@ def pre_match_thread(opta_id, sub=test_sub):
     return thread
 
 
-def match_thread(opta_id, sub=test_sub, pre_thread=None, thread=None):
+def match_thread(opta_id, sub=prod_sub, pre_thread=None, thread=None):
     """This function posts a match thread. It maintains and updates the thread
     until the game is finished.
     
@@ -158,7 +159,7 @@ def match_thread(opta_id, sub=test_sub, pre_thread=None, thread=None):
             post_match_thread(opta_id, sub, thread)
 
 
-def post_match_thread(opta_id, sub=test_sub, thread=None):
+def post_match_thread(opta_id, sub=prod_sub, thread=None):
     """This function posts a post-match thread"""
     # get reddit ids of any threads that may already exist for this match
     data = get_threads()
