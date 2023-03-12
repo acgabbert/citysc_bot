@@ -392,8 +392,10 @@ def get_videos(match_obj: Match) -> Match:
     url = 'https://dapi.mlssoccer.com/v2/content/en-us/brightcovevideos'
     params = {'fields.optaMatchId': match_obj.opta_id}
     data = mls.call_api(url, params)[0]['items']
+    vids = []
     for vid in data:
-        retval.videos.append((vid['title'],f'{vid_url}{vid["slug"]}'))
+        vids.append((vid['title'],f'{vid_url}{vid["slug"]}'))
+    retval.videos = vids
     return retval
 
 
