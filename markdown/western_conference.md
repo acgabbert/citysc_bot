@@ -2,12 +2,12 @@
 Pos|Team|Pts|GP|GD
 :-:|:-:|:-:|:-:|:-:
 1|St. Louis|9|3|4|
-2|Seattle|6|3|5|
-3|Austin|6|3|1|
-4|Colorado|6|3|1|
-5|Dallas|4|3|1|
-6|Minnesota|4|2|1|
-7|LAFC|3|1|1|
+2|LAFC|6|2|5|
+3|Seattle|6|3|5|
+4|Austin|6|3|1|
+5|San Jose|6|3|1|
+6|Dallas|4|3|1|
+7|Minnesota|4|2|1|
 8|Portland|3|3|-1|
 9|Salt Lake|3|3|-2|
 10|Kansas City|2|3|-1|
