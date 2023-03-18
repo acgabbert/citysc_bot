@@ -129,5 +129,5 @@ if __name__ == '__main__':
         if '/r/' not in sub:
             sub = f'/r/{sub}'
     else:
-        sub = '/r/citysc_bot_test'
+        sub = '/r/jelly_bear_testing'
     main(sub)
