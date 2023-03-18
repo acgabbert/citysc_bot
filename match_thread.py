@@ -3,6 +3,7 @@ import argparse
 import logging
 import json
 import praw
+import sys
 
 import config
 import match
@@ -53,11 +54,10 @@ def submit_thread(subreddit: str, title: str, text: str, mod: bool=False, new: b
                     unsticky_mod = unsticky.mod
                     unsticky_mod.sticky(state=False)
         except Exception as e:
-            message = (
-                f'Error in moderation clause. '
-                f'Thread {thread.id}, unsticky {unsticky.id}\n'
-                f'{str(e)}'
-            )
+            message = f'Error in moderation clause. Thread {thread.id}'
+            if unsticky is not None:
+                message += f', unsticky {unsticky.id}'
+            message += f'\n{str(e)}'
             logger.error(message)
             msg.send(message)
     return thread
@@ -202,6 +202,12 @@ def post_match_thread(opta_id, sub=prod_sub, thread=None):
 
 @util.time_dec(False)
 def main():
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
     args = parser.parse_args()
     id = args.id
     sub = args.sub
