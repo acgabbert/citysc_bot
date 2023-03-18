@@ -53,7 +53,13 @@ def submit_thread(subreddit: str, title: str, text: str, mod: bool=False, new: b
                     unsticky_mod = unsticky.mod
                     unsticky_mod.sticky(state=False)
         except Exception as e:
-            logger.error(f'Error in moderation clause. Thread {thread.id}, unsticky {unsticky.id}\n{str(e)}')
+            message = (
+                f'Error in moderation clause. '
+                f'Thread {thread.id}, unsticky {unsticky.id}\n'
+                f'{str(e)}'
+            )
+            logger.error(message)
+            msg.send(message)
     return thread
 
 
@@ -68,7 +74,12 @@ def comment(pre_thread, text):
         try:
             comment_mod.distinguish(sticky=True)
         except Exception as e:
-            logger.error(f'Error in moderation clause. Comment {comment.id}\n{str(e)}')
+            message = (
+                f'Error in moderation clause. Comment {comment.id}\n'
+                f'{str(e)}'
+            )
+            logger.error(message)
+            msg.send(message)
     return comment
 
 
