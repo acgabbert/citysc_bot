@@ -52,8 +52,8 @@ def submit_thread(subreddit: str, title: str, text: str, mod: bool=False, new: b
                 if type(unsticky) is praw.models.Submission:
                     unsticky_mod = unsticky.mod
                     unsticky_mod.sticky(state=False)
-        except:
-            logger.error(f'Error in moderation clause. Thread {thread.id}, {unsticky.id}')
+        except Exception as e:
+            logger.error(f'Error in moderation clause. Thread {thread.id}, unsticky {unsticky.id}\n{str(e)}')
     return thread
 
 
@@ -67,8 +67,8 @@ def comment(pre_thread, text):
         comment_mod = comment.mod
         try:
             comment_mod.distinguish(sticky=True)
-        except:
-            logger.error(f'Error in moderation clause. Comment {comment.id}')
+        except Exception as e:
+            logger.error(f'Error in moderation clause. Comment {comment.id}\n{str(e)}')
     return comment
 
 
