@@ -42,6 +42,7 @@ def submit_thread(subreddit: str, title: str, text: str, mod: bool=False, new: b
     # TODO implement PRAW exception handling? 
     thread = subreddit.submit(title, selftext=text, send_replies=False)
     if mod:
+        time.sleep(10)
         thread_mod = thread.mod
         try:
             if new:
@@ -70,6 +71,7 @@ def comment(pre_thread, text):
         pre_thread = praw.models.Submission(reddit=reddit, id=pre_thread)
     if type(pre_thread) is praw.models.Submission:
         comment = pre_thread.reply(text)
+        time.sleep(10)
         comment_mod = comment.mod
         try:
             comment_mod.distinguish(sticky=True)
