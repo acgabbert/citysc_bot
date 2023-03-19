@@ -98,8 +98,25 @@ def update_widget(widget_name, text, subreddit='stlouiscitysc'):
     return updated
 
 
-def update_sidebar():
-    pass
+def update_sidebar(text=None, subreddit='stlouiscitysc'):
+    r = util.get_reddit()
+    sidebar = r.subreddit(subreddit).wiki['config/sidebar']
+    if not sidebar.may_revise:
+        message = f'Error: authenticated user cannot edit {subreddit} sidebar.'
+        msg.send(f'{msg.user}\n{message}')
+        return None
+    old_text = sidebar.content_md
+    begin_split = '[comment]: # (start of bot content)\n\n'
+    end_split = '[comment]: # (end of bot content)\n\n'
+    before, content = old_text.split(begin_split)
+    content, after = content.split(end_split)
+    if text is None:
+        # TODO read from files to get content (text) here???
+        # only run this entire func if changed
+        pass
+    new_text = f'{before}{begin_split}{text}{end_split}{after}'
+    sidebar.edit(new_text)
+    return new_text
 
 
 def main():
