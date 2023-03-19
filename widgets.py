@@ -83,9 +83,7 @@ def update_widget(widget_name, text, subreddit='stlouiscitysc'):
     sidebar = get_widgets(r, subreddit)
     updated = False
     for w in sidebar:
-        print(w.shortName)
         if w.shortName == widget_name:
-            print('matched')
             try:
                 mod = w.mod
                 mod.update(text=text)
