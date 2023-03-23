@@ -2,6 +2,8 @@ import requests
 from datetime import datetime
 from bs4 import BeautifulSoup
 
+from util import names
+
 INJ_URL = 'https://www.mlssoccer.com/news/mlssoccer-com-injury-report'
 
 data = requests.get(INJ_URL)
@@ -33,7 +35,19 @@ for tag in tags:
             team_injuries.append(inj.text)
     injury_list[team_name] = team_injuries
 
-print(injury_list)
+teams = names.items()
+opta_injuries = {}
+
+for item in injury_list.items():
+    team = item[0]
+    print(team)
+    for t in teams:
+        if team.lower() == t[1][0].lower():
+            print(f'matched: {t[1][0]}, {team}')
+            opta_injuries[t[0]] = item[1]
+            break
+
+print(opta_injuries)
 
 # if class mls-c-ranking-header__title in contents, then it's the name of a club
 # if <ul> in contents, then it's a list of injured players

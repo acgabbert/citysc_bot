@@ -134,7 +134,7 @@ names = {
     399: Names('New York Red Bulls', 'New York', 'RBNY'),
     421: Names('Sporting Kansas City', 'Kansas City', 'KC'),
     6900: Names('Orlando City', 'Orlando', 'ORL'),
-    17012: Names('St. Louis CITY SC', 'St. Louis', 'STL'),
+    17012: Names('St. Louis City SC', 'St. Louis', 'STL'),
     1708: Names('Vancouver Whitecaps FC', 'Vancouver', 'VAN'),
     5513: Names('Philadelphia Union', 'Philadelphia', 'PHI'),
     2077: Names('Toronto FC', 'Toronto', 'TOR')
