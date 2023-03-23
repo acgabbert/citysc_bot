@@ -105,6 +105,7 @@ def write_json(data, filename):
     with open(filename, 'w') as f:
         f.write(json.dumps(data, indent=4))
 
+
 Names = namedtuple('Names', 'full_name short_name abbrev')
 
 # a dict of namedtuples with each club's full/short/abbrev names
