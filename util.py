@@ -104,6 +104,14 @@ def write_json(data, filename):
     """Write json data to filename."""
     with open(filename, 'w') as f:
         f.write(json.dumps(data, indent=4))
+    return
+
+
+def read_json(filename):
+    """Read json data from a file to a dict."""
+    with open(filename, 'r') as f:
+        data = json.loads(f.read())
+        return data
 
 
 Names = namedtuple('Names', 'full_name short_name abbrev')
