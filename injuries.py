@@ -2,6 +2,7 @@ import requests
 from datetime import datetime
 from bs4 import BeautifulSoup
 
+import util
 from util import names
 
 INJ_URL = 'https://www.mlssoccer.com/news/mlssoccer-com-injury-report'
@@ -88,7 +89,7 @@ def match_teams(injury_obj):
 def main():
     soup = get_injury_content()
     inj_obj = populate_injuries(soup)
-    print(inj_obj)
+    util.write_json(inj_obj.injuries, 'injuries.json')
 
 
 if __name__ == '__main__':
