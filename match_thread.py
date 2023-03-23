@@ -23,17 +23,6 @@ test_sub = config.TEST_SUB
 prod_sub = 'stlouiscitysc'
 threads_json = config.THREADS_JSON
 
-def get_threads():
-    with open(threads_json, 'r') as f:
-        data = json.loads(f.read())
-        return data
-
-
-def write_threads(data: dict):
-    with open(threads_json, 'w') as f:
-        f.write(json.dumps(data, indent=4))
-    return
-
 
 def submit_thread(subreddit: str, title: str, text: str, mod: bool=False, new: bool=False, unsticky=None):
     """Submit a thread to the provided subreddit. """
@@ -98,12 +87,12 @@ def pre_match_thread(opta_id, sub=prod_sub):
     # TODO implement PRAW exception handling here or in submit_thread
     thread = submit_thread(sub, title, markdown, mod=True)
     # keep track of threads
-    data = get_threads()
+    data = util.read_json(threads_json)
     if str(opta_id) not in data.keys():
         # add it as an empty dict
         data[str(opta_id)] = {}
     data[str(opta_id)]['pre'] = thread.id_from_url(thread.shortlink)
-    write_threads(data)
+    util.write_json(data, threads_json)
     return thread
 
 
@@ -121,7 +110,7 @@ def match_thread(opta_id, sub=prod_sub, pre_thread=None, thread=None):
     match_obj = match.get_all_data(match_obj)
 
     # get reddit ids of any threads that may already exist for this match
-    data = get_threads()
+    data = util.read_json(threads_json)
     if str(opta_id) not in data.keys():
         # add it as an empty dict
         data[str(opta_id)] = {}
@@ -138,7 +127,7 @@ def match_thread(opta_id, sub=prod_sub, pre_thread=None, thread=None):
             sub = sub[3:]
         thread = submit_thread(sub, title, markdown, mod=True, new=True, unsticky=pre_thread)
         data[str(opta_id)]['match'] = thread.id_from_url(thread.shortlink)
-        write_threads(data)
+        util.write_json(data, threads_json)
         if pre_thread is not None:
             text = f'[Continue the discussion in the match thread.](https://www.reddit.com/r/{sub}/comments/{thread.id_from_url(thread.shortlink)})'
             comment(pre_thread, text)
@@ -175,7 +164,7 @@ def match_thread(opta_id, sub=prod_sub, pre_thread=None, thread=None):
 def post_match_thread(opta_id, sub=prod_sub, thread=None):
     """This function posts a post-match thread"""
     # get reddit ids of any threads that may already exist for this match
-    data = get_threads()
+    data = util.read_json(threads_json)
     if str(opta_id) not in data.keys():
         # add it as an empty dict
         data[str(opta_id)] = {}
@@ -194,11 +183,11 @@ def post_match_thread(opta_id, sub=prod_sub, thread=None):
     if thread is not None:
         text = f'[Continue the discussion in the post-match thread.](https://www.reddit.com/r/{sub}/comments/{post_thread.id_from_url(post_thread.shortlink)})'
         comment(thread, text)
-    data = get_threads()
+    data = util.read_json(threads_json)
     if str(opta_id) not in data.keys():
         data[str(opta_id)] = {}
     data[str(opta_id)]['post'] = post_thread.id_from_url(post_thread.shortlink)
-    write_threads(data)
+    util.write_json(data, threads_json)
     return
 
 
