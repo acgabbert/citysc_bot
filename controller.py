@@ -6,11 +6,11 @@ from datetime import datetime
 import schedule
 from multiprocessing import Process
 
-import util
 import discord as msg
-import widgets
+import injuries
 import match_thread as thread
 import mls_schedule
+import widgets
 
 fh = logging.handlers.RotatingFileHandler('log/debug.log', maxBytes=1000000, backupCount=10)
 fh.setLevel(logging.DEBUG)
@@ -110,8 +110,8 @@ def main(sub):
     root.info(message)
     msg.send(message)
     daily_setup(sub)
-    schedule.every().day.at('01:00').do(widgets.upcoming)
-    schedule.every().day.at('01:15').do(widgets.standings)
+    schedule.every().day.at('01:00').do(widgets.main)
+    schedule.every().day.at('01:15').do(injuries.main)
     schedule.every().day.at('01:30').do(daily_setup, sub)
     running = True
     while running:
