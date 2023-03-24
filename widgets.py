@@ -56,18 +56,7 @@ def write_markdown(markdown: str, filename: str):
     """Write a file to markdown, and check if its content has changed."""
     with open(filename, 'w') as f:
         f.write(markdown)
-    changes = subprocess.run(f'git status {filename}', capture_output=True, shell=True, text=True).stdout
-    logging.debug(changes)
-    if 'Changes not staged' in changes:
-        message = f'{filename} changed.'
-        logging.info(message)
-        msg.send(f'{msg.user}\n{message}')
-        return True
-    else:
-        message = f'No changes to {filename}.'
-        logging.info(message)
-        msg.send(message)
-        return False
+    return util.file_changed(filename)
 
 
 def get_widgets(reddit, subreddit) -> list[praw.models.Widget]:
