@@ -9,9 +9,18 @@ INJ_URL = 'https://www.mlssoccer.com/news/mlssoccer-com-injury-report'
 INJ_FILE = 'injuries.json'
 
 class MlsInjuries:
+    date_format = '%m/%d/%Y, %H:%M'
+
     def __init__(self, last_update, injuries):
         self.last_update = last_update
         self.injuries = injuries
+    
+
+    def to_dict(self):
+        retval = {}
+        retval['updated'] = self.last_update.strftime(self.date_format)
+        retval['injuries'] = self.injuries
+        return retval
     
 
     def __str__(self):
@@ -90,7 +99,7 @@ def match_teams(injury_obj):
 def main():
     soup = get_injury_content()
     inj_obj = populate_injuries(soup)
-    util.write_json(inj_obj.injuries, INJ_FILE)
+    util.write_json(inj_obj.to_dict(), INJ_FILE)
     return util.file_changed(INJ_FILE)
 
 
