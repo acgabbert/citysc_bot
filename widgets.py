@@ -34,7 +34,7 @@ def upcoming(opta_id=STL_CITY):
     if changed:
         name = 'Upcoming Matches'
         update_widget(name, markdown)
-    return markdown
+    return changed
 
 
 @util.time_dec(False)
@@ -48,7 +48,7 @@ def standings():
     if changed:
         name = 'Western Conference Standings'
         update_widget(name, markdown)
-    return markdown
+    return changed
 
 
 def write_markdown(markdown: str, filename: str):
@@ -108,7 +108,11 @@ def update_sidebar(text=None, subreddit='stlouiscitysc'):
 
 
 def main():
-    pass
+    u_changed = upcoming()
+    s_changed = standings()
+    if u_changed or s_changed:
+        # update sidebar here
+        pass
 
 
 if __name__ == '__main__':
