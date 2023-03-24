@@ -79,10 +79,8 @@ def match_teams(injury_obj):
 
     for item in injury_obj.items():
         team = item[0]
-        print(team)
         for t in teams:
             if team.lower() == t[1][0].lower():
-                print(f'matched: {t[1][0]}, {team}')
                 opta_injuries[t[0]] = item[1]
                 break
     
