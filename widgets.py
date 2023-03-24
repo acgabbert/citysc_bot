@@ -1,5 +1,4 @@
 import logging
-import subprocess
 import praw
 
 import discord as msg
