@@ -6,6 +6,7 @@ import inspect
 import json
 import praw
 import signal
+import subprocess
 from datetime import datetime
 from collections import namedtuple
 
@@ -112,6 +113,21 @@ def read_json(filename):
     with open(filename, 'r') as f:
         data = json.loads(f.read())
         return data
+
+
+def file_changed(filename):
+    changes = subprocess.run(f'git status {filename}', capture_output=True, shell=True, text=True).stdout
+    logging.debug(changes)
+    if 'Changes not staged' in changes:
+        message = f'{filename} changed.'
+        logging.info(message)
+        msg.send(f'{msg.user}\n{message}')
+        return True
+    else:
+        message = f'No changes to {filename}.'
+        logging.info(message)
+        msg.send(message)
+        return False
 
 
 Names = namedtuple('Names', 'full_name short_name abbrev')
