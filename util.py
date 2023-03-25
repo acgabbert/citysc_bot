@@ -162,7 +162,9 @@ names = {
     17012: Names('St. Louis City SC', 'St. Louis', 'STL'),
     1708: Names('Vancouver Whitecaps FC', 'Vancouver', 'VAN'),
     5513: Names('Philadelphia Union', 'Philadelphia', 'PHI'),
-    2077: Names('Toronto FC', 'Toronto', 'TOR')
+    2077: Names('Toronto FC', 'Toronto', 'TOR'),
+    19202: Names('St. Louis CITY 2', 'CITY 2', 'STL2'),
+    10970: Names('Tacoma Defiance', 'Tacoma', 'TAC')
 }
 
 
