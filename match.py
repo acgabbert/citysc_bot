@@ -381,7 +381,7 @@ def get_broadcasters(match_obj: Match) -> Match:
         if 'Apple' in b['broadcasterName']:
             adder.append(f'[{b["broadcasterName"]}]({data["appleStreamURL"]})')
         else:
-            adder.append(b['broadcasterName'])
+            adder.append(f'{b["broadcasterName"]} (US)')
     match_obj.broadcasters = adder
     return retval
 

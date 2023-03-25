@@ -45,6 +45,15 @@ def match_header(match_obj: match.Match, pre=False):
         header = header[:-2] + '*\n\n'
     if pre:
         header += match_info(match_obj)
+    else:
+        # add tv/streaming options here
+        header += f'**TV/Streaming:** '
+        for b in match_obj.broadcasters:
+            header += f'{b}, '
+        if len(match_obj.broadcasters) == 0:
+            header += 'Not available via mlssoccer.com.'
+        else:
+            header = header[:-2]
     header += '\n\n---\n'
     return header
 
@@ -59,11 +68,11 @@ def match_info(match_obj: match.Match):
     info += f'- **Date:** {date}\n'
     info += f'- **Time:** {time}\n'
     info += f'- **Venue:** {venue}\n'
-    info += f'- **US TV/Streaming:** '
+    info += f'- **TV/Streaming:** '
     for b in match_obj.broadcasters:
         info += f'{b}, '
     if len(match_obj.broadcasters) == 0:
-        info += 'Not yet available.'
+        info += 'Not available via mlssoccer.com.'
     else:
         info = info[:-2]
     return info
