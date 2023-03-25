@@ -85,7 +85,7 @@ def pre_match_thread(opta_id, sub=prod_sub):
     if '/r/' in sub:
         sub = sub[3:]
     # TODO implement PRAW exception handling here or in submit_thread
-    thread = submit_thread(sub, title, markdown, mod=True)
+    thread = submit_thread(sub, title, markdown, new=True, mod=True)
     # keep track of threads
     data = util.read_json(threads_json)
     if str(opta_id) not in data.keys():
