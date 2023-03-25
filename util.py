@@ -177,7 +177,7 @@ names = {
     20221: Names('Los Angeles Football Club 2', 'LAFC2', 'LAFC2'),
     19199: Names('Minnesota United 2', 'MNUFC2', 'MIN2'),
     16496: Names('New England Revolution II', 'New England II', 'NE2'),
-    12125: Names('New York Red Bulls II' 'New York II', 'RBNY2'),
+    12125: Names('New York Red Bulls II', 'New York II', 'RBNY2'),
     15140: Names('North Texas SC', 'North Texas', 'NTX'),
     19200: Names('NYCFC II', 'NYCFC II', 'NYC2'),
     12133: Names('Orlando City B', 'Orlando City B', 'ORL2'),
