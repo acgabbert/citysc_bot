@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 def match_footer(match_obj: match.Match):
-    retval = '\n\n---\n'
+    retval = '\n\n---\n\n'
     retval += '^^Last ^^updated: '
     update = time.strftime('^^%b ^^%d, ^^%I:%M%p', time.localtime())
     retval += update + '.' + f' ^^All ^^data ^^via ^^mlssoccer.com. ^^Opta ^^ID: ^^{str(match_obj.opta_id)}'
@@ -54,7 +54,7 @@ def match_header(match_obj: match.Match, pre=False):
             header += 'Not available via mlssoccer.com.'
         else:
             header = header[:-2]
-    header += '\n\n---\n'
+    header += '\n\n---\n\n'
     return header
 
 
@@ -82,7 +82,7 @@ def video_highlights(match_obj: match.Match):
     """Add video highlights to a footer"""
     if len(match_obj.videos) < 1:
         return None
-    retval = '---\n### Match Highlights\n'
+    retval = '---\n\n### Match Highlights\n'
     for g in match_obj.videos:
         retval += f'- [{g[0]}]({g[1]})\n'
     return retval
@@ -112,7 +112,7 @@ def pre_match_thread(match_obj: match.Match):
     markdown += match_header(match_obj, True)
     markdown += recent_form(match_obj)
     if len(match_obj.preview) > 0:
-        markdown += '---\n### Match Facts\n'
+        markdown += '---\n\n### Match Facts\n'
         for comment in match_obj.preview:
             comment = comment.replace('\u2019', "'")
             comment = comment.replace('\u2014', '-')
@@ -139,7 +139,7 @@ def match_thread(match_obj: match.Match):
         # TODO only add stats table after match has started
         markdown += stats_table(match_obj)
     if len(match_obj.summary) > 0:
-        markdown += '---\n### Match Events\n'
+        markdown += '---\n\n### Match Events\n'
         for comment in match_obj.summary:
             markdown += f'- {comment}\n'
     videos = video_highlights(match_obj)
@@ -179,7 +179,7 @@ def stats_table(match_obj: match.Match):
     """
     home = match_obj.home
     away = match_obj.away
-    markdown = '---\n### Match Stats:\n'
+    markdown = '---\n\n### Match Stats:\n'
     table_header = ''
     if home.short_name == '' or away.short_name == '':
         table_header = f'{home.full_name}|{home.goals}-{away.goals}|{away.full_name}'
