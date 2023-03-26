@@ -96,7 +96,7 @@ def pre_match_thread(opta_id, sub=prod_sub):
     return thread
 
 
-def match_thread(opta_id, sub=prod_sub, pre_thread=None, thread=None):
+def match_thread(opta_id, sub=prod_sub, pre_thread=None, thread=None, post=True):
     """This function posts a match thread. It maintains and updates the thread
     until the game is finished.
     
@@ -156,7 +156,7 @@ def match_thread(opta_id, sub=prod_sub, pre_thread=None, thread=None):
             continue
         
         logger.debug(f'Successfully updated {match_obj.opta_id} at minute {match_obj.minute}')
-        if match_obj.is_final:
+        if match_obj.is_final and post:
             # post a post-match thread before exiting the loop
             post_match_thread(opta_id, sub, thread)
 

@@ -76,7 +76,10 @@ def daily_setup(sub):
                 # there is a match today (next 24 hours)
                 # schedule a match thread for 30m before gametime
                 t -= 1800
-                scheduler.enterabs(t, 1, Main.create_match_thread, argument=(id,sub))
+                if team == 19202:
+                    scheduler.enterabs(t, 1, Main.create_match_thread, argument=(id,sub), kwargs={'post': False})
+                else:
+                    scheduler.enterabs(t, 1, Main.create_match_thread, argument=(id,sub))
                 match_time = time.strftime('%H:%M', time.localtime(t))
                 message = f'Scheduled match thread for {match_time}. Team {team}, Opta ID {id}, Subreddit {sub}'
                 root.info(message)
