@@ -35,8 +35,9 @@ scheduler = sched.scheduler(time.time, time.sleep)
 
 """List of club opta IDs that we want to make threads for
 - 17012: St. Louis City SC
+- 19202: St. Louis City SC 2
 """
-clubs = [17012]
+clubs = [17012, 19202]
 
 class Main:
     """Use this class to start a match thread in a separate process, 
@@ -60,7 +61,11 @@ def daily_setup(sub):
     """
     global scheduler
     for team in clubs:
-        data = mls_schedule.get_schedule(team=team, comp=None)
+        data = None
+        if team == 19202:
+            data = mls_schedule.get_schedule(team=team, comp='MLSNP')
+        else:
+            data = mls_schedule.get_schedule(team=team, comp=None)
         # TODO refactor check_pre_match to check for any match in the next 48 hours
         id, t = mls_schedule.check_pre_match_sched(data)
         if id is not None:
@@ -77,7 +82,8 @@ def daily_setup(sub):
                 root.info(message)
                 msg.send(f'{msg.user}\n{message}')
                 # schedule a matchday/pre-match thread for 4:00am
-                if datetime.now().hour < 4:
+                # right now static checking for if the team is CITY2 to skip matchday threads
+                if datetime.now().hour < 4 and team != 19202:
                     t = int(datetime.now().replace(hour=4, minute=0).timestamp())
                     scheduler.enterabs(t, 1, thread.pre_match_thread, argument=(id, sub))
                     prematch_time = time.strftime('%H:%M', time.localtime(t))
