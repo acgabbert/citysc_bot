@@ -140,6 +140,7 @@ def process_club(data, away=False) -> club.ClubMatch:
     team_match = t + '_match'
     opta_id = data[t]['opta_id']
     retval = club.ClubMatch(opta_id=opta_id)
+    retval.match_id = data[team_match]['match_id']
     #retval.full_name = data[t]['name']
     formation = data[team_match]['formation_matrix']
     if formation is not None:
@@ -368,8 +369,10 @@ def get_recent_form(match_obj: Match) -> Match:
 def get_broadcasters(match_obj: Match) -> Match:
     retval = match_obj
     url = mls_schedule.BASE_URL + f'/{match_obj.opta_id}'
-    # for some reason this was returning a tuple (data, response_code)
-    data = mls.call_api(url)[0]
+    data, status_code = mls.call_api(url)
+    if status_code == 204:
+        url = mls_schedule.NEXTPRO_URL + f'/{match_obj.opta_id}'
+        data = mls.call_api(url)[0]
     if data is None:
         # no broadcast info...
         return retval
