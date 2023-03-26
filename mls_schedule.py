@@ -19,6 +19,7 @@ LITE_URL = 'https://sportapi.mlssoccer.com/api/matchesLite/2023'
 SCHEDULE_LITE = 'https://sportapi.mlssoccer.com/api/matchesLite/2022?culture=en-us&competition=98&matchType=Regular'
 MATCH_RESULT = 'https://stats-api.mlssoccer.com/v1/matches?&include=away_club_match&include=home_club_match'
 GAME_ID = '&match_game_id='
+NEXTPRO_URL = 'https://sportapi.mlsnextpro.com/api/matches'
 
 def get_schedule(**kwargs):
     """
@@ -39,6 +40,9 @@ def get_schedule(**kwargs):
         if key == 'comp':
             if value is None:
                 params.pop('competition')
+            elif value == 'MLSNP':
+                params.pop('competition')
+                url = NEXTPRO_URL
             else:
                 params['competition'] = value
         if key == 'team':
