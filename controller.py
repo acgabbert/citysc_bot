@@ -45,11 +45,11 @@ class Main:
     thread to complete."""
     # TODO maybe move this class to match_thread?
     @staticmethod
-    def create_match_thread(opta_id, sub):
+    def create_match_thread(opta_id, sub, post=True):
         message = f'Posting match thread for {opta_id} on subreddit {sub}'
         root.info(message)
         msg.send(f'{msg.user}\n{message}')
-        p = Process(target=thread.match_thread, args=(opta_id,sub), daemon=True)
+        p = Process(target=thread.match_thread, args=(opta_id,sub), kwargs={'post': post}, daemon=True)
         p.start()
 
 
@@ -77,7 +77,7 @@ def daily_setup(sub):
                 # schedule a match thread for 30m before gametime
                 t -= 1800
                 if team == 19202:
-                    scheduler.enterabs(t, 1, Main.create_match_thread, argument=(id,sub), kwargs={'post': False})
+                    scheduler.enterabs(t, 1, Main.create_match_thread, argument=(id,sub,False))
                 else:
                     scheduler.enterabs(t, 1, Main.create_match_thread, argument=(id,sub))
                 match_time = time.strftime('%H:%M', time.localtime(t))
