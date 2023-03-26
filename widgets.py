@@ -10,6 +10,9 @@ import widget_markdown as md
 
 STL_CITY = 17012
 
+UPCOMING_FILE = 'markdown/upcoming.md'
+STANDINGS_FILE = 'markdown/western_conference.md'
+
 def get_upcoming(opta_id):
     """Returns a list of the next 5 upcoming matches
     Sorted in date order"""
@@ -30,7 +33,7 @@ def upcoming(opta_id=STL_CITY):
     Also, update the widget"""
     matches = get_upcoming(opta_id)
     markdown = md.schedule(matches)
-    changed = write_markdown(markdown, 'markdown/upcoming.md')
+    changed = write_markdown(markdown, UPCOMING_FILE)
     if changed:
         name = 'Upcoming Matches'
         update_widget(name, markdown)
@@ -44,7 +47,7 @@ def standings():
     Also, update the widget"""
     clubs = get_clubs()
     markdown = md.western_conference(clubs)
-    changed = write_markdown(markdown, 'markdown/western_conference.md')
+    changed = write_markdown(markdown, STANDINGS_FILE)
     if changed:
         name = 'Western Conference Standings'
         update_widget(name, markdown)
@@ -56,6 +59,18 @@ def write_markdown(markdown: str, filename: str):
     with open(filename, 'w') as f:
         f.write(markdown)
     return util.file_changed(filename)
+
+
+def read_markdown(filename: str):
+    with open(filename, 'r') as f:
+        return f.read()
+
+
+def sidebar_edit(text: str):
+    if text[:2] == '##':
+        return text[1:]
+    else:
+        return text
 
 
 def get_widgets(reddit, subreddit) -> list[praw.models.Widget]:
@@ -94,15 +109,19 @@ def update_sidebar(text=None, subreddit='stlouiscitysc'):
         msg.send(f'{msg.user}\n{message}')
         return None
     old_text = sidebar.content_md
-    begin_split = '[comment]: # (start of bot content)\n\n'
-    end_split = '[comment]: # (end of bot content)\n\n'
+    begin_split = '[comment]: # (start of bot content)'
+    end_split = '[comment]: # (end of bot content)'
     before, content = old_text.split(begin_split)
     content, after = content.split(end_split)
     if text is None:
         # TODO read from files to get content (text) here???
         # only run this entire func if changed
-        pass
-    new_text = f'{before}{begin_split}{text}{end_split}{after}'
+        upcoming = sidebar_edit(read_markdown(UPCOMING_FILE))
+        western_conf = sidebar_edit(read_markdown(STANDINGS_FILE))
+        text = f'{upcoming}\n{western_conf}\n'
+    new_text = f'{before}{begin_split}\n\n{text}{end_split}\n\n{after}'
+    print(type(new_text))
+    print(new_text)
     sidebar.edit(new_text)
     return new_text
 
