@@ -117,6 +117,14 @@ def pre_match_thread(match_obj: match.Match):
             comment = comment.replace('\u2019', "'")
             comment = comment.replace('\u2014', '-')
             markdown += f'- {comment}\n'
+    if match_obj.home.injuries or match_obj.away.injuries:
+        markdown += '---\n\n### Player Availability Report\n\n'
+        markdown += f'#### {home}\n'
+        for i in match_obj.home.injuries:
+            markdown += f'- {i}\n'
+        markdown += f'\n#### {away}\n'
+        for i in match_obj.away.injuries:
+            markdown += f'- {i}\n'
     markdown += match_footer(match_obj)
     return title, markdown
 
