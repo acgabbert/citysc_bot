@@ -8,6 +8,7 @@ import util
 import match_constants as const
 import player
 import club
+import injuries
 
 logger = logging.getLogger(__name__)
 
@@ -171,7 +172,7 @@ def get_match_data(match_obj: Match) -> Match:
         data = call_match_api(url, params, 'match-data')[0]
     except IndexError:
         message = f'{url} returned no data.'
-        logging.error(message)
+        logger.error(message)
         return retval
     retval.venue = data['venue']['name']
     retval.comp = data['competition']['name']
@@ -402,6 +403,29 @@ def get_videos(match_obj: Match) -> Match:
     for vid in data:
         vids.append((vid['title'],f'{vid_url}{vid["slug"]}'))
     retval.videos = vids
+    return retval
+
+
+def get_injuries(match_obj: Match) -> Match:
+    retval = match_obj
+    inj = util.read_json(injuries.INJ_FILE)
+    date_format = '%m/%d/%Y, %H:%M'
+    last_updated = datetime.strptime(inj['updated'], date_format)
+    delta = datetime.now() - last_updated
+    if delta.days > 2:
+        return retval
+    inj = inj['injuries']
+    home_inj = []
+    away_inj = []
+    try:
+        home_inj = inj[str(retval.home.opta_id)]
+        away_inj = inj[str(retval.away.opta_id)]
+    except Exception as e:
+        # did not match
+        logger.error(f'Failed to match injury opta IDs for {retval.home.opta_id}, {retval.away.opta_id}')
+        logger.error(e)
+    retval.home.injuries = home_inj
+    retval.away.injuries = away_inj
     return retval
 
 

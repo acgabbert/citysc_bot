@@ -37,6 +37,7 @@ class ClubMatch(Club):
         self.recent_form = ''
         self.manager = ''
         self.lineup = []
+        self.injuries = []
         self.goalscorers = []
         # TODO is this the best way to handle it? 
         # e.g. starter = key, sub = value
