@@ -92,6 +92,9 @@ def match_teams(injury_obj):
             if team.lower() == t[1][0].lower():
                 opta_injuries[t[0]] = item[1]
                 break
+            if t[1][1].lower() in team.lower():
+                opta_injuries[t[0]] = item[1]
+                break
     
     return opta_injuries
 

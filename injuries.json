@@ -58,9 +58,14 @@
             "OUT: Maxime Crepeau (left leg)"
         ],
         "1230": [
-            "OUT: Javier \"Chicharito\" Hernandez (hamstring)",
-            "OUT: Jonathan Bond (shoulder)",
-            "QUESTIONABLE: Douglas Costa (calf)"
+            "OUT: Zach Farnsworth (thigh)",
+            "OUT: Axel Kei (ankle)",
+            "OUT: Erik Holt (Achilles)",
+            "OUT: Bode Hidalgo (hamstring)",
+            "OUT: Bryan Ovideo (calf)",
+            "QUESTIONABLE: Marcelo Silva (hamstring)",
+            "PROBABLE: Jefferson Savarino (calf)",
+            "PROBABLE: Danny Musovski (ankle)"
         ],
         "14880": [
             "OUT: Noah Allen (knee)",
@@ -70,6 +75,11 @@
             "QUESTIONABLE: Robbie Robinson (calf)",
             "QUESTIONABLE: Shanyder Borgelin (ankle)",
             "QUESTIONABLE: Edison Azcona (hamstring)"
+        ],
+        "6977": [
+            "SUSPENDED: Emanuel Reynoso",
+            "OUT: Bakaye Dibassy (thigh)",
+            "OUT: Ryen Jiba (knee)"
         ],
         "1616": [
             "OUT: George Campbell (ankle)",
@@ -83,42 +93,11 @@
             "OUT: Nick DePuy (lower body)",
             "OUT: Randall Leal (lower body)"
         ],
-        "928": [
-            "OUT: Nacho Gil (right leg)",
-            "OUT: Tommy McNamara (left leg)",
-            "OUT: Maciel (left Achilles)",
-            "OUT: Jacob Jackson (left ACL)",
-            "QUESTIONABLE: Latif Blessing (right knee)"
-        ],
         "9668": [
             "OUT: None"
         ],
         "399": [
             "OUT: Serge Ngoma (hamstring)"
-        ],
-        "5513": [
-            "QUESTIONABLE: Andre Blake (adductor strain)",
-            "QUESSTIONABLE: Kai Wagner (hamstring)"
-        ],
-        "1581": [
-            "OUT: Felipe Mora (left knee)",
-            "OUT: Sebastian Blanco (left knee)",
-            "OUT: Yimmi Chara (right hamstring)",
-            "OUT: Cristhian Paredes (right hamstring)",
-            "OUT: Marvin Loria (right hamstring)",
-            "OUT: David Bingham (left hamstring)",
-            "QUESTIONABLE: Evander (hip)",
-            "QUESTIONABLE: David Ayala (right knee)"
-        ],
-        "1899": [
-            "OUT: Zach Farnsworth (thigh)",
-            "OUT: Axel Kei (ankle)",
-            "OUT: Erik Holt (Achilles)",
-            "OUT: Bode Hidalgo (hamstring)",
-            "OUT: Bryan Ovideo (calf)",
-            "QUESTIONABLE: Marcelo Silva (hamstring)",
-            "PROBABLE: Jefferson Savarino (calf)",
-            "PROBABLE: Danny Musovski (ankle)"
         ],
         "1131": [
             "OUT: Nathan (ACL surgery)",
