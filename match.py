@@ -436,6 +436,7 @@ def get_prematch_data(match_obj: Match) -> Match:
     match_obj = get_recent_form(match_obj)
     match_obj = get_preview(match_obj)
     match_obj = get_broadcasters(match_obj)
+    match_obj = get_injuries(match_obj)
     return match_obj
 
 
