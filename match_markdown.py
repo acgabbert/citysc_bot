@@ -143,16 +143,16 @@ def match_thread(match_obj: match.Match):
     markdown += '### Lineups\n'
     markdown += match_obj.home.lineup_str()
     markdown += match_obj.away.lineup_str()
-    if match_obj.started:
-        # TODO only add stats table after match has started
-        markdown += stats_table(match_obj)
-    if len(match_obj.summary) > 0:
-        markdown += '---\n\n### Match Events\n'
-        for comment in match_obj.summary:
-            markdown += f'- {comment}\n'
-    videos = video_highlights(match_obj)
-    if videos is not None:
-        markdown += videos
+    if 'next pro' not in comp.lower():
+        if match_obj.started:
+            markdown += stats_table(match_obj)
+        if len(match_obj.summary) > 0:
+            markdown += '---\n\n### Match Events\n'
+            for comment in match_obj.summary:
+                markdown += f'- {comment}\n'
+        videos = video_highlights(match_obj)
+        if videos is not None:
+            markdown += videos
     markdown += match_footer(match_obj)
     return title, markdown
 
