@@ -190,6 +190,8 @@ def get_match_data(match_obj: Match) -> Match:
     if retval.date > 999999999999:
         retval.date /= 1000
     retval.minute = data['minute_display']
+    if data['period'] == 'HalfTime':
+        retval.minute = 'HT'
     result = data['result_type']
     if result == 'FullTime' or result == 'Aggregate' or result == 'NormalResult':
         retval.result_type = 'FT'
