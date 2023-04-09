@@ -75,7 +75,7 @@ RECENT_FORM_PARAMS = {
 STATS_FIELDS = [
     'possession_percentage', 'expected_goals', 'corner_taken', 'fk_foul_lost',
     'total_scoring_att', 'ontarget_scoring_att', 'total_offside', 'yellow_card',
-    'red_card', 'total_pass', 'accurate_pass', 'saves'
+    'red_card', 'total_pass', 'accurate_pass', 'saves', 'expected_goals_nonpenalty'
 ]
 
 FEED_EMOJI = {
