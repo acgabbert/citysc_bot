@@ -16,7 +16,7 @@ STANDINGS_FILE = 'markdown/western_conference.md'
 def get_upcoming(opta_id):
     """Returns a list of the next 5 upcoming matches
     Sorted in date order"""
-    data = mls_schedule.get_schedule(team=opta_id)
+    data = mls_schedule.get_schedule(team=opta_id, comp=None)
     ids = mls_schedule.get_upcoming_matches(data)
     matches = []
     for id in ids:

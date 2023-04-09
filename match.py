@@ -142,7 +142,9 @@ def process_club(data, away=False) -> club.ClubMatch:
     opta_id = data[t]['opta_id']
     retval = club.ClubMatch(opta_id=opta_id)
     retval.match_id = data[team_match]['match_id']
-    #retval.full_name = data[t]['name']
+    if retval.full_name == '':
+        retval.full_name = data[t]['name']
+        retval.abbrev = data[t]['abbreviation']
     formation = data[team_match]['formation_matrix']
     if formation is not None:
         retval.formation_matrix = process_formation(formation)
