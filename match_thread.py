@@ -91,6 +91,7 @@ def pre_match_thread(opta_id, sub=prod_sub):
     if str(opta_id) not in data.keys():
         # add it as an empty dict
         data[str(opta_id)] = {}
+        data[str(opta_id)]['slug'] = match_obj.slug
     data[str(opta_id)]['pre'] = thread.id_from_url(thread.shortlink)
     util.write_json(data, threads_json)
     return thread
@@ -114,6 +115,7 @@ def match_thread(opta_id, sub=prod_sub, pre_thread=None, thread=None, post=True)
     if str(opta_id) not in data.keys():
         # add it as an empty dict
         data[str(opta_id)] = {}
+        data[str(opta_id)]['slug'] = match_obj.slug
     else:
         gm = data[str(opta_id)]
         if 'pre' in gm.keys():
@@ -165,10 +167,7 @@ def post_match_thread(opta_id, sub=prod_sub, thread=None):
     """This function posts a post-match thread"""
     # get reddit ids of any threads that may already exist for this match
     data = util.read_json(threads_json)
-    if str(opta_id) not in data.keys():
-        # add it as an empty dict
-        data[str(opta_id)] = {}
-    else:
+    if str(opta_id) in data.keys():
         gm = data[str(opta_id)]
         if 'match' in gm.keys():
             thread = gm['match']
@@ -186,6 +185,7 @@ def post_match_thread(opta_id, sub=prod_sub, thread=None):
     data = util.read_json(threads_json)
     if str(opta_id) not in data.keys():
         data[str(opta_id)] = {}
+        data[str(opta_id)]['slug'] = match_obj.slug
     data[str(opta_id)]['post'] = post_thread.id_from_url(post_thread.shortlink)
     util.write_json(data, threads_json)
     return

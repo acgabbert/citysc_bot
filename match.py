@@ -18,6 +18,7 @@ class Match(mls.MlsObject):
         super().__init__(opta_id)
         self.venue = ''
         self.comp = ''
+        self.slug = ''
         self.date = -1
         self.home = club.ClubMatch(-1)
         self.away = club.ClubMatch(-1)
@@ -382,6 +383,7 @@ def get_broadcasters(match_obj: Match) -> Match:
         # no broadcast info...
         return retval
     util.write_json(data, f'assets/match-{match_obj.opta_id}.json')
+    match_obj.slug = data['slug']
     match_obj.apple_tier = data['appleSubscriptionTier']
     match_obj.apple_url = data['appleStreamURL'].split('?')[0]
     broadcasters = data['broadcasters']
