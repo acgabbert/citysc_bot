@@ -2,6 +2,7 @@ import time
 import logging
 from datetime import datetime
 
+import config
 import mls_api as mls
 import mls_schedule
 import util
@@ -383,11 +384,23 @@ def get_broadcasters(match_obj: Match) -> Match:
         # no broadcast info...
         return retval
     util.write_json(data, f'assets/match-{match_obj.opta_id}.json')
-    match_obj.slug = data['slug']
-    match_obj.apple_tier = data['appleSubscriptionTier']
-    match_obj.apple_url = data['appleStreamURL'].split('?')[0]
-    broadcasters = data['broadcasters']
     adder = []
+    retval.slug = data['slug']
+    threads = util.read_json(config.THREADS_JSON)
+    print(retval.opta_id)
+    if str(retval.opta_id) in threads.keys():
+        gm = threads[str(retval.opta_id)]
+        print(gm)
+        if 'stream-link' in gm.keys():
+            print(gm['stream-link'])
+            adder.append(gm['stream-link'])
+            retval.broadcasters = adder
+            # overrride the rest of the function
+            return retval
+
+    retval.apple_tier = data['appleSubscriptionTier']
+    retval.apple_url = data['appleStreamURL'].split('?')[0]
+    broadcasters = data['broadcasters']
     for b in broadcasters:
         if b['broadcasterType'] not in ['US TV', 'International Streaming', 'US Streaming']:
             continue
@@ -397,7 +410,7 @@ def get_broadcasters(match_obj: Match) -> Match:
             adder.append(f'[{b["broadcasterName"]}]({b["broadcasterStreamingURL"]}) (US)')
         else:
             adder.append(f'{b["broadcasterName"]} (US)')
-    match_obj.broadcasters = adder
+    retval.broadcasters = adder
     return retval
 
 
