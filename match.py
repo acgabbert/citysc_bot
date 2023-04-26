@@ -387,12 +387,9 @@ def get_broadcasters(match_obj: Match) -> Match:
     adder = []
     retval.slug = data['slug']
     threads = util.read_json(config.THREADS_JSON)
-    print(retval.opta_id)
     if str(retval.opta_id) in threads.keys():
         gm = threads[str(retval.opta_id)]
-        print(gm)
         if 'stream-link' in gm.keys():
-            print(gm['stream-link'])
             adder.append(gm['stream-link'])
             retval.broadcasters = adder
             # overrride the rest of the function
