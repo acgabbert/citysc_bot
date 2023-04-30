@@ -186,7 +186,7 @@ def get_match_data(match_obj: Match) -> Match:
             retval.comp = 'MLS Cup Playoffs'
     if data['type'] == 'Cup':
         retval.comp += f', {data["round_name"]}'
-        if data['round_number'] is not None:
+        if retval.comp.isalpha() and data['round_number'] is not None:
             retval.comp += f' {data["round_number"]}'
     retval.home = process_club(data)
     retval.away = process_club(data, True)

@@ -66,14 +66,8 @@
             "OUT: Maxime Crepeau (left leg)"
         ],
         "1230": [
-            "OUT: Zach Farnsworth (thigh)",
-            "OUT: Axel Kei (ankle)",
-            "OUT: Delentz Pierre (leg)",
-            "QUESTIONABLE: Andrew Brody (ankle)",
-            "QUESTIONABLE: Erik Holt (Achilles)",
-            "QUESTIONABLE: Anderson Julio (hamstring)",
-            "QUESTIONABLE: Brayan Vera (hip)",
-            "QUESTIONABLE: Tomas Gomez (knee)"
+            "OUT: Jonathan Bond (shoulder)",
+            "OUT: Chris Mavinga (lower leg)"
         ],
         "14880": [
             "OUT: Ian Fray (knee)",
@@ -100,6 +94,13 @@
             "OUT: Nick DePuy (lower body)",
             "QUESTIONABLE: Randall Leal (lower body)"
         ],
+        "928": [
+            "OUT: Nacho Gil (right leg)",
+            "OUT: Tommy McNamara (left leg)",
+            "OUT: Maciel (left Achilles)",
+            "OUT: Jacob Jackson (left ACL)",
+            "OUT: Henry Kessler (right hamstring)"
+        ],
         "9668": [
             "OUT: None"
         ],
@@ -110,6 +111,33 @@
             "OUT: Steven Sserwadda (knee)",
             "OUT: Frankie Amaya (ankle)",
             "OUT: Luquinhas (adductor)"
+        ],
+        "6900": [
+            "OUT: Mauricio Pereyra (right thigh)",
+            "OUT: Luca Petrasso (right thigh)",
+            "QUESTIONABLE: Duncan McGuire (right lower leg)"
+        ],
+        "5513": [
+            "QUESTIONABLE: Kai Wagner (hamstring)",
+            "QUESTIONABLE: Damion Lowe (hamstring)",
+            "QUESTIONABLE: Leon Flach (pelvis)"
+        ],
+        "1581": [
+            "OUT: Felipe Mora (left knee)",
+            "OUT: David Bingham (left hamstring)",
+            "OUT: Eryk Williamson (right knee)",
+            "QUESTIONABLE: Claudio Bravo (right calf)",
+            "QUESTIONABLE: Dairon Asprilla (right knee)"
+        ],
+        "1899": [
+            "OUT: Zach Farnsworth (thigh)",
+            "OUT: Axel Kei (ankle)",
+            "OUT: Delentz Pierre (leg)",
+            "QUESTIONABLE: Andrew Brody (ankle)",
+            "QUESTIONABLE: Erik Holt (Achilles)",
+            "QUESTIONABLE: Anderson Julio (hamstring)",
+            "QUESTIONABLE: Brayan Vera (hip)",
+            "QUESTIONABLE: Tomas Gomez (knee)"
         ],
         "1131": [
             "OUT: Nathan (ACL surgery)",

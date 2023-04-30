@@ -142,7 +142,7 @@ names = {
     1903: Names('FC Dallas', 'Dallas', 'DAL'),
     1207: Names('Chicago Fire FC', 'Chicago', 'CHI'),
     1897: Names('Houston Dynamo FC', 'Houston', 'HOU'),
-    1230: Names('LA Galaxy', 'LA', 'LA'),
+    1230: Names('LA Galaxy', 'LA Galaxy', 'LA'),
     454: Names('Columbus Crew', 'Columbus', 'CLB'),
     11690: Names('Los Angeles Football Club', 'LAFC', 'LAFC'),
     1326: Names('D.C. United', 'D.C.', 'DC'),
