@@ -1,17 +1,17 @@
 ## Western Conference Standings
 Pos|Team|Pts|GP|GD
 :-:|:-:|:-:|:-:|:-:
-1|St. Louis|19|9|11|
-2|Seattle|19|9|10|
+1|Seattle|20|10|10|
+2|St. Louis|19|10|10|
 3|LAFC|18|8|10|
-4|Dallas|14|9|1|
-5|San Jose|14|9|0|
+4|San Jose|15|10|0|
+5|Dallas|14|9|1|
 6|Houston|13|8|2|
 7|Minnesota|11|8|0|
-8|Vancouver|10|8|4|
-9|Salt Lake|9|8|-7|
-10|Portland|8|9|-4|
-11|Austin|8|8|-6|
-12|Colorado|8|9|-5|
-13|LA|6|8|-5|
-14|Kansas City|3|9|-10|
+8|Portland|11|10|-3|
+9|Vancouver|11|9|4|
+10|Salt Lake|10|9|-7|
+11|Austin|9|9|-6|
+12|Colorado|9|10|-5|
+13|LA|6|9|-7|
+14|Kansas City|3|10|-12|
