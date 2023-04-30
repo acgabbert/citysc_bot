@@ -97,13 +97,15 @@ def process_feed(data) -> list[str]:
             if comment['type'] in const.FEED_EMOJI:
                 adder += const.FEED_EMOJI[comment['type']]
             adder += f' {comment["comment"]}'
-        if comment['type'] in ['goal', 'own goal']:
+        if comment['type'] in ['goal', 'own goal', 'penalty goal']:
             p = comment['first_player'] # goalscorer
             name = get_player_name(p)
             minute = comment['minute_display']
             scorer = f'{name} {minute}'
             if comment['type'] == 'own goal':
                 scorer += ' (OG)'
+            if comment['type'] == 'penalty goal':
+                scorer += ' (PEN)'
             tm = comment['first_club']['opta_id']
             if tm in scorers.keys():
                 scorers[tm].append(scorer)
