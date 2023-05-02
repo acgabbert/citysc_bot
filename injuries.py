@@ -91,15 +91,10 @@ def match_teams(injury_obj):
         for t in teams:
             if team.lower() == t[1][0].lower():
                 opta_injuries[t[0]] = item[1]
-                print(f'matched {team} : {t[0]}')
                 break
-            # TODO this clause is causing a problem because "LA" matches 
-            # a lot of teams
             if t[1][1].lower() in team.lower():
                 opta_injuries[t[0]] = item[1]
-                print(f'matched {team} : {t[0]} the second time')
                 break
-            print(f'did not match {team} : {t[0]}')
     
     return opta_injuries
 
