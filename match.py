@@ -418,7 +418,9 @@ def get_videos(match_obj: Match) -> Match:
     vid_url = 'https://mlssoccer.com/video/'
     url = 'https://dapi.mlssoccer.com/v2/content/en-us/brightcovevideos'
     params = {'fields.optaMatchId': match_obj.opta_id}
+    # TODO why isn't this using call_match_api? because of the indexing? 
     data = mls.call_api(url, params)[0]['items']
+    util.write_json(data, f'assets/videos-{match_obj.opta_id}.json')
     vids = []
     for vid in data:
         vids.append((vid['title'],f'{vid_url}{vid["slug"]}'))
