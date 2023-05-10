@@ -1,7 +1,6 @@
 import time
 import argparse
 import logging
-import json
 import praw
 import sys
 
@@ -133,15 +132,27 @@ def match_thread(opta_id, sub=prod_sub, pre_thread=None, thread=None, post=True)
         if pre_thread is not None:
             text = f'[Continue the discussion in the match thread.](https://www.reddit.com/r/{sub}/comments/{thread.id_from_url(thread.shortlink)})'
             comment(pre_thread, text)
+        msg.send(f'Match thread posted!')
     else:
         # thread already exists in the json
         reddit = util.get_reddit()
         thread = praw.models.Submission(reddit=reddit, id=thread)
+        msg.send(f'Found existing match thread')
     
     while not match_obj.is_final:
         time.sleep(60)
         before = time.time()
-        match_obj = match.get_match_update(match_obj)
+        try:
+            match_obj = match.get_match_update(match_obj)
+        except Exception as e:
+            message = (
+                f'Error while getting match update.\n'
+                f'{str(e)}\n'
+                f'Continuing while loop.'
+            )
+            logger.error(message)
+            msg.send(f'{msg.user} {message}')
+            continue
         after = time.time()
         logger.info(f'Match update took {round(after-before, 2)} secs')
         _, markdown = md.match_thread(match_obj)
