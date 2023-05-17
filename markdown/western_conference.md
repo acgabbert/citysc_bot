@@ -5,7 +5,7 @@ Pos|Team|Pts|GP|GD
 2|LAFC|21|10|12|
 3|St. Louis|19|11|9|
 4|Dallas|18|11|2|
-5|San Jose|18|11|1|
+5|San Jose|18|12|0|
 6|Portland|15|12|-1|
 7|Houston|14|10|1|
 8|Vancouver|14|11|3|
@@ -13,5 +13,5 @@ Pos|Team|Pts|GP|GD
 10|Colorado|12|12|-4|
 11|Salt Lake|11|11|-10|
 12|Austin|10|11|-7|
-13|Kansas City|9|12|-8|
-14|LA Galaxy|6|10|-9|
+13|LA Galaxy|9|11|-8|
+14|Kansas City|9|12|-8|
