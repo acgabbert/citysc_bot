@@ -66,8 +66,12 @@ class ClubMatch(Club):
             return f'{self.full_name} lineup is not yet available via mlssoccer.com.\n\n'
         for player in self.lineup:
             if player.status == 'Start':
-                index = self.formation_matrix.index(player.formation_place)
-                starters.insert(index, player)
+                # TODO there is a better way to do this
+                try:
+                    index = self.formation_matrix.index(player.formation_place)
+                    starters.insert(index, player)
+                except:
+                    starters.append(player)
             else:
                 bench.append(player)
         retval = f'**{self.full_name}**\n\n'
