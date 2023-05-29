@@ -9,9 +9,9 @@ Pos|Team|Pts|GP|GD
 6|Minnesota|19|14|-2|
 7|Houston|18|13|1|
 8|Vancouver|17|14|2|
-9|Portland|16|14|-2|
+9|Portland|16|15|-5|
 10|Austin|16|14|-6|
 11|Salt Lake|16|14|-9|
-12|Colorado|12|15|-10|
-13|Kansas City|10|14|-12|
+12|Kansas City|13|15|-9|
+13|Colorado|12|15|-10|
 14|LA Galaxy|9|14|-14|
