@@ -90,9 +90,11 @@
     },
     "2341785": {
         "slug": "dalvsstl-05-06-2023",
-        "pre": "139hgdv",
-        "match": "13a6lhs",
-        "post": "13abnyi"
+        "pre": "1437xtm",
+        "match-first": "13a6lhs",
+        "post-first": "13abnyi",
+        "match": "143tfsw",
+        "post": "143v6bl"
     },
     "2358469": {
         "slug": "ntxvsstl-05-07-2023",
@@ -145,5 +147,15 @@
         "pre": "13z6m9e",
         "match": "13zudrn",
         "post": "13zybtm"
+    },
+    "2358531": {
+        "slug": "tacvsstl-06-05-2023",
+        "match": "141xm75"
+    },
+    "2341886": {
+        "slug": "stlvsla-06-11-2023",
+        "pre": "146ozw2",
+        "match": "146yamw",
+        "post": "14723h1"
     }
 }
