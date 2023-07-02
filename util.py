@@ -190,7 +190,8 @@ names = {
     12134: Names('TFC II', 'TFC II', 'TOR2'),
     12136: Names('Timbers2', 'Timbers2', 'POR2'),
     12142: Names('Whitecaps FC 2', 'Vancouver 2', 'VAN2'),
-    16497: Names('Union Omaha', 'Omaha', 'OMA')
+    16497: Names('Union Omaha', 'Omaha', 'OMA'),
+    1292: Names('Club América', 'América', 'CA')
 }
 
 
