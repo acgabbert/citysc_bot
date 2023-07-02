@@ -193,6 +193,7 @@ def post_match_thread(opta_id, sub=prod_sub, thread=None):
     if thread is not None:
         text = f'[Continue the discussion in the post-match thread.](https://www.reddit.com/r/{sub}/comments/{post_thread.id_from_url(post_thread.shortlink)})'
         comment(thread, text)
+    msg.send(f'Post-match thread posted!')
     data = util.read_json(threads_json)
     if str(opta_id) not in data.keys():
         data[str(opta_id)] = {}
