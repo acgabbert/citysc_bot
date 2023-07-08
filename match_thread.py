@@ -85,6 +85,7 @@ def pre_match_thread(opta_id, sub=prod_sub):
         sub = sub[3:]
     # TODO implement PRAW exception handling here or in submit_thread
     thread = submit_thread(sub, title, markdown, new=True, mod=True)
+    msg.send(f'{msg.user} Pre-match thread posted!')
     # keep track of threads
     data = util.read_json(threads_json)
     if str(opta_id) not in data.keys():
@@ -132,7 +133,7 @@ def match_thread(opta_id, sub=prod_sub, pre_thread=None, thread=None, post=True)
         if pre_thread is not None:
             text = f'[Continue the discussion in the match thread.](https://www.reddit.com/r/{sub}/comments/{thread.id_from_url(thread.shortlink)})'
             comment(pre_thread, text)
-        msg.send(f'Match thread posted!')
+        msg.send(f'{msg.user} Match thread posted!')
     else:
         # thread already exists in the json
         reddit = util.get_reddit()
@@ -193,7 +194,7 @@ def post_match_thread(opta_id, sub=prod_sub, thread=None):
     if thread is not None:
         text = f'[Continue the discussion in the post-match thread.](https://www.reddit.com/r/{sub}/comments/{post_thread.id_from_url(post_thread.shortlink)})'
         comment(thread, text)
-    msg.send(f'Post-match thread posted!')
+    msg.send(f'{msg.user} Post-match thread posted!')
     data = util.read_json(threads_json)
     if str(opta_id) not in data.keys():
         data[str(opta_id)] = {}
