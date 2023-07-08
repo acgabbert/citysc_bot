@@ -120,9 +120,8 @@ def update_sidebar(text=None, subreddit='stlouiscitysc'):
         western_conf = sidebar_edit(read_markdown(STANDINGS_FILE))
         text = f'{upcoming}\n{western_conf}\n'
     new_text = f'{before}{begin_split}\n\n{text}{end_split}\n\n{after}'
-    print(type(new_text))
-    print(new_text)
     sidebar.edit(new_text)
+    msg.send(f'{msg.user} Edited sidebar!')
     return new_text
 
 
@@ -131,7 +130,7 @@ def main():
     s_changed = standings()
     if u_changed or s_changed:
         # update sidebar here
-        pass
+        update_sidebar()
 
 
 if __name__ == '__main__':
