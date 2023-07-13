@@ -82,10 +82,16 @@ def get_widgets(reddit, subreddit) -> list[praw.models.Widget]:
 
 
 def update_widget(widget_name, text, subreddit='stlouiscitysc'):
+    if text[0] == '#':
+        # remove first line of text
+        text = '\n'.join(text.split('\n')[1:])
+    print(text)
     r = util.get_reddit()
     sidebar = get_widgets(r, subreddit)
     updated = False
     for w in sidebar:
+        print(w.shortName)
+        print(isinstance(w, praw.models.TextArea))
         if w.shortName == widget_name:
             try:
                 mod = w.mod
@@ -114,8 +120,7 @@ def update_sidebar(text=None, subreddit='stlouiscitysc'):
     before, content = old_text.split(begin_split)
     content, after = content.split(end_split)
     if text is None:
-        # TODO read from files to get content (text) here???
-        # only run this entire func if changed
+        # TODO sidebar_edit call is probably no longer needed
         upcoming = sidebar_edit(read_markdown(UPCOMING_FILE))
         western_conf = sidebar_edit(read_markdown(STANDINGS_FILE))
         text = f'{upcoming}\n{western_conf}\n'

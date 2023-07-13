@@ -1,4 +1,4 @@
-## Upcoming Matches
+# Upcoming Matches
 Date|Opponent|Comp|Time (CT)
 :-:|:-:|:-:|:-:
 07/15|Miami|MLS|7:30 PM 
