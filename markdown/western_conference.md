@@ -1,4 +1,4 @@
-# Western Conference Standings
+## Western Conference Standings
 Pos|Team|Pts|GP|GD
 :-:|:-:|:-:|:-:|:-:
 1|St. Louis|38|22|13|
