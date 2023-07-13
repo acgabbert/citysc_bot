@@ -6,7 +6,7 @@ from club import Club
 STL_CITY = 17012
 
 def schedule(matches: list[Match]):
-    retval = '## Upcoming Matches\n'
+    retval = '# Upcoming Matches\n'
     retval += 'Date|Opponent|Comp|Time (CT)\n'
     retval += ':-:|:-:|:-:|:-:\n'
     for match in matches:
@@ -29,7 +29,7 @@ def schedule(matches: list[Match]):
     return retval
 
 def western_conference(teams: list[Club]):
-    retval = '## Western Conference Standings\n'
+    retval = '# Western Conference Standings\n'
     retval += 'Pos|Team|Pts|GP|GD\n'
     retval += ':-:|:-:|:-:|:-:|:-:\n'
     for team in teams:
