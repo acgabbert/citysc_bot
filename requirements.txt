@@ -3,3 +3,4 @@ schedule
 praw
 bs4
 selenium
+pillow
