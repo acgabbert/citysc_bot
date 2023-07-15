@@ -1,4 +1,5 @@
 import praw
+from PIL import Image
 
 import discord as msg
 from match import Match, get_match_data
@@ -84,7 +85,7 @@ def get_widgets(reddit, subreddit) -> list[praw.models.Widget]:
     if reddit is None:
         reddit = util.get_reddit()
     sub = reddit.subreddit(subreddit)
-    return sub.widgets.sidebar
+    return sub.widgets
 
 
 def update_text_widget(widget_name, text, subreddit='stlouiscitysc'):
@@ -92,9 +93,9 @@ def update_text_widget(widget_name, text, subreddit='stlouiscitysc'):
         # remove first line of text
         text = '\n'.join(text.split('\n')[1:])
     r = util.get_reddit()
-    sidebar = get_widgets(r, subreddit)
+    widget_obj = get_widgets(r, subreddit)
     updated = False
-    for w in sidebar:
+    for w in widget_obj.sidebar:
         if w.shortName == widget_name:
             try:
                 mod = w.mod
@@ -110,12 +111,30 @@ def update_text_widget(widget_name, text, subreddit='stlouiscitysc'):
     return updated
 
 
+# TODO fix this - it's very DRY
 def update_image_widget(widget_name, image_path, subreddit='stlouiscitysc'):
     updated = False
+    im = Image.open(image_path)
+    size = im.size # format (width, height) tuple
     r = util.get_reddit()
-    sidebar = get_widgets(r, subreddit)
-    for w in sidebar:
-        print(w.shortName)
+    widget_obj = get_widgets(r, subreddit)
+    for w in widget_obj.sidebar:
+        if w.shortName == widget_name:
+            try:
+                image_url = widget_obj.mod.upload_image(image_path)
+                print(image_url)
+                image_data = [{'width': size[0], 'height': size[1], 'url': image_url, 'linkUrl': ''}]
+                mod = w.mod
+                mod.update(data=image_data)
+                updated = True
+                break
+            except Exception as e:
+                message = (
+                    f'Error while updating {widget_name} widget.\n'
+                    f'{str(e)}\n'
+                )
+                msg.send(f'{msg.user}\n{message}')
+                print(message)
     return updated
 
 
