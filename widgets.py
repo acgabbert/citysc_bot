@@ -1,4 +1,3 @@
-import logging
 import praw
 
 import discord as msg
@@ -12,6 +11,13 @@ STL_CITY = 17012
 
 UPCOMING_FILE = 'markdown/upcoming.md'
 STANDINGS_FILE = 'markdown/western_conference.md'
+
+"""
+Image Widget names:
+"Western Conference PNG"
+"This Week PNG"
+"Next Week PNG"
+"""
 
 def get_upcoming(opta_id):
     """Returns a list of the next 5 upcoming matches
@@ -36,7 +42,7 @@ def upcoming(opta_id=STL_CITY):
     changed = write_markdown(markdown, UPCOMING_FILE)
     if changed:
         name = 'Upcoming Matches'
-        update_widget(name, markdown)
+        update_text_widget(name, markdown)
     return changed
 
 
@@ -50,7 +56,7 @@ def standings():
     changed = write_markdown(markdown, STANDINGS_FILE)
     if changed:
         name = 'Western Conference Standings'
-        update_widget(name, markdown)
+        update_text_widget(name, markdown)
     return changed
 
 
@@ -81,7 +87,7 @@ def get_widgets(reddit, subreddit) -> list[praw.models.Widget]:
     return sub.widgets.sidebar
 
 
-def update_widget(widget_name, text, subreddit='stlouiscitysc'):
+def update_text_widget(widget_name, text, subreddit='stlouiscitysc'):
     if text[0] == '#':
         # remove first line of text
         text = '\n'.join(text.split('\n')[1:])
@@ -104,6 +110,12 @@ def update_widget(widget_name, text, subreddit='stlouiscitysc'):
                     f'{str(e)}\n'
                 )
                 msg.send(f'{msg.user}\n{message}')
+    return updated
+
+
+def update_image_widget(widget_name, image_path, subreddit='stlouiscitysc'):
+    updated = False
+
     return updated
 
 
@@ -139,7 +151,4 @@ def main():
 
 
 if __name__ == '__main__':
-    markdown = upcoming()
-    print(markdown)
-    markdown = standings()
-    print(markdown)
+    main()
