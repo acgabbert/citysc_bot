@@ -1,8 +1,8 @@
 {
-    "updated": "07/12/2023, 00:58",
+    "updated": "07/15/2023, 01:45",
     "injuries": {
         "11901": [
-            "OUT: Miles Robinson (international duty)",
+            "QUESTIONABLE: Miles Robinson (international duty)",
             "QUESTIONABLE: Giorgos Giakoumakis (hamstring)"
         ],
         "15296": [
@@ -20,18 +20,16 @@
             "OUT: Javier Casas (right upper leg)",
             "OUT: Federico Navarro (right lower leg)",
             "OUT: Wyatt Omsberg (left lower leg)",
-            "OUT: Victor Bezerra (right lower leg)"
+            "OUT: Victor Bezerra (right lower leg)",
+            "QUESTIONABLE: Carlos Teran (right upper leg)"
         ],
         "11504": [
             "OUT: Gerardo Valenzuela (quad)",
             "OUT: Dominique Badji (quad)",
-            "OUT: Matt Miazga (international duty)",
-            "OUT: Brandon Vazquez (international duty)",
             "QUESTIONABLE: Yuya Kubo (hamstring)"
         ],
         "436": [
             "OUT: Alex Gersbach (adductor tendon surgery)",
-            "OUT: Andrew Gutman (ineligible to play in match resumption)",
             "OUT: Jack Price (Achilles)",
             "OUT: Diego Rubio (upper body)",
             "OUT: Max (removed from team activities)"
@@ -40,22 +38,21 @@
             "OUT: Will Sands (knee)"
         ],
         "1903": [
-            "OUT: Paul Arriola (right thigh)",
             "OUT: Jesus Jimenez (ankle)",
-            "OUT: Ema Twumasi (ankle)",
-            "OUT: Geovane Jesus (thigh)",
             "OUT: Tarik Scott (season-ending injury)",
-            "OUT: Jesus Ferreira (international duty)",
-            "QUESTIONABLE: Jose Martinez (undisclosed)",
-            "QUESTIONABLE: Paxton Pomykal (undisclosed)",
-            "QUESTIONABLE: Nkosi Tafari (undisclosed)"
+            "OUT: Amet Korca (head)",
+            "QUESTIONABLE: Paul Arriola (right thigh)",
+            "QUESTIONABLE: Geovane Jesus (thigh)",
+            "QUESTIONABLE: Jose Martinez (knee)",
+            "QUESTIONABLE: Paxton Pomykal (thigh)",
+            "QUESTIONABLE: Ema Twumasi (ankle)",
+            "QUESTIONABLE: Alan Velasco (thigh)"
         ],
         "1326": [
             "OUT: Martin Rodriguez (knee)",
             "OUT: Mohanad Jeahze (leg)",
             "OUT: Ted Ku-DiPietro (ankle)",
-            "OUT: Pedro Santos (thigh)",
-            "OUT: Jacob Greene (hip)"
+            "OUT: Pedro Santos (thigh)"
         ],
         "1897": [
             "OUT: Ifunanyachi Achara (knee)",
@@ -65,16 +62,13 @@
             "OUT: Andrew Tarbell (concussion protocol)"
         ],
         "11690": [
-            "OUT: Aaron Long (international duty)",
             "OUT: Sergi Palencia (lower extremity)",
             "OUT: Jesus Murillo (lower extremity)",
             "OUT: Maxime Crepeau (leg)"
         ],
         "1230": [
             "OUT: Javier \"Chicharito Hernandez (torn ACL)",
-            "OUT: Memo Rodriguez (thigh)",
-            "OUT: Martin Caceres (avulsion fracture)",
-            "QUESTIONABLE: Jonathan Bond (thigh)"
+            "OUT: Martin Caceres (avulsion fracture)"
         ],
         "14880": [
             "OUT: Gregore (Lisfranc)",
@@ -88,10 +82,7 @@
         "6977": [
             "OUT: Ryan Jiba (knee)",
             "OUT: Robin Lod (knee)",
-            "OUT: Kemar Lawrence (international duty)",
-            "QUESTIONABLE: Franco Fragapane (thigh)",
-            "QUESTIONABLE: Sang Bin Jeong (thigh)",
-            "QUESTIONABLE: Emmanuel Iwe (thigh)"
+            "QUESTIONABLE: Franco Fragapane (thigh)"
         ],
         "1616": [
             "OUT: Romell Quioto (hamstring)",
@@ -110,38 +101,29 @@
             "OUT: Nacho Gil (right leg)",
             "OUT: Henry Kessler (right hamstring)",
             "OUT: Maciel (left Achilles)",
-            "OUT: Tommy McNamara (left leg)",
-            "OUT: DeJuan Jones (international duty)"
+            "OUT: Tommy McNamara (left leg)"
         ],
         "9668": [
-            "OUT: Thiago Martins (knee surgery)",
-            "OUT: James Sands (international duty)"
+            "OUT: Thiago Martins (knee surgery)"
         ],
         "399": [
             "OUT: Serge Ngoma (hamstring)",
             "OUT: Lewis Morgan (hip)",
             "OUT: Steven Sserwadda (knee)",
-            "OUT: Cory Burke (international duty)",
-            "OUT: John Tolkin (international duty)",
-            "QUESTIONABLE: Dru Yearwood (hip)",
-            "QUESTIONABLE: Elias Manoel (ankle)"
+            "OUT: Dylan Nealis (hip)",
+            "QUESTIONABLE: Dru Yearwood (hip)"
         ],
         "6900": [
-            "OUT: Gaston Gonzalez (right thigh)",
+            "OUT: Gaston Gonzalez (left thigh)",
             "OUT: Adam Grinwis (concussion protocol)",
             "OUT: Mikey Halliday (left thigh)",
             "OUT: Abdi Salim (left knee)"
         ],
         "5513": [
-            "OUT: Kai Wagner (hamstring)"
+            "OUT: None"
         ],
         "1581": [
-            "OUT: Dairon Asprilla (left hamstring)",
             "OUT: David Ayala (left knee)",
-            "OUT: Yimmi Chara (left hamstring)",
-            "OUT: Evander (left lower leg)",
-            "OUT: Larrys Mabiala (left lower body)",
-            "OUT: Hunter Sulte (concussion)",
             "OUT: Eryk Williamson (right knee)"
         ],
         "1899": [
@@ -160,19 +142,17 @@
         ],
         "3500": [
             "OUT: Xavier Arreaga (right quad strain)",
-            "OUT: Stefan Frei (concussion protocol)",
             "OUT: Kelyn Rowe (right quad strain)",
-            "OUT: Jordan Morris (international duty)",
-            "OUT: Cristian Roldan (international duty)",
             "QUESTIONABLE: Ethan Dobbelaere (right hamstring strain)",
-            "QUESTIONABLE: Sota Kitahara (right quad strain)"
+            "QUESTIONABLE: Sota Kitahara (right quad strain)",
+            "QUESTIONABLE: Stefan Frei (concussion protocol)"
         ],
         "421": [
             "OUT: Tim Melia (quad)",
             "OUT: Kortne Ford (Achilles surgery)",
             "OUT: Graham Zusi (hamstring)",
-            "OUT: Willy Agada (tibia stress fracture)",
-            "QUESTIONABLE: Nemanja Radoja (adductor)"
+            "OUT: Felipe Hernandez (hamstring)",
+            "OUT: Willy Agada (tibia stress fracture)"
         ],
         "17012": [
             "OUT: Joakim Nilsson (knee)",
@@ -183,20 +163,15 @@
             "OUT: Michael Bradley (lower body)",
             "OUT: Adama Diomande (lower body)",
             "OUT: Cristian Gutierrez (lower body)",
-            "OUT: Matt Hedges (lower body)",
-            "OUT: Sigurd Rosted (lower body)",
             "OUT: Victor Vazquez (lower body)",
-            "OUT: Sean Johnson (international duty)",
-            "OUT: Jonathan Osorio (international duty)",
-            "OUT: Richie Laryea (international duty)",
-            "OUT: Tomas Romero (international duty)",
+            "QUESTIONABLE: Matt Hedges (lower body)",
             "QUESTIONABLE: Lorenzo Insigne (lower body)",
-            "QUESTIONABLE: Deandre Kerr (upper body)"
+            "QUESTIONABLE: Deandre Kerr (upper body)",
+            "QUESTIONABLE: Greg Ranjitsingh (lower body)",
+            "QUESTIONABLE: Sigurd Rosted (lower body)"
         ],
         "1708": [
-            "OUT: Javain Brown (international duty)",
-            "OUT: Julian Gressel (international duty)",
-            "OUT: Ali Ahmed (right foot contusion)"
+            "QUESTIONABLE: Ali Ahmed (right foot contusion)"
         ]
     }
 }
