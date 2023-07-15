@@ -91,7 +91,7 @@ def pad_image(filename):
     padded.save(filename)
 
 
-if __name__ == '__main__':
+def main():
     try:
         get_standings()
         message = "Successfully got standings via Selenium."
@@ -116,3 +116,8 @@ if __name__ == '__main__':
         )
         logger.error(message)
         msg.send(message)
+
+
+
+if __name__ == '__main__':
+    main()
