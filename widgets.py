@@ -91,13 +91,10 @@ def update_text_widget(widget_name, text, subreddit='stlouiscitysc'):
     if text[0] == '#':
         # remove first line of text
         text = '\n'.join(text.split('\n')[1:])
-    print(text)
     r = util.get_reddit()
     sidebar = get_widgets(r, subreddit)
     updated = False
     for w in sidebar:
-        print(w.shortName)
-        print(isinstance(w, praw.models.TextArea))
         if w.shortName == widget_name:
             try:
                 mod = w.mod
@@ -115,7 +112,10 @@ def update_text_widget(widget_name, text, subreddit='stlouiscitysc'):
 
 def update_image_widget(widget_name, image_path, subreddit='stlouiscitysc'):
     updated = False
-
+    r = util.get_reddit()
+    sidebar = get_widgets(r, subreddit)
+    for w in sidebar:
+        print(w.shortName)
     return updated
 
 
