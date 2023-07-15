@@ -102,6 +102,7 @@ def update_text_widget(widget_name, text, subreddit='stlouiscitysc'):
                 mod = w.mod
                 mod.update(text=text)
                 updated = True
+                msg.send(f'Updated {widget_name} text widget!')
                 break
             except Exception as e:
                 message = (
@@ -130,6 +131,7 @@ def update_image_widget(name, subreddit='stlouiscitysc'):
                 mod = w.mod
                 mod.update(data=image_data)
                 updated = True
+                msg.send(f'Updated {name} image widget!')
                 break
             except Exception as e:
                 message = (
@@ -159,7 +161,7 @@ def update_sidebar(text=None, subreddit='stlouiscitysc'):
         text = f'{upcoming}\n{western_conf}\n'
     new_text = f'{before}{begin_split}\n\n{text}{end_split}\n\n{after}'
     sidebar.edit(content=new_text)
-    msg.send(f'{msg.user} Edited sidebar!')
+    msg.send('Edited sidebar!')
     return new_text
 
 
