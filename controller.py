@@ -10,6 +10,7 @@ import discord as msg
 import injuries
 import match_thread as thread
 import mls_schedule
+import mls_selenium
 import widgets
 
 fh = logging.handlers.RotatingFileHandler('log/debug.log', maxBytes=1000000, backupCount=10)
@@ -119,6 +120,7 @@ def main(sub):
     root.info(message)
     msg.send(message)
     daily_setup(sub)
+    schedule.every().day.at('00:45').do(mls_selenium.main)
     schedule.every().day.at('01:00').do(widgets.main)
     schedule.every().day.at('01:15').do(injuries.main)
     schedule.every().day.at('01:30').do(daily_setup, sub)
