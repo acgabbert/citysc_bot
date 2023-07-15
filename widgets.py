@@ -1,3 +1,4 @@
+from datetime import datetime
 import praw
 from PIL import Image
 
@@ -112,8 +113,11 @@ def update_text_widget(widget_name, text, subreddit='stlouiscitysc'):
 
 
 # TODO fix this - it's very DRY
-def update_image_widget(widget_name, image_path, subreddit='stlouiscitysc'):
+def update_image_widget(name, subreddit='stlouiscitysc'):
     updated = False
+    now = datetime.now()
+    widget_name = f'{name} PNG'
+    image_path = f'png/{name}-{now.month}-{now.day}.png'
     im = Image.open(image_path)
     size = im.size # format (width, height) tuple
     r = util.get_reddit()
@@ -122,7 +126,6 @@ def update_image_widget(widget_name, image_path, subreddit='stlouiscitysc'):
         if w.shortName == widget_name:
             try:
                 image_url = widget_obj.mod.upload_image(image_path)
-                print(image_url)
                 image_data = [{'width': size[0], 'height': size[1], 'url': image_url, 'linkUrl': ''}]
                 mod = w.mod
                 mod.update(data=image_data)
@@ -134,7 +137,6 @@ def update_image_widget(widget_name, image_path, subreddit='stlouiscitysc'):
                     f'{str(e)}\n'
                 )
                 msg.send(f'{msg.user}\n{message}')
-                print(message)
     return updated
 
 
@@ -156,7 +158,7 @@ def update_sidebar(text=None, subreddit='stlouiscitysc'):
         western_conf = sidebar_edit(read_markdown(STANDINGS_FILE))
         text = f'{upcoming}\n{western_conf}\n'
     new_text = f'{before}{begin_split}\n\n{text}{end_split}\n\n{after}'
-    sidebar.edit(new_text)
+    sidebar.edit(content=new_text)
     msg.send(f'{msg.user} Edited sidebar!')
     return new_text
 
@@ -164,6 +166,9 @@ def update_sidebar(text=None, subreddit='stlouiscitysc'):
 def main():
     u_changed = upcoming()
     s_changed = standings()
+    update_image_widget('Western Conference')
+    update_image_widget('This Week')
+    update_image_widget('Next Week')
     if u_changed or s_changed:
         # update sidebar here
         update_sidebar()
