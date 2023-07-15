@@ -1,14 +1,17 @@
 from datetime import datetime, timedelta
+import discord as msg
+import logging
+from PIL import Image
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from PIL import Image
 
 from config import EXE_PATH
+
+logger = logging.getLogger(__name__)
 
 standings_url = 'https://www.mlssoccer.com/standings/2023/conference#season=2023&live=false'
 standings_xpath = f"//div[@class='mls-c-standings__wrapper']"
@@ -37,17 +40,17 @@ def get_mls_driver(url, width=375, height=2800):
 def get_screenshot(url, outer_xpath, inner_xpath=None, title=None, driver=None):
     if driver is None:
         driver = get_mls_driver(url)
-    print(f'getting {url}\nfinding elements by {outer_xpath}')
+    logger.debug(f'getting {url}\nfinding elements by {outer_xpath}')
     elements = driver.find_elements(By.XPATH, outer_xpath)
     i = 0
-    print(f'found {len(elements)} elements')
+    logger.debug(f'found {len(elements)} elements')
     for element in elements:
         if inner_xpath is not None:
             title = element.find_elements(By.XPATH, inner_xpath)
             title = title[i].text
             i += 1
         screenshot = element.screenshot_as_png
-        print(f'writing {title}')
+        logger.debug(f'writing {title} to file')
         write_screenshot(screenshot, title)
     driver.quit()
 
@@ -66,6 +69,7 @@ def get_schedule(url=schedule_url, xpath=schedule_xpath, driver=None):
     next_week = datetime.now() + timedelta(days=7)
     next_week_url = f'{url}{next_week.year}-{next_week.month}-{next_week.day}'
     get_screenshot(next_week_url, xpath, title="Next Week")
+    logger.debug(f'Schedule images complete, now padding them')
     pad_image(f'png/This Week-{now.month}-{now.day}.png')
     pad_image(f'png/Next Week-{now.month}-{now.day}.png')
 
@@ -88,5 +92,27 @@ def pad_image(filename):
 
 
 if __name__ == '__main__':
-    get_standings()
-    get_schedule()
+    try:
+        get_standings()
+        message = "Successfully got standings via Selenium."
+        logger.info(message)
+        msg.send(message)
+    except Exception as e:
+        message = (
+            f'Error getting standings via Selenium.\n'
+            f'{str(e)}'
+        )
+        logger.error(message)
+        msg.send(message)
+    try:
+        get_schedule()
+        message = "Successfully got schedule via Selenium."
+        logger.info(message)
+        msg.send(message)
+    except Exception as e:
+        message = (
+            f'Error getting schedule via Selenium.\n'
+            f'{str(e)}'
+        )
+        logger.error(message)
+        msg.send(message)
