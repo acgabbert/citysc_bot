@@ -1,6 +1,8 @@
 config.py
 chrome*
+LICENSE*
 assets/*
+png/*
 *.log
 log/*
 env/*
