@@ -21,11 +21,12 @@ schedule_url_ex = 'https://www.mlssoccer.com/schedule/scores#competition=all&clu
 schedule_xpath = f"//div[@class='mls-c-schedule__matches']"
 
 def get_mls_driver(url, width=375, height=2800):
-    service = ChromeService(executable_path=EXE_PATH)
+    service = ChromeService()
     options = Options()
     options.add_argument('--headless')
     options.add_argument('--disable-notifications')
-    driver = webdriver.Chrome(options=options, service=service)
+    options.add_argument('--remote-debugging-port=9222')
+    driver = webdriver.Chrome(options=options)
     driver.set_window_size(width, height)
     
     driver.get(url)
