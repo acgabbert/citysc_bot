@@ -124,9 +124,7 @@ def update_widget(widget_name, data, subreddit):
     return updated
 
 
-# TODO fix this - it's very DRY
 def update_image_widget(name, subreddit='stlouiscitysc'):
-    updated = False
     now = datetime.now()
     widget_name = f'{name} PNG'
     image_path = f'png/{name}-{now.month}-{now.day}.png'
