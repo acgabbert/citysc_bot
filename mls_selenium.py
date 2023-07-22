@@ -33,7 +33,18 @@ def get_mls_driver(url, width=375, height=2800):
     # click the onetrust cookie banner and wait until it goes away
     WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '//button[@id="onetrust-accept-btn-handler"]')))
     driver.find_element(By.XPATH, '//button[@id="onetrust-accept-btn-handler"]').click()
-    WebDriverWait(driver, 10).until(EC.invisibility_of_element_located((By.XPATH, '//div[@id="onetrust-banner-sdk"]')))
+    WebDriverWait(driver, 10).until(EC.all_of(
+        # no cookie overlay
+        EC.invisibility_of_element_located((By.XPATH, '//div[@id="onetrust-banner-sdk"]')),
+        # nothing is loading
+        EC.invisibility_of_element_located((By.CSS_SELECTOR, 'div[data-testid="loading"]')),
+        EC.invisibility_of_element_located((By.CLASS_NAME, 'img-responsive mls-o-loading mls-o-loading--glow')),
+        EC.invisibility_of_element_located((By.CLASS_NAME, 'mls-o-loading mls-o-loading--glow mls-o-loading--line mls-o-loading--5rem')),
+        EC.invisibility_of_element_located((By.CLASS_NAME, 'mls-o-loading mls-o-loading--glow mls-o-loading--line mls-o-loading--4rem')),
+        EC.invisibility_of_element_located((By.CLASS_NAME, 'mls-o-loading mls-o-loading--glow mls-o-loading--line mls-o-loading--2rem')),
+        EC.invisibility_of_element_located((By.CLASS_NAME, 'mls-o-loading mls-o-loading--glow mls-o-loading--table-cell')),
+        EC.invisibility_of_element_located((By.CLASS_NAME, 'mls-o-loading mls-o-loading--glow mls-o-loading--50 mls-o-loading--table-cell')),
+    ))
     
     return driver
 
