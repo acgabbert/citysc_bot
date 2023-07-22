@@ -44,7 +44,7 @@ def upcoming(opta_id=STL_CITY):
     changed = write_markdown(markdown, UPCOMING_FILE)
     if changed:
         name = 'Upcoming Matches'
-        update_text_widget(name, markdown)
+        update_widget(name, markdown)
     return changed
 
 
@@ -58,7 +58,7 @@ def standings():
     changed = write_markdown(markdown, STANDINGS_FILE)
     if changed:
         name = 'Western Conference Standings'
-        update_text_widget(name, markdown)
+        update_widget(name, markdown)
     return changed
 
 
@@ -71,7 +71,11 @@ def write_markdown(markdown: str, filename: str):
 
 def read_markdown(filename: str):
     with open(filename, 'r') as f:
-        return f.read()
+        retval = f.read()
+        if retval[0] == '#':
+            # remove first line of text
+            retval = '\n'.join(retval.split('\n')[1:])
+        return retval
 
 
 def sidebar_edit(text: str):
@@ -89,10 +93,13 @@ def get_widgets(reddit, subreddit) -> list[praw.models.Widget]:
     return sub.widgets
 
 
-def update_text_widget(widget_name, text, subreddit='stlouiscitysc'):
-    if text[0] == '#':
-        # remove first line of text
-        text = '\n'.join(text.split('\n')[1:])
+def get_image_data(widget, image_path, size):
+    image_url = widget.mod.upload_image(image_path)
+    image_data = [{'width': size[0], 'height': size[1], 'url': image_url, 'linkUrl': ''}]
+    return image_data
+
+
+def update_widget(widget_name, data, subreddit):
     r = util.get_reddit()
     widget_obj = get_widgets(r, subreddit)
     updated = False
@@ -100,9 +107,13 @@ def update_text_widget(widget_name, text, subreddit='stlouiscitysc'):
         if w.shortName == widget_name:
             try:
                 mod = w.mod
-                mod.update(text=text)
+                if isinstance(data, str):
+                    mod.update(text=data)
+                else:
+                    image_data = get_image_data(widget_obj, data[0], data[1])
+                    mod.update(data=image_data)
                 updated = True
-                msg.send(f'Updated {widget_name} text widget!')
+                msg.send(f'Updated {widget_name} widget!')
                 break
             except Exception as e:
                 message = (
@@ -121,25 +132,7 @@ def update_image_widget(name, subreddit='stlouiscitysc'):
     image_path = f'png/{name}-{now.month}-{now.day}.png'
     im = Image.open(image_path)
     size = im.size # format (width, height) tuple
-    r = util.get_reddit()
-    widget_obj = get_widgets(r, subreddit)
-    for w in widget_obj.sidebar:
-        if w.shortName == widget_name:
-            try:
-                image_url = widget_obj.mod.upload_image(image_path)
-                image_data = [{'width': size[0], 'height': size[1], 'url': image_url, 'linkUrl': ''}]
-                mod = w.mod
-                mod.update(data=image_data)
-                updated = True
-                msg.send(f'Updated {name} image widget!')
-                break
-            except Exception as e:
-                message = (
-                    f'Error while updating {widget_name} widget.\n'
-                    f'{str(e)}\n'
-                )
-                msg.send(f'{msg.user}\n{message}')
-    return updated
+    return update_widget(widget_name, (image_path, size), subreddit)
 
 
 def update_sidebar(text=None, subreddit='stlouiscitysc'):
