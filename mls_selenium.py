@@ -67,13 +67,10 @@ def get_screenshot(url, outer_xpath, inner_xpath=None, title=None, driver=None):
     driver.quit()
 
 
-# TODO consider changing tag to xpath since it might not always be a div@class=
 def get_standings(url=standings_url, xpath=standings_xpath, driver=None):
     get_screenshot(url, xpath, '//tr[@class="mls-o-table__header-group mls-o-table__header-group--main"]')
 
 
-# TODO add a "this week"/"next week" screenshot
-# base url https://www.mlssoccer.com/schedule/scores#competition=all&club=17012&date=
 def get_schedule(url=schedule_url, xpath=schedule_xpath, driver=None):
     now = datetime.now()
     this_week_url = f'{url}{now.year}-{now.month}-{now.day}'
