@@ -56,6 +56,7 @@ def get_screenshot(url, outer_xpath, inner_xpath=None, title=None, driver=None):
     elements = driver.find_elements(By.XPATH, outer_xpath)
     i = 0
     logger.debug(f'found {len(elements)} elements')
+    filename = ''
     for element in elements:
         if inner_xpath is not None:
             title = element.find_elements(By.XPATH, inner_xpath)
@@ -63,8 +64,9 @@ def get_screenshot(url, outer_xpath, inner_xpath=None, title=None, driver=None):
             i += 1
         screenshot = element.screenshot_as_png
         logger.debug(f'writing {title} to file')
-        write_screenshot(screenshot, title)
+        filename = write_screenshot(screenshot, title)
     driver.quit()
+    return filename
 
 
 def get_standings(url=standings_url, xpath=standings_xpath, driver=None):
@@ -74,13 +76,13 @@ def get_standings(url=standings_url, xpath=standings_xpath, driver=None):
 def get_schedule(url=schedule_url, xpath=schedule_xpath, driver=None):
     now = datetime.now()
     this_week_url = f'{url}{now.year}-{now.month}-{now.day}'
-    get_screenshot(this_week_url, xpath, title="This Week")
+    this_week_file = get_screenshot(this_week_url, xpath, title="This Week")
     next_week = datetime.now() + timedelta(days=7)
     next_week_url = f'{url}{next_week.year}-{next_week.month}-{next_week.day}'
-    get_screenshot(next_week_url, xpath, title="Next Week")
+    next_week_file = get_screenshot(next_week_url, xpath, title="Next Week")
     logger.debug(f'Schedule images complete, now padding them')
-    pad_image(f'png/This Week-{now.month}-{now.day}.png')
-    pad_image(f'png/Next Week-{now.month}-{now.day}.png')
+    pad_image(this_week_file)
+    pad_image(next_week_file)
 
 
 def write_screenshot(data, filename):
@@ -89,6 +91,7 @@ def write_screenshot(data, filename):
     with open(filename, 'wb') as f:
         f.write(data)
         f.close()
+    return filename
 
 
 def pad_image(filename):
