@@ -99,7 +99,7 @@ def get_image_data(widget, image_path, size):
     return image_data
 
 
-def update_widget(widget_name, data, subreddit):
+def update_widget(widget_name, data, subreddit='stlouiscitysc'):
     r = util.get_reddit()
     widget_obj = get_widgets(r, subreddit)
     updated = False
