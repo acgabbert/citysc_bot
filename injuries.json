@@ -1,15 +1,14 @@
 {
-    "updated": "09/30/2023, 03:04",
+    "updated": "10/04/2023, 17:51",
     "injuries": {
         "11901": [
             "OUT: Ozzie Alonso (leg)",
             "OUT: Machop Chol (leg)",
-            "QUESTIONABLE: Brad Guzan (illness)"
+            "QUESTIONABLE: Tyler Wolff (leg)"
         ],
         "15296": [
             "OUT: \u00c5\u00bdan Kolmani\u00c4\u008d (right ACL)",
-            "OUT: Gyasi Zardes (right hamstring)",
-            "OUT: Kipp Keller (right ankle)",
+            "QUESTIONABLE: Gyasi Zardes (right hamstring)",
             "QUESTIONABLE: Sebastian Driussi (right hamstring)",
             "QUESTIONABLE: Maxi Urruti (left knee)"
         ],
@@ -20,10 +19,9 @@
         "1207": [
             "OUT: Chris Mueller (right upper leg)",
             "OUT: Victor Bezerra (right lower leg)",
-            "OUT: Federico Navarro (left lower leg)",
             "OUT: Mauricio Pineda (right lower leg)",
-            "QUESTIONABLE: Rafael Czichos (left upper leg)",
-            "QUESTIONABLE: Brian Gutierrez (left lower leg)"
+            "OUT: Federico Navarro (left lower leg)",
+            "QUESTIONABLE: Jairo Torres (right upper leg)"
         ],
         "11504": [
             "OUT: Stiven Jimenez (lower leg fracture)",
@@ -42,13 +40,14 @@
         ],
         "1903": [
             "OUT: Geovane Jesus (right knee)",
-            "OUT: Tarik Scott (season-ending injury)",
+            "OUT: Tarik Scott (season-ending knee injury)",
             "OUT Sebastian Lletget (hamstring)"
         ],
         "1326": [
             "OUT: Martin Rodriguez (knee)",
             "OUT: Mohanad Jeahze (ankle)",
-            "OUT: Tyler Miller (shoulder)"
+            "OUT: Tyler Miller (shoulder)",
+            "OUT: Brendan Hines-Ike (head)"
         ],
         "1897": [
             "OUT: Ifunanyachi Achara (knee)",
@@ -56,7 +55,7 @@
             "QUESTIONABLE: Amine Bassi (lower body)"
         ],
         "11690": [
-            "OUT: None"
+            "QUESTIONABLE: Kellyn Acosta (lower extremity)"
         ],
         "1230": [
             "OUT: Gaston Brugman (torn meniscus, left knee)",
@@ -72,8 +71,10 @@
             "OUT: Gregore (Lisfranc)",
             "OUT: Franco Negri (ACL)",
             "OUT: Corentin Jean (ACL)",
+            "OUT: Diego Gomez (hamstring)",
             "QUESTIONABLE: Jordi Alba (hamstring muscle fatigue)",
-            "QUESTIONABLE: Lionel Messi (scar tissue)"
+            "QUESTIONABLE: Lionel Messi (scar tissue)",
+            "QUESTIONABLE: Leonardo Campana (hamstring)"
         ],
         "6977": [
             "OUT: Ryen Jiba (knee)",
@@ -93,10 +94,9 @@
         "928": [
             "OUT: Dylan Borrero (left knee season ending)",
             "OUT: Brandon Bye (right ACL season ending)",
-            "OUT: Henry Kessler (right hamstring)",
-            "OUT: Maciel (left Achilles)",
             "OUT: Damian Rivera (right knee)",
-            "QUESTIONABLE: Gustavo Bou (right leg)"
+            "QUESTIONABLE: Henry Kessler (right hamstring)",
+            "QUESTIONABLE: Ian Harkes (head)"
         ],
         "9668": [
             "OUT: Maxi Moralez (ACL)"
@@ -104,8 +104,7 @@
         "399": [
             "OUT: Serge Ngoma (hamstring)",
             "OUT: Lewis Morgan (hip)",
-            "OUT: Dante Vanzeir (back)",
-            "QUESTIONABLE: Steven Sserwadda (knee)"
+            "OUT: Dante Vanzeir (back)"
         ],
         "6900": [
             "OUT: Adam Grinwis (left thigh)",
@@ -113,10 +112,9 @@
             "QUESTIONABLE: Antonio Carlos (right lower leg)"
         ],
         "5513": [
-            "OUT: Leon Flach (core)",
             "QUESTIONABLE: Jakob Glesnes (core)",
             "QUESTIONABLE: Jose Martinez (knee)",
-            "QUESTIONABLE: Julian Carranza (concussion protocol)"
+            "QUESTIONABLE: Leon Flach (core)"
         ],
         "1581": [
             "OUT: David Ayala (left knee)",
@@ -137,7 +135,7 @@
         ],
         "3500": [
             "OUT: Sota Kitahara (left quad strain)",
-            "QUESTIONABLE: Albert Rusn\u00c3\u00a1k (illness)",
+            "QUESTIONABLE: Raul Ruidiaz (back pain)",
             "QUESTIONABLE: Cody Baker (concussion protocol)"
         ],
         "421": [
@@ -152,6 +150,8 @@
             "QUESTIONABLE: Rasmus Alm (groin)"
         ],
         "2077": [
+            "OUT: Latif Blessing (concussion protocol)",
+            "OUT: DeAndre Kerr (back spasms",
             "OUT: Adama Diomande (lower body)",
             "OUT: Lorenzo Insigne (lower body)",
             "OUT: Sean Johnson (hand surgery)",
@@ -161,8 +161,7 @@
         ],
         "1708": [
             "OUT: Thomas Hasal (patellar tendinopathy)",
-            "QUESTIONABLE: Luis Martins (left calf strain)",
-            "QUESTIONABLE: Ryan Gauld (left foot contusion)"
+            "QUESTIONABLE: Luis Martins (left calf strain)"
         ]
     }
 }
