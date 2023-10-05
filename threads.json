@@ -287,5 +287,56 @@
     "2358713": {
         "slug": "houvsstl-09-03-2023",
         "match": "1699pfv"
+    },
+    "2358721": {
+        "slug": "vanvsstl-09-09-2023",
+        "match": "16efw1w"
+    },
+    "2341939": {
+        "slug": "lavsstl-09-10-2023",
+        "pre": "16evfjc",
+        "match": "16ffeb7",
+        "post": "16fiy3x"
+    },
+    "2342042": {
+        "slug": "houvsstl-09-16-2023",
+        "pre": "16k2o1w",
+        "match": "16km653",
+        "post": "16kpblp"
+    },
+    "2358742": {
+        "slug": "stlvsla-09-17-2023",
+        "match": "16lcryh"
+    },
+    "2342058": {
+        "slug": "stlvslafc-09-20-2023",
+        "pre": "16ngdhe",
+        "match": "16o0qv5",
+        "post": "16o44vr"
+    },
+    "2342071": {
+        "slug": "minvsstl-09-23-2023",
+        "pre": "16pzji6",
+        "match": "16qj6zd",
+        "post": "16qm7w0"
+    },
+    "2358752": {
+        "slug": "skcvsstl-09-24-2023",
+        "match": "16r7vb2"
+    },
+    "2342086": {
+        "slug": "stlvsskc-09-30-2023",
+        "pre": "16w1ys3",
+        "match": "16wm3ad",
+        "post": "16wpbj4"
+    },
+    "2410612": {
+        "slug": "stlvssj-10-01-2023",
+        "match": "16xdin2"
+    },
+    "2342102": {
+        "slug": "vanvsstl-10-04-2023",
+        "pre": "16zi5a1",
+        "match": "1705nsm"
     }
 }
