@@ -185,15 +185,20 @@ def get_match_data(match_obj: Match) -> Match:
         logger.error(message)
         return retval
     retval.venue = data['venue']['name']
-    retval.comp = data['competition']['name']
-    if retval.comp == 'US Major League Soccer':
-        retval.comp = 'MLS'
-        if data['type'] == 'Cup':
-            retval.comp = 'MLS Cup Playoffs'
-    if data['type'] == 'Cup':
+    # ideally we are checking for the comp shortName before this in 
+    # get_broadcasters
+    if 'Regular Season' in retval.comp or not retval.comp:
+        retval.comp = data['competition']['name']
+        if retval.comp == 'US Major League Soccer':
+            retval.comp = 'MLS'
+            if data['type'] == 'Cup' or 'Best of' in data['type']:
+                retval.comp = 'MLS Cup Playoffs'
+    '''
+    if data['type'] == 'Cup' or 'Best of' in data['type']:
         retval.comp += f', {data["round_name"]}'
         if retval.comp.isalpha() and data['round_number'] is not None:
             retval.comp += f' {data["round_number"]}'
+    '''
     retval.home = process_club(data)
     retval.away = process_club(data, True)
     retval.date = data['date']
@@ -414,6 +419,10 @@ def get_broadcasters(match_obj: Match) -> Match:
         else:
             adder.append(f'{b["broadcasterName"]} (US)')
     retval.broadcasters = adder
+
+    # TODO temporarily adding this here because the most accurate
+    # competition name comes from this api call
+    retval.comp = data['competition']['shortName']
     return retval
 
 
@@ -469,6 +478,7 @@ def get_prematch_data(match_obj: Match) -> Match:
 def get_all_data(match_obj: Match) -> Match:
     """Get all data for a match thread (only a summary feed)."""
     logger.info(f'Getting all data for {match_obj.opta_id}')
+    match_obj = get_broadcasters(match_obj)
     match_obj = get_match_data(match_obj)
     match_obj = get_recent_form(match_obj)
     match_obj = get_preview(match_obj)
@@ -476,7 +486,6 @@ def get_all_data(match_obj: Match) -> Match:
     match_obj = get_managers(match_obj)
     match_obj = get_stats(match_obj)
     match_obj = get_summary(match_obj)
-    match_obj = get_broadcasters(match_obj)
     match_obj = get_videos(match_obj)
     return match_obj
 
