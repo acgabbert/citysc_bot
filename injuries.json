@@ -2,9 +2,7 @@
     "updated": "10/28/2023, 03:50",
     "injuries": {
         "11901": [
-            "OUT: Machop Chol (hamstring)",
-            "OUT: Tyler Wolff (thigh)",
-            "QUESTIONABLE: Ozzie Alonso (leg)"
+            "OUT: Machop Chol (hamstring)"
         ],
         "15296": [
             "OUT: \u00c5\u00bdan Kolmani\u00c4\u008d (right ACL)",
@@ -20,8 +18,8 @@
         "11504": [
             "OUT: London Aghedo (leg)",
             "OUT: Stiven Jimenez (lower leg fracture)",
-            "QUESTIONABLE: Santiago Arias (leg)",
-            "QUESTIONABLE: Nick Hagglund (leg)"
+            "OUT: Nick Hagglund (hamstring)",
+            "QUESTIONABLE: Alvas Powell (leg)"
         ],
         "436": [
             "OUT: Alex Gersbach (adductor tendon surgery)",
@@ -40,9 +38,9 @@
         "1903": [
             "OUT: Geovane Jesus (right knee)",
             "OUT: Tarik Scott (season-ending knee injury)",
-            "OUT: Facundo Quignon (undisclosed)",
-            "QUESTIONABLE: Sebastian Lletget (hamstring)",
-            "QUESTIONABLE: Bernard Kamungo (ankle)"
+            "OUT: Alan Velasco (knee)",
+            "QUESTIONABLE: Facundo Quignon (upper thigh)",
+            "QUESTIONABLE: Jose Martinez (foot)"
         ],
         "1326": [
             "OUT: Martin Rodriguez (knee)",
@@ -79,15 +77,11 @@
         ],
         "15154": [
             "OUT: Nick DePuy (lower body)",
-            "QUESTIONABLE: Lukas MacNaughton (lower body)",
-            "QUESTIONABLE: Jacob Shaffelburg (lower body)"
+            "QUESTIONABLE: Randall Leal (lower body)"
         ],
         "928": [
             "OUT: Dylan Borrero (left knee season ending)",
-            "OUT: Brandon Bye (right ACL season ending)",
-            "OUT: Damian Rivera (right knee)",
-            "OUT: Ian Harkes (head)",
-            "OUT: Jack Panayotou (international duty)"
+            "OUT: Brandon Bye (right ACL season ending)"
         ],
         "9668": [
             "OUT: Maxi Moralez (ACL)"
@@ -96,15 +90,18 @@
             "OUT: Lewis Morgan (hip)",
             "OUT: Dante Vanzeir (back)",
             "OUT: Cory Burke (groin)",
-            "OUT: Hassan Ndam (thigh"
+            "OUT: Hassan Ndam (thigh)",
+            "QUESTIONABLE: Daniel Edelman (upper body)",
+            "QUESTIONABLE: Sean Nealis (groin)",
+            "QUESTIONABLE: Omir Fernandez (ankle)"
         ],
         "6900": [
             "OUT: Favian Loyola (left arm)",
             "OUT: Jack Lynn (left thigh)"
         ],
         "5513": [
-            "QUESTIONABLE: Jakob Glesnes (core)",
-            "QUESTIONABLE: Tai Baribo (back)"
+            "OUT: Jakob Glesnes (core)",
+            "QUESTIONABLE: Julian Carranza (hamstring)"
         ],
         "1581": [
             "OUT: David Ayala (left knee)",
@@ -114,30 +111,32 @@
         ],
         "1899": [
             "OUT: Pablo Ruiz (knee)",
+            "OUT: Bode Hidalgo (hamstring)",
+            "QUESTIONABLE: Brayan Vera (ankle)",
+            "QUESTIONABLE: Erik Holt (shoulder)",
             "QUESTIONABLE: Chicho Arango (hamstring)",
             "QUESTIONABLE: Justen Glad (adductor)",
-            "QUESTIONABLE: Erik Holt (shoulder)",
-            "QUESTIONABLE: Brayan Vera (ankle)",
-            "QUESTIONABLE: Marcelo Silva (bereavement)"
+            "PROBABLE: Marcelo Silva (bereavement)"
         ],
         "1131": [
             "OUT: Nathan (ACL)",
             "OUT: JT Marcinkowski (knee)"
         ],
         "3500": [
-            "OUT: NONE"
+            "OUT: Reed Baker-Whiting (left hamstring strain)"
         ],
         "421": [
             "OUT: Kortne Ford (Achilles surgery)",
             "OUT: Kayden Pierre (hamstring)",
+            "QUESTIONABLE: Jake Davis (knee sprain)",
             "QUESTIONABLE: Tim Leibold (groin)",
-            "QUESTIONABLE: Alan Pulido (foot)",
-            "QUESTIONABLE: Johnny Russell (groin)",
             "QUESTIONABLE: Erik Thommy (calf)",
-            "QUESTIONABLE: Jake Davis (knee sprain)"
+            "QUESTIONABLE: Willy Agada (illness)",
+            "QUESTIONABLE: Alan Pulido (foot)",
+            "QUESTIONABLE: Johnny Russell (groin)"
         ],
         "17012": [
-            "OUT: Rasmus Alm (sports hernia)OUT"
+            "OUT: Rasmus Alm (sports hernia)"
         ],
         "2077": [
             "OUT: Adama Diomande (lower body)",
