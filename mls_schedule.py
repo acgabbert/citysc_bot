@@ -9,14 +9,14 @@ import util
 BASE_URL = 'https://sportapi.mlssoccer.com/api/matches'
 PARAMS = {
     'culture': 'en-us',
-    'date_from': '2022-12-31',
-    'date_to': '2023-12-31',
+    'date_from': '2023-12-31',
+    'date_to': '2024-12-31',
     'competition': 98,
     'clubOptaId': 17012
 }
-# returns optaId and matchDate for all matches in 2023
-LITE_URL = 'https://sportapi.mlssoccer.com/api/matchesLite/2023'
-SCHEDULE_LITE = 'https://sportapi.mlssoccer.com/api/matchesLite/2022?culture=en-us&competition=98&matchType=Regular'
+# returns optaId and matchDate for all matches in 2024
+LITE_URL = 'https://sportapi.mlssoccer.com/api/matchesLite/2024'
+SCHEDULE_LITE = 'https://sportapi.mlssoccer.com/api/matchesLite/2024?culture=en-us&competition=98&matchType=Regular'
 MATCH_RESULT = 'https://stats-api.mlssoccer.com/v1/matches?&include=away_club_match&include=home_club_match'
 GAME_ID = '&match_game_id='
 NEXTPRO_URL = 'https://sportapi.mlsnextpro.com/api/matches'
@@ -67,7 +67,8 @@ def check_pre_match(data, date_from=None):
     # until +48h
     date_to = date_from + 86400
     for match in data:
-        match_time = util.iso_to_epoch(match['matchDate'])
+        print(match['matchDate'])
+        match_time = util.iso_to_epoch(match['matchDate'][:-2])
         if match_time > date_from and match_time < date_to:
             return match['optaId'], match_time
     return None, None
@@ -80,7 +81,7 @@ def check_pre_match_sched(data, date_from=None):
     # until +48h
     date_to = date_from + (86400 * 2)
     for match in data:
-        match_time = util.iso_to_epoch(match['matchDate'])
+        match_time = util.iso_to_epoch(match['matchDate'][:-2])
         if match_time > date_from and match_time < date_to:
             return match['optaId'], match_time
     return None, None
