@@ -19,6 +19,7 @@ standings_xpath = f"//div[@class='mls-c-standings__wrapper']"
 schedule_url = 'https://www.mlssoccer.com/schedule/scores#competition=all&club=17012&date='
 schedule_url_ex = 'https://www.mlssoccer.com/schedule/scores#competition=all&club=17012&date=2023-07-10'
 schedule_xpath = f"//div[@class='mls-c-schedule__matches']"
+schedule_no_matches = 'mls-c-schedule__no-results-text'
 
 def get_mls_driver(url, width=375, height=2800):
     service = ChromeService()
@@ -31,8 +32,11 @@ def get_mls_driver(url, width=375, height=2800):
     
     driver.get(url)
     # click the onetrust cookie banner and wait until it goes away
-    WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '//button[@id="onetrust-accept-btn-handler"]')))
-    driver.find_element(By.XPATH, '//button[@id="onetrust-accept-btn-handler"]').click()
+    try:
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '//button[@id="onetrust-accept-btn-handler"]')))
+        driver.find_element(By.XPATH, '//button[@id="onetrust-accept-btn-handler"]').click()
+    except Exception as e:
+        logger.debug(e)
     WebDriverWait(driver, 10).until(EC.all_of(
         # no cookie overlay
         EC.invisibility_of_element_located((By.XPATH, '//div[@id="onetrust-banner-sdk"]')),
@@ -53,6 +57,7 @@ def get_screenshot(url, outer_xpath, inner_xpath=None, title=None, driver=None):
     if driver is None:
         driver = get_mls_driver(url)
     logger.debug(f'getting {url}\nfinding elements by {outer_xpath}')
+    print(f'finding elements by {outer_xpath}')
     elements = driver.find_elements(By.XPATH, outer_xpath)
     i = 0
     logger.debug(f'found {len(elements)} elements')
@@ -65,24 +70,28 @@ def get_screenshot(url, outer_xpath, inner_xpath=None, title=None, driver=None):
         screenshot = element.screenshot_as_png
         logger.debug(f'writing {title} to file')
         filename = write_screenshot(screenshot, title)
-    driver.quit()
     return filename
 
 
 def get_standings(url=standings_url, xpath=standings_xpath, driver=None):
-    get_screenshot(url, xpath, '//tr[@class="mls-o-table__header-group mls-o-table__header-group--main"]')
+    get_screenshot(url, xpath, '//tr[@class="mls-o-table__header-group mls-o-table__header-group--main"]', driver=driver)
 
 
-def get_schedule(url=schedule_url, xpath=schedule_xpath, driver=None):
-    now = datetime.now()
-    this_week_url = f'{url}{now.year}-{now.month}-{now.day}'
-    this_week_file = get_screenshot(this_week_url, xpath, title="This Week")
-    next_week = datetime.now() + timedelta(days=7)
-    next_week_url = f'{url}{next_week.year}-{next_week.month}-{next_week.day}'
-    next_week_file = get_screenshot(next_week_url, xpath, title="Next Week")
-    logger.debug(f'Schedule images complete, now padding them')
-    pad_image(this_week_file)
-    pad_image(next_week_file)
+def schedule_controller(url=schedule_url, xpath=schedule_xpath, driver=None):
+    shots = 0
+    date = datetime.now()
+    while shots < 2 and date.year == datetime.now().year:
+        dated_url = f'{url}{date.year}-{date.month}-{date.day}'
+        print(f'checking {dated_url}')
+        driver = get_mls_driver(dated_url)
+        if len(driver.find_elements(By.CLASS_NAME, schedule_no_matches)) > 0:
+            msg.send(f'No matches for {url}')
+        else:
+            file = get_screenshot(dated_url, xpath, title=f"{date.month}-{date.day}", driver=driver)
+            pad_image(file)
+            shots += 1
+        date += timedelta(days=7)
+        driver.quit()
 
 
 def write_screenshot(data, filename):
@@ -117,7 +126,7 @@ def main():
         logger.error(message)
         msg.send(message)
     try:
-        get_schedule()
+        schedule_controller()
         message = "Successfully got schedule via Selenium."
         logger.info(message)
         msg.send(message)
