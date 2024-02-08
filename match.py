@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 class Match(mls.MlsObject):
     def __init__(self, opta_id):
         super().__init__(opta_id)
+        self.id = -1
+        self.previous_match_id = -1
         self.venue = ''
         self.comp = ''
         self.slug = ''
@@ -34,6 +36,10 @@ class Match(mls.MlsObject):
         self.broadcasters = []
         self.apple_tier = ''
         self.apple_url = ''
+        self.leg = ''
+        self.round_name = ''
+        self.round_number = 0
+        self.is_aggregate = False
     
     def get_date_time(self):
         """Return date, time in match thread format."""
@@ -172,6 +178,7 @@ def get_match_data(match_obj: Match) -> Match:
     - result_type
     - is_final
     - started
+    - leg
     """
     retval = match_obj
     url = const.MATCH_DATA_URL
@@ -193,6 +200,12 @@ def get_match_data(match_obj: Match) -> Match:
             retval.comp = 'MLS'
             if data['type'] == 'Cup' or 'Best of' in data['type']:
                 retval.comp = 'MLS Cup Playoffs'
+    retval.round_name = data['round_name']
+    retval.round_number = data['round_number']
+    if 'leg' in data['leg'].lower():
+        retval.leg = data['type']
+    retval.id = data['id']
+    retval.previous_match_id = data['previous_match_id']
     '''
     if data['type'] == 'Cup' or 'Best of' in data['type']:
         retval.comp += f', {data["round_name"]}'
