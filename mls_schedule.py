@@ -33,9 +33,9 @@ def get_schedule(**kwargs):
     params = PARAMS.copy()
     for key, value in kwargs.items():
         if key == 'date_from':
-            params[key] = value
+            params['dateFrom'] = value
         if key == 'date_to':
-            params[key] = value
+            params['dateTo'] = value
         # TODO figure out how we want to handle comp here
         if key == 'comp':
             if value is None:
