@@ -1,6 +1,6 @@
 import time
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import config
 import mls_api as mls
@@ -19,8 +19,10 @@ class Match(mls.MlsObject):
         super().__init__(opta_id)
         self.id = -1
         self.previous_match_id = -1
+        self.previous_match_opta_id = -1
         self.venue = ''
         self.comp = ''
+        self.comp_id = -1
         self.slug = ''
         self.date = -1
         self.home = club.ClubMatch(-1)
@@ -196,6 +198,7 @@ def get_match_data(match_obj: Match) -> Match:
     # get_broadcasters
     if 'Regular Season' in retval.comp or not retval.comp:
         retval.comp = data['competition']['name']
+        retval.comp_id = data['competition']['opta_id']
         if retval.comp == 'US Major League Soccer':
             retval.comp = 'MLS'
             if data['type'] == 'Cup' or 'Best of' in data['type']:
@@ -436,6 +439,7 @@ def get_broadcasters(match_obj: Match) -> Match:
     # TODO temporarily adding this here because the most accurate
     # competition name comes from this api call
     retval.comp = data['competition']['shortName']
+    retval.comp_id = data['competition']['optaId']
     return retval
 
 
@@ -512,6 +516,25 @@ def get_match_update(match_obj: Match) -> Match:
     match_obj = get_summary(match_obj)
     match_obj = get_videos(match_obj)
     return match_obj
+
+
+def get_previous_match(match_obj: Match) -> Match:
+    date = datetime.fromtimestamp(int(match_obj.date))
+    date_from = date - timedelta(days=31)
+    date_from = f'{date_from.year}-{date_from.month}-{date_from.day}'
+    date_to = f'{date.year}-{date.month}-{date.day}'
+    print(f'checking from {date_from} to {date_to}')
+    sched = mls_schedule.get_schedule(team=match_obj.home.opta_id, comp=match_obj.comp_id, date_from=date_from, date_to=date_to)
+    print(sched)
+    prev_match = Match(-1)
+    for m in sched:
+        prev_match = Match(m['optaId'])
+        prev_match = get_match_data(prev_match)
+        if prev_match.id == match_obj.previous_match_id:
+            print(f'found a match! {prev_match.opta_id}')
+            break
+    return prev_match
+
 
 
 @util.time_dec(False)
