@@ -209,6 +209,7 @@ def get_match_data(match_obj: Match) -> Match:
         retval.leg = data['type']
     retval.id = data['id']
     retval.previous_match_id = data['previous_match_id']
+    retval.is_aggregate = data['is_aggregate']
     '''
     if data['type'] == 'Cup' or 'Best of' in data['type']:
         retval.comp += f', {data["round_name"]}'
@@ -504,6 +505,8 @@ def get_all_data(match_obj: Match) -> Match:
     match_obj = get_stats(match_obj)
     match_obj = get_summary(match_obj)
     match_obj = get_videos(match_obj)
+    if match_obj.is_aggregate:
+        prev_match = get_previous_match(match_obj)
     return match_obj
 
 
@@ -533,6 +536,12 @@ def get_previous_match(match_obj: Match) -> Match:
         if prev_match.id == match_obj.previous_match_id:
             print(f'found a match! {prev_match.opta_id}')
             break
+    prev_match = get_stats(prev_match)
+    if prev_match.home.opta_id == match_obj.away.opta_id:
+        match_obj.away.previous_goals = prev_match.home.goals
+        match_obj.home.previous_goals = prev_match.away.goals
+    else:
+        print('hmm')
     return prev_match
 
 
