@@ -17,6 +17,7 @@ class Club(mls.MlsObject):
         self.points = -1
         self.gd = -1
         self.gp = -1
+        self.is_away = False
     
     def __lt__(self, other):
         # TODO make this comparison more robust
@@ -58,6 +59,7 @@ class ClubMatch(Club):
         self.accurate_pass = -1
         self.saves = -1
         self.pass_accuracy = '-1.0'
+        self.previous_goals = -1
     
     def lineup_str(self):
         starters = []
