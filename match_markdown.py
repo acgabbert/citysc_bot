@@ -30,7 +30,10 @@ def match_header(match_obj: match.Match, pre=False):
         header += f'{home.full_name} {home.goals}-{away.goals} '
         if home.shootout_score or away.shootout_score:
             header += f'({home.shootout_score}-{away.shootout_score} pens) '
-        header += f'{away.full_name}\n'
+        header += f'{away.full_name} '
+        if match_obj.is_aggregate:
+            header += f'({home.goals+home.previous_goals}-{away.goals+away.previous_goals} aggregate) '
+        header += '\n'
     else:
         header = f'# {home.full_name} vs. {away.full_name}\n'
     if home.goalscorers:
@@ -51,7 +54,7 @@ def match_header(match_obj: match.Match, pre=False):
         for b in match_obj.broadcasters:
             header += f'{b}, '
         if len(match_obj.broadcasters) == 0:
-            header += 'Not available via mlssoccer.com.'
+            header += 'No data via mlssoccer.com.'
         else:
             header = header[:-2]
     header += '\n\n---\n\n'
@@ -72,7 +75,7 @@ def match_info(match_obj: match.Match):
     for b in match_obj.broadcasters:
         info += f'{b}, '
     if len(match_obj.broadcasters) == 0:
-        info += 'Not available via mlssoccer.com.'
+        info += 'No data via mlssoccer.com.'
     else:
         info = info[:-2]
     return info
@@ -168,7 +171,11 @@ def post_match_thread(match_obj: match.Match):
     # TODO add period/result type
     title = f'Post-Match Thread: {home.full_name} {home.goals}-{away.goals} '
     # TODO if pens, add to title here
-    title += f'{away.full_name} ({comp}) [{date}]'
+    title += f'{away.full_name} '
+    # TODO is this necessary in the title?
+    if match_obj.is_aggregate:
+        title += f'({home.goals+home.previous_goals}-{away.goals+away.previous_goals} aggregate) '
+    title += f'({comp}) [{date}]'
     markdown = match_header(match_obj)
     markdown += '### Lineups\n'
     markdown += match_obj.home.lineup_str()
