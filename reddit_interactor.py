@@ -213,5 +213,3 @@ if __name__ == '__main__':
     print(json.dumps(r))
     # this is how to get the post url
     print(r['jquery'][10][3][0])
-    # t3 = link
-    r = requests.post(REDDIT_OAUTH + '/api/editusertext', data={'text': 'testing my editing skillz', 'thing_id': 't3_102893o'}, headers=headers).json()

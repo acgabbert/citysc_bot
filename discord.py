@@ -7,7 +7,7 @@ token = conf.DISCORD_TOKEN
 url = conf.MLS_BOT_WEBHOOK
 user = f'<@{conf.DISCORD_BOTADMINID}>'
 HEADERS = {
-    "User-Agent":"MLS BOT/v0.1",
+    "User-Agent":"citysc_bot/v1.0",
     "Content-Type":"application/json"
 }
 

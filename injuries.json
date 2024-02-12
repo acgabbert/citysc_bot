@@ -1,5 +1,5 @@
 {
-    "updated": "10/28/2023, 03:50",
+    "updated": "12/01/2023, 16:10",
     "injuries": {
         "11901": [
             "OUT: Machop Chol (hamstring)"
@@ -16,10 +16,8 @@
             "OUT: Chris Mueller (right upper leg)"
         ],
         "11504": [
-            "OUT: London Aghedo (leg)",
-            "OUT: Stiven Jimenez (lower leg fracture)",
             "OUT: Nick Hagglund (hamstring)",
-            "QUESTIONABLE: Alvas Powell (leg)"
+            "OUT: London Aghedo (leg)"
         ],
         "436": [
             "OUT: Alex Gersbach (adductor tendon surgery)",
@@ -32,15 +30,15 @@
             "QUESTIONABLE: Marco Ilic (illness)"
         ],
         "454": [
-            "OUT: Will Sands (knee)",
-            "QUESTIONABLE: Diego Rossi (thigh)"
+            "OUT: Will Sands (knee)"
         ],
         "1903": [
             "OUT: Geovane Jesus (right knee)",
             "OUT: Tarik Scott (season-ending knee injury)",
             "OUT: Alan Velasco (knee)",
-            "QUESTIONABLE: Facundo Quignon (upper thigh)",
-            "QUESTIONABLE: Jose Martinez (foot)"
+            "OUT: Nolan Norris (rest)",
+            "QUESTIONABLE: Jesus Ferreira (undisclosed)",
+            "QUESTIONABLE: Marco Farfan (undisclosed)"
         ],
         "1326": [
             "OUT: Martin Rodriguez (knee)",
@@ -100,8 +98,8 @@
             "OUT: Jack Lynn (left thigh)"
         ],
         "5513": [
-            "OUT: Jakob Glesnes (core)",
-            "QUESTIONABLE: Julian Carranza (hamstring)"
+            "OUT: Leon Flach (core)",
+            "QUESTIONABLE: Jakob Glesnes (core)"
         ],
         "1581": [
             "OUT: David Ayala (left knee)",
@@ -112,28 +110,21 @@
         "1899": [
             "OUT: Pablo Ruiz (knee)",
             "OUT: Bode Hidalgo (hamstring)",
-            "QUESTIONABLE: Brayan Vera (ankle)",
-            "QUESTIONABLE: Erik Holt (shoulder)",
-            "QUESTIONABLE: Chicho Arango (hamstring)",
-            "QUESTIONABLE: Justen Glad (adductor)",
-            "PROBABLE: Marcelo Silva (bereavement)"
+            "PROBABLE: Erik Holt (shoulder)"
         ],
         "1131": [
             "OUT: Nathan (ACL)",
             "OUT: JT Marcinkowski (knee)"
         ],
         "3500": [
-            "OUT: Reed Baker-Whiting (left hamstring strain)"
+            "OUT: Abdoulaye Cissoko (left quad strain)"
         ],
         "421": [
             "OUT: Kortne Ford (Achilles surgery)",
+            "OUT: Logan Ndenbe (torn ACL)",
             "OUT: Kayden Pierre (hamstring)",
-            "QUESTIONABLE: Jake Davis (knee sprain)",
-            "QUESTIONABLE: Tim Leibold (groin)",
-            "QUESTIONABLE: Erik Thommy (calf)",
-            "QUESTIONABLE: Willy Agada (illness)",
-            "QUESTIONABLE: Alan Pulido (foot)",
-            "QUESTIONABLE: Johnny Russell (groin)"
+            "OUT: Felipe Gutierrez (knee)",
+            "QUESTIONABLE: Dany Rosero (facial injury)"
         ],
         "17012": [
             "OUT: Rasmus Alm (sports hernia)"
