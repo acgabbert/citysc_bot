@@ -81,7 +81,7 @@ def schedule_controller(url=schedule_url, xpath=schedule_xpath, driver=None):
     date = datetime.now()
     while shots < 2 and date.year == datetime.now().year:
         dated_url = f'{url}{date.year}-{date.month}-{date.day}'
-        print(f'checking {dated_url}')
+        logger.debug(f'checking {dated_url}')
         driver = get_mls_driver(dated_url)
         if len(driver.find_elements(By.CLASS_NAME, schedule_no_matches)) > 0:
             msg.send(f'No matches for {url}')
