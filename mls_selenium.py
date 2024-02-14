@@ -86,7 +86,12 @@ def schedule_controller(url=schedule_url, xpath=schedule_xpath, driver=None):
         if len(driver.find_elements(By.CLASS_NAME, schedule_no_matches)) > 0:
             msg.send(f'No matches for {url}')
         else:
-            file = get_screenshot(dated_url, xpath, title=f"{date.month}-{date.day}", driver=driver)
+            title = ''
+            if shots == 0:
+                title = f'This Week'
+            else:
+                title = f'Next Week'
+            file = get_screenshot(dated_url, xpath, title=title, driver=driver)
             pad_image(file)
             shots += 1
         date += timedelta(days=7)
