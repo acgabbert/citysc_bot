@@ -138,7 +138,7 @@ def set_sort_order(thing_id, order='new'):
 def get_sidebar_content(subreddit):
     headers = get_oauth_token()
     url = REDDIT_OAUTH + subreddit + '/wiki/config/sidebar'
-    print(url)
+    #print(url)
     content = requests.get(url, headers=headers)
     return content.json()['data']['content_md']
 

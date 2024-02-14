@@ -57,7 +57,6 @@ def get_screenshot(url, outer_xpath, inner_xpath=None, title=None, driver=None):
     if driver is None:
         driver = get_mls_driver(url)
     logger.debug(f'getting {url}\nfinding elements by {outer_xpath}')
-    print(f'finding elements by {outer_xpath}')
     elements = driver.find_elements(By.XPATH, outer_xpath)
     i = 0
     logger.debug(f'found {len(elements)} elements')

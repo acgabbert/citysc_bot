@@ -3,6 +3,7 @@ import logging
 from datetime import datetime, timedelta
 
 import config
+import discord as msg
 import mls_api as mls
 import mls_schedule
 import util
@@ -205,7 +206,7 @@ def get_match_data(match_obj: Match) -> Match:
                 retval.comp = 'MLS Cup Playoffs'
     retval.round_name = data['round_name']
     retval.round_number = data['round_number']
-    if 'leg' in data['leg'].lower():
+    if data['leg'] and 'leg' in data['leg'].lower():
         retval.leg = data['type']
     retval.id = data['id']
     retval.previous_match_id = data['previous_match_id']
@@ -526,9 +527,7 @@ def get_previous_match(match_obj: Match) -> Match:
     date_from = date - timedelta(days=31)
     date_from = f'{date_from.year}-{date_from.month}-{date_from.day}'
     date_to = f'{date.year}-{date.month}-{date.day}'
-    print(f'checking from {date_from} to {date_to}')
     sched = mls_schedule.get_schedule(team=match_obj.home.opta_id, comp=match_obj.comp_id, date_from=date_from, date_to=date_to)
-    print(sched)
     prev_match = Match(-1)
     for m in sched:
         prev_match = Match(m['optaId'])
@@ -541,7 +540,9 @@ def get_previous_match(match_obj: Match) -> Match:
         match_obj.away.previous_goals = prev_match.home.goals
         match_obj.home.previous_goals = prev_match.away.goals
     else:
-        print('hmm')
+        message = f'Previous match does not match!'
+        logger.error(message)
+        msg.send(message)
     return prev_match
 
 

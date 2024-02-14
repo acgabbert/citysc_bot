@@ -67,7 +67,6 @@ def check_pre_match(data, date_from=None):
     # until +48h
     date_to = date_from + 86400
     for match in data:
-        print(match['matchDate'])
         match_time = util.iso_to_epoch(match['matchDate'][:-2])
         if match_time > date_from and match_time < date_to:
             return match['optaId'], match_time
