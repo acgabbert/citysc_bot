@@ -29,8 +29,10 @@ class MlsDiscipline:
         retval = f'---------------\nLast updated: {self.last_update}\n---------------\n'
         for team in self.discipline.items():
             retval += f'{team[0]}:\n'
-            for disc in team[1]:
-                retval += f'{disc}\n'
+            for player in team[1].items():
+                retval += f'{player[0]}\n'
+                for disc in player[1]:
+                    retval += f'- {disc}\n'
             retval += '\n'
         return retval
 
