@@ -11,6 +11,7 @@ import match_constants as const
 import player
 import club
 import injuries
+import discipline
 
 logger = logging.getLogger(__name__)
 
@@ -483,6 +484,28 @@ def get_injuries(match_obj: Match) -> Match:
     return retval
 
 
+def get_discipline(match_obj: Match) -> Match:
+    retval = match_obj
+    disc = util.read_json(discipline.DISC_FILE)
+    date_format = '%m/%d/%Y, %H:%M'
+    last_updated = datetime.strptime(disc['updated'], date_format)
+    """
+    delta = datetime.now() - last_updated
+    if delta.days > 2:
+        return retval
+    """
+    disc = disc['discipline']
+    home_disc = []
+    away_disc = []
+    if str(retval.home.opta_id) in disc.keys():
+        home_disc = disc[str(retval.home.opta_id)]
+    if str(retval.away.opta_id) in disc.keys():
+        away_disc = disc[str(retval.away.opta_id)]
+    retval.home.discipline = home_disc
+    retval.away.discipline = away_disc
+    return retval
+
+
 def get_prematch_data(match_obj: Match) -> Match:
     """Get data for a pre-match thread (no stats, lineups, etc)"""
     logger.info(f'Getting pre-match data for {match_obj.opta_id}')
@@ -491,6 +514,7 @@ def get_prematch_data(match_obj: Match) -> Match:
     match_obj = get_preview(match_obj)
     match_obj = get_broadcasters(match_obj)
     match_obj = get_injuries(match_obj)
+    match_obj = get_discipline(match_obj)
     return match_obj
 
 
