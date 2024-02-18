@@ -1,4 +1,39 @@
 {
     "updated": "02/15/2024, 00:00",
-    "discipline": {}
+    "discipline": {
+        "11504": {
+            "Matt Miazga (CIN) - Suspended: On-Field Misconduct - Entering the Match Official's Locker Room": [
+                "Feb. 25 vs. TOR",
+                "March 2 vs. CHI"
+            ]
+        },
+        "1326": {
+            "Troy Lesesne (DC) - Suspended: Technical Staff Red Card - Second Caution\u00c2\u00a0": [
+                "Feb. 24 vs. NE\u00c2"
+            ]
+        },
+        "6900": {
+            "Rodrigo Schlegel (ORL) - Suspended: Red Card - Second Caution": [
+                "Feb. 24 vs. MTL"
+            ]
+        },
+        "928": {
+            "Mark-Anthony Kaye (NE) - Suspended: Red Card - Violent Conduct": [
+                "Feb. 24 vs. DC"
+            ]
+        },
+        "1708": {
+            "Mathias Laborda (VAN) - Suspended: Entering the Field of Play + Inciting/Escalating a Mass Confrontation": [
+                "March 2 vs. CLT"
+            ],
+            "Vanni Sartini (VAN) - Suspended: Technical Staff Red Card, Multiple League Office Policy Violations": [
+                "March 2 vs. CLT",
+                "March 9 vs. SJ",
+                "March 16 vs. DAL",
+                "March 23 vs. RSL",
+                "March 30 vs. POR",
+                "April 6 vs. TOR"
+            ]
+        }
+    }
 }

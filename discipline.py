@@ -26,7 +26,7 @@ class MlsDiscipline:
     
 
     def __str__(self):
-        retval = f'---------------\nLast updated: {self.last_update}\n---------------'
+        retval = f'---------------\nLast updated: {self.last_update}\n---------------\n'
         for team in self.discipline.items():
             retval += f'{team[0]}:\n'
             for disc in team[1]:
@@ -63,7 +63,7 @@ def parse_discipline(soup: BeautifulSoup):
     tags = soup.find('div', class_='oc-c-article__body d3-l-grid--inner').find_all('div', class_='d3-l-col__col-12')
     susp = tags[0]#.find_all('div', class_='oc-c-body-part oc-c-body-part--text')
     yellows = tags[1]#.find_all('div', class_='oc-c-body-part oc-c-body-part--text')
-    disc_list = {'suspensions': {}, 'yellows': {}}
+    disc_list = {}
 
     #susp_pattern = r'(?!\d)\w[\w\s\-\.]*\([A-Z]{2,4}\).*\n\n\n\n.*'#vs.\s[A-Z]{2,4}'
     susp_pattern = r'.*\(([A-Z]{2,4})\).*'
@@ -85,16 +85,16 @@ def parse_discipline(soup: BeautifulSoup):
         name = player[0]
         team = player[1]
         print(name, team)
-        if team in disc_list['suspensions']:
-            disc_list['suspensions'][team][name] = []
+        if team in disc_list:
+            disc_list[team][name] = []
         else:
-            disc_list['suspensions'][team] = {name: []}
+            disc_list[team] = {name: []}
         print('player: ', player[0])
         print('team: ', player[1])
         matches = matches.text.strip().splitlines()
         for match in matches:
             print('match: ', match)
-        disc_list['suspensions'][team][name] = matches
+        disc_list[team][name] = matches
     for tag in yellows:
         # can't use capture groups here (with parentheses) - 
         # otherwise the returned strings will be empty
@@ -119,7 +119,7 @@ def match_teams(disc_obj):
             if team.lower() == t[1][0].lower():
                 opta_disc[t[0]] = item[1]
                 break
-            if t[1][1].lower() in team.lower():
+            if t[1][2].lower() in team.lower():
                 opta_disc[t[0]] = item[1]
                 break
     
