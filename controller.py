@@ -6,6 +6,7 @@ from datetime import datetime
 import schedule
 from multiprocessing import Process
 
+import discipline
 import discord as msg
 import injuries
 import match_thread as thread
@@ -30,7 +31,7 @@ root.addHandler(fh2)
 root.addHandler(er)
 
 parser = argparse.ArgumentParser(prog='sched_controller.py', usage='%(prog)s [options]', description='')
-parser.add_argument('-s', '--sub', help='Subreddit; default = /r/citysc_bot_test')
+parser.add_argument('-s', '--sub', help='Subreddit; default = /r/u_citysc_bot')
 
 scheduler = sched.scheduler(time.time, time.sleep)
 
@@ -123,6 +124,7 @@ def main(sub):
     schedule.every().day.at('00:45').do(mls_selenium.main)
     schedule.every().day.at('01:00').do(widgets.main)
     schedule.every().day.at('01:15').do(injuries.main)
+    schedule.every().day.at('01:15').do(discipline.main)
     schedule.every().day.at('01:30').do(daily_setup, sub)
     running = True
     while running:

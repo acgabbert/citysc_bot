@@ -128,6 +128,14 @@ def pre_match_thread(match_obj: match.Match):
         markdown += f'\n#### {away}\n'
         for i in match_obj.away.injuries:
             markdown += f'- {i}\n'
+    if match_obj.home.discipline or match_obj.away.discipline:
+        markdown += '\n---\n\n### Disciplinary Summary\n\n'
+        if match_obj.home.discipline:
+            for player in match_obj.home.discipline.keys():
+                markdown += f'- {player} ('
+                for item in match_obj.home.discipline[player]:
+                    markdown += f'{item}, '
+                markdown = f'{markdown[:-2]})'
     markdown += match_footer(match_obj)
     return title, markdown
 

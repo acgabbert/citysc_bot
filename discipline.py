@@ -2,10 +2,13 @@ import requests
 from datetime import datetime
 from bs4 import BeautifulSoup
 import re
+import logging
 import unicodedata
 
 import util
 from util import names
+
+logger = logging.getLogger(__name__)
 
 DISC_URL = 'https://www.mlssoccer.com/news/mls-disciplinary-summary'
 DISC_FILE = 'discipline.json'
@@ -48,7 +51,6 @@ def populate_discipline(soup):
     disc_obj = parse_discipline(soup)
     disc_obj = match_teams(disc_obj)
     discipline_retval = MlsDiscipline(last_update, disc_obj)
-    print(discipline_retval)
     return discipline_retval
 
 
@@ -63,6 +65,7 @@ def parse_datetime(soup):
 def parse_discipline(soup: BeautifulSoup):
     """Returns a dict with team names as key, discipline list as value"""
     tags = soup.find('div', class_='oc-c-article__body d3-l-grid--inner').find_all('div', class_='d3-l-col__col-12')
+    #soup.prettify(formatter=lambda s: s.translate(str.maketrans('', '', '\u00c2\u00a0\xa0')))
     susp = tags[0]#.find_all('div', class_='oc-c-body-part oc-c-body-part--text')
     yellows = tags[1]#.find_all('div', class_='oc-c-body-part oc-c-body-part--text')
     disc_list = {}
@@ -82,21 +85,29 @@ def parse_discipline(soup: BeautifulSoup):
         else:
             continue
         if not matches:
-            print('no matches here')
+            logger.debug(f'No matches for {tag}')
             continue
         name = player[0]
         team = player[1]
-        print(name, team)
+        #print(name, team)
         if team in disc_list:
             disc_list[team][name] = []
         else:
             disc_list[team] = {name: []}
-        print('player: ', player[0])
-        print('team: ', player[1])
+        logger.debug(f'player: {player[0]}')
+        logger.debug(f'team: {player[1]}')
         matches = matches.text.strip().splitlines()
+        new_matches = []
+        #print(u'\xa0' in name)
         for match in matches:
-            print('match: ', match)
-        disc_list[team][name] = matches
+            new_match = match
+            #unicodedata.normalize('NFC', new_match)
+            '''
+            if 'Â' in new_match:
+                new_match = new_match[:-1]
+            '''
+            new_matches.append(new_match)
+        disc_list[team][name] = new_matches
     for tag in yellows:
         # can't use capture groups here (with parentheses) - 
         # otherwise the returned strings will be empty
@@ -105,7 +116,6 @@ def parse_discipline(soup: BeautifulSoup):
         yellow_stripped = list(map(str.strip, re.findall(yellow, players)))
         #print(yellow_stripped)
         pass
-    print(disc_list)
     return disc_list
 
 
@@ -116,7 +126,6 @@ def match_teams(disc_obj):
 
     for item in disc_obj.items():
         team = item[0]
-        print(f'checking {team}')
         for t in teams:
             if team.lower() == t[1][0].lower():
                 opta_disc[t[0]] = item[1]
