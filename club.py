@@ -39,6 +39,7 @@ class ClubMatch(Club):
         self.manager = ''
         self.lineup = []
         self.injuries = []
+        self.discipline = []
         self.goalscorers = []
         # TODO is this the best way to handle it? 
         # e.g. starter = key, sub = value
