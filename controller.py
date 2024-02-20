@@ -2,7 +2,7 @@ import argparse
 import time
 import sched
 import logging, logging.handlers
-from datetime import datetime
+from datetime import datetime, timezone
 import schedule
 from multiprocessing import Process
 
@@ -71,6 +71,9 @@ def daily_setup(sub):
         # TODO refactor check_pre_match to check for any match in the next 48 hours
         id, t = mls_schedule.check_pre_match_sched(data)
         if id is not None:
+            t = datetime.fromtimestamp(t)
+            t = t.replace(tzinfo=timezone.utc)
+            t = t.astimezone(tz=None)
             # there is a match in less than 48 hours
             today = time.time() + 86400
             # TODO and clause makes it so this only will work if run day of
