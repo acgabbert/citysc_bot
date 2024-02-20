@@ -51,7 +51,10 @@ def get_schedule(**kwargs):
             else:
                 params['clubOptaId'] = value
     data, _ = mls.call_api(url, params)
-    util.write_json(data, f'assets/schedule-{params["clubOptaId"]}.json')
+    if 'clubOptaId' in params.keys():
+        util.write_json(data, f'assets/schedule-{params["clubOptaId"]}.json')
+    else:
+        util.write_json(data, f'assets/schedule-all.json')
     return data
 
 
