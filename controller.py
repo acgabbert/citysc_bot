@@ -77,7 +77,7 @@ def daily_setup(sub):
             # there is a match in less than 48 hours
             today = time.time() + 86400
             # TODO and clause makes it so this only will work if run day of
-            if t.timestamp() < today and datetime.now().day == datetime.fromtimestamp(t).day:
+            if t.timestamp() < today and datetime.now().day == t.day:
                 # there is a match today (next 24 hours)
                 # schedule a match thread for 30m before gametime
                 t -= 1800
