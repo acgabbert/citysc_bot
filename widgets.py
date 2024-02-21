@@ -157,14 +157,14 @@ def update_sidebar(text=None, subreddit='stlouiscitysc'):
 
 
 def main():
-    u_changed = upcoming()
-    s_changed = standings()
+    #u_changed = upcoming()
+    #s_changed = standings()
     update_image_widget('Western Conference')
     update_image_widget('This Week')
     update_image_widget('Next Week')
-    if u_changed or s_changed:
+    #if u_changed or s_changed:
         # update sidebar here
-        update_sidebar()
+        #update_sidebar()
 
 
 if __name__ == '__main__':
