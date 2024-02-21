@@ -20,12 +20,13 @@ def match_header(match_obj: match.Match, pre=False):
     home = match_obj.home
     away = match_obj.away
     header = ''
-    if len(match_obj.summary) > 1:
+    # TODO this is a problem - sometimes a match has no summary
+    if match_obj.started or match_obj.is_final:
         # match has started
         header = '## '
         if match_obj.is_final:
             header += f'{match_obj.result_type}: '
-        elif match_obj.started:
+        else:
             header += f'{match_obj.minute}: '
         header += f'{home.full_name} {home.goals}-{away.goals} '
         if home.shootout_score or away.shootout_score:
@@ -128,7 +129,7 @@ def pre_match_thread(match_obj: match.Match):
         markdown += f'\n#### {away}\n'
         for i in match_obj.away.injuries:
             markdown += f'- {i}\n'
-    if match_obj.home.discipline or match_obj.away.discipline:
+    if ('mls' in match_obj.comp.lower() or 'major league soccer' in match_obj.comp.lower()) and (match_obj.home.discipline or match_obj.away.discipline):
         markdown += '\n---\n\n### Disciplinary Summary\n\n'
         if match_obj.home.discipline:
             for player in match_obj.home.discipline.keys():
