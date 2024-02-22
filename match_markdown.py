@@ -79,6 +79,9 @@ def match_info(match_obj: match.Match):
         info += 'No data via mlssoccer.com.'
     else:
         info = info[:-2]
+    if match_obj.previous_match_opta_id not in [-1, 0]:
+        info += '\n### Previous Result\n'
+        info += f'{match_obj.away.full_name} {match_obj.away.previous_goals}-{match_obj.home.previous_goals} {match_obj.home.full_name}'
     return info
 
 

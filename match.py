@@ -557,7 +557,7 @@ def get_previous_match(match_obj: Match) -> Match:
         prev_match = Match(m['optaId'])
         prev_match = get_match_data(prev_match)
         if prev_match.id == match_obj.previous_match_id:
-            print(f'found a match! {prev_match.opta_id}')
+            match_obj.previous_match_opta_id = prev_match.opta_id
             break
     prev_match = get_stats(prev_match)
     if prev_match.home.opta_id == match_obj.away.opta_id:
