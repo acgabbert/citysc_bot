@@ -1,6 +1,8 @@
 import logging
 import time
 
+from discipline import DISC_URL
+from injuries import INJ_URL
 import match
 import util
 
@@ -125,7 +127,7 @@ def pre_match_thread(match_obj: match.Match):
             comment = comment.replace('\u2014', '-')
             markdown += f'- {comment}\n'
     if match_obj.home.injuries or match_obj.away.injuries:
-        markdown += '\n---\n\n### Player Availability Report\n\n'
+        markdown += f'\n---\n\n### [Player Availability Report]({INJ_URL})\n\n'
         markdown += f'#### {home}\n'
         for i in match_obj.home.injuries:
             markdown += f'- {i}\n'
@@ -133,7 +135,7 @@ def pre_match_thread(match_obj: match.Match):
         for i in match_obj.away.injuries:
             markdown += f'- {i}\n'
     if ('mls' in match_obj.comp.lower() or 'major league soccer' in match_obj.comp.lower()) and (match_obj.home.discipline or match_obj.away.discipline):
-        markdown += '\n---\n\n### Disciplinary Summary\n\n'
+        markdown += f'\n---\n\n### [Disciplinary Summary]({DISC_URL})\n\n'
         if match_obj.home.discipline:
             for player in match_obj.home.discipline.keys():
                 markdown += f'- {player} ('
