@@ -205,6 +205,8 @@ def get_match_data(match_obj: Match) -> Match:
             retval.comp = 'MLS'
             if data['type'] == 'Cup' or 'Best of' in data['type']:
                 retval.comp = 'MLS Cup Playoffs'
+        if retval.comp == 'Major League Soccer - Regular Season':
+            retval.comp = 'MLS'
     retval.round_name = data['round_name']
     retval.round_number = data['round_number']
     if data['leg'] and 'leg' in data['leg'].lower():

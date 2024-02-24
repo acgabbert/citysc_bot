@@ -74,6 +74,7 @@ def daily_setup(sub):
             t = datetime.fromtimestamp(t)
             t = t.replace(tzinfo=timezone.utc)
             t = t.astimezone(tz=None)
+            msg.send(f'Match coming up: {id}, {t}')
             # there is a match in less than 48 hours
             today = time.time() + 86400
             # TODO and clause makes it so this only will work if run day of
