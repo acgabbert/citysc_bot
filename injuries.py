@@ -2,6 +2,7 @@ import requests
 from datetime import datetime
 from bs4 import BeautifulSoup
 
+import discord as msg
 import util
 from util import names
 
@@ -100,10 +101,23 @@ def match_teams(injury_obj):
 
 
 def main():
+    retval = False
     soup = get_injury_content()
     inj_obj = populate_injuries(soup)
-    util.write_json(inj_obj.to_dict(), INJ_FILE)
-    return util.file_changed(INJ_FILE)
+    old_inj = util.read_json(INJ_FILE)
+    newest_inj = {'updated': '', 'injuries': {}}
+    new_inj = inj_obj.to_dict()
+    newest_inj = {'updated': new_inj['updated'], 'injuries': {}}
+    # have learned you can't necessarily rely on the updated time from the website
+    for key in new_inj['injuries']:
+        new_key = str(key)
+        newest_inj['injuries'][new_key] = new_inj['injuries'][key]
+    if newest_inj != old_inj:
+        newest_inj['updated'] = datetime.now().strftime('%m/%d/%Y %H:%M:%S')
+        msg.send('injuries.json changed.')
+        retval = True
+    util.write_json(new_inj, INJ_FILE)
+    return retval
 
 
 if __name__ == '__main__':
