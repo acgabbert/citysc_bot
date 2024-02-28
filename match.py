@@ -169,7 +169,7 @@ def process_club(data, away=False) -> club.ClubMatch:
     return retval
 
 
-def get_match_data(match_obj: Match) -> Match:
+def get_match_data(match_obj: Match, update=False) -> Match:
     """Get the match data for a match.
     Specfically, this is one place to get the formation matrix.
     Populates the following data in the Match object:
@@ -220,8 +220,9 @@ def get_match_data(match_obj: Match) -> Match:
         if retval.comp.isalpha() and data['round_number'] is not None:
             retval.comp += f' {data["round_number"]}'
     '''
-    retval.home = process_club(data)
-    retval.away = process_club(data, True)
+    if not update:
+        retval.home = process_club(data)
+        retval.away = process_club(data, True)
     retval.date = data['date']
     if retval.date > 999999999999:
         retval.date /= 1000
@@ -540,7 +541,7 @@ def get_all_data(match_obj: Match) -> Match:
 def get_match_update(match_obj: Match) -> Match:
     """Get data for updating a match thread."""
     logger.info(f'Getting updated data for {match_obj.opta_id}')
-    match_obj = get_match_data(match_obj)
+    match_obj = get_match_data(match_obj, update=True)
     match_obj = get_lineups(match_obj)
     match_obj = get_stats(match_obj)
     match_obj = get_summary(match_obj)
