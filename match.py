@@ -315,9 +315,9 @@ def get_lineups(match_obj: Match) -> Match:
         formation_place  = p['formation_place']
         player_id = p['player']['opta_id']
         adder = player.Player(player_id, name, status, formation_place, team_id)
-        if team_id == retval.home.opta_id:
+        if team_id == retval.home.opta_id and adder not in retval.home.lineup:
             retval.home.lineup.append(adder)
-        elif team_id == retval.away.opta_id:
+        elif team_id == retval.away.opta_id and adder not in retval.away.lineup:
             retval.away.lineup.append(adder)
         else:
             logger.error(f'Error: player {name}, game {retval.opta_id} does not match either team. {team_id}')
