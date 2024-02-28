@@ -12,3 +12,6 @@ class Player(mls.MlsObject):
     
     def __str__(self):
         return self.name
+    
+    def __eq__(self, other):
+        return self.opta_id == other.opta_id
