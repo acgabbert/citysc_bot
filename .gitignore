@@ -1,4 +1,3 @@
-config.py
 chrome*
 LICENSE*
 assets/*
@@ -11,5 +10,6 @@ env/*
 mls_test.db
 __pycache__
 *.sh
-config.json
+config.*
 scripts/*
+**/__pycache__
