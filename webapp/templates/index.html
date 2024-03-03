@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>City SC Bot</title>
+    </head>
+    <body>
+        <h1>Today's Posts</h1>
+        {% for post in posts %}
+        <div><p><a href="https://reddit.com/{{ post.id }}">{{ post.slug }}</a></p></div>
+        {% endfor %}
+        <h1>Upcoming Matches</h1>
+        {% for game in schedule %}
+        <div><p>{{ game }}</p></div>
+        {% endfor %}
+    </body>
+</html>
