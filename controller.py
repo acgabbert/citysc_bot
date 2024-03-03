@@ -6,13 +6,13 @@ from datetime import datetime, timezone
 import schedule
 from multiprocessing import Process
 
-import discipline
-import discord as msg
-import injuries
-import match_thread as thread
-import mls_schedule
-import mls_selenium
-import widgets
+import citysc_bot.discipline as discipline
+import utils.discord as msg
+import citysc_bot.injuries as injuries
+import citysc_bot.match_thread as thread
+import citysc_bot.mls_schedule as mls_schedule
+import citysc_bot.mls_selenium as mls_selenium
+import citysc_bot.widgets as widgets
 
 fh = logging.handlers.RotatingFileHandler('log/debug.log', maxBytes=1000000, backupCount=10)
 fh.setLevel(logging.DEBUG)
