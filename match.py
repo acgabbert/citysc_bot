@@ -136,15 +136,15 @@ def process_scorers(match_obj: Match, scorers: dict) -> Match:
         # TODO do this more gracefully
         if id == match_obj.home.opta_id:
             for p in scorers[id]:
-                if '(OG)' in p:
+                if '(OG)' in p and p not in retval.away.goalscorers:
                     retval.away.goalscorers.append(p)
-                else:
+                elif p not in retval.home.goalscorers:
                     retval.home.goalscorers.append(p)
         elif id == match_obj.away.opta_id:
             for p in scorers[id]:
-                if '(OG)' in p:
+                if '(OG)' in p and p not in retval.home.goalscorers:
                     retval.home.goalscorers.append(p)
-                else:
+                elif p not in retval.away.goalscorers:
                     retval.away.goalscorers.append(p)
         else:
             logger.error('Scorers ID does not match either team.')
