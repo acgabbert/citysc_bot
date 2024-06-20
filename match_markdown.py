@@ -134,12 +134,18 @@ def pre_match_thread(match_obj: match.Match):
         markdown += f'\n#### {away}\n'
         for i in match_obj.away.injuries:
             markdown += f'- {i}\n'
-    if ('mls' in match_obj.comp.lower() or 'major league soccer' in match_obj.comp.lower()) and (match_obj.home.discipline or match_obj.away.discipline):
+    if ('mls' in match_obj.comp.lower() or 'major league soccer' in match_obj.comp.lower()or 'regular season' in match_obj.comp.lower()) and (match_obj.home.discipline or match_obj.away.discipline):
         markdown += f'\n---\n\n### [Disciplinary Summary]({DISC_URL})\n\n'
         if match_obj.home.discipline:
             for player in match_obj.home.discipline.keys():
                 markdown += f'- {player} ('
                 for item in match_obj.home.discipline[player]:
+                    markdown += f'{item}, '
+                markdown = f'{markdown[:-2]})'
+        if match_obj.away.discipline:
+            for player in match_obj.away.discipline.keys():
+                markdown += f'- {player} ('
+                for item in match_obj.away.discipline[player]:
                     markdown += f'{item}, '
                 markdown = f'{markdown[:-2]})'
     markdown += match_footer(match_obj)

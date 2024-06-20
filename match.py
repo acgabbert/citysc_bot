@@ -129,7 +129,6 @@ def process_feed(data) -> list[str]:
             else:
                 scorers[tm] = [scorer]
         comments.append(adder)
-    print(scorers)
     return comments, scorers
 
 
