@@ -1,23 +1,35 @@
 {
-    "updated": "03/05/2024, 00:00",
+    "updated": "06/18/2024, 00:00",
     "discipline": {
+        "14880": {
+            "Tomas Aviles (MIA) - Suspended: Yellow Card Accumulation": [
+                "June 29 vs. NSH"
+            ],
+            "Tomas Aviles (MIA) - Suspended: Red Card - Second Caution": [
+                "June 19 vs. CLB"
+            ],
+            "David Ruiz (MIA) - Suspended: Red Card - Second Caution": [
+                "June 19 vs. CLB"
+            ]
+        },
+        "6977": {
+            "Moses Nyeman (MIN) - Suspended: Red Card - Serious Foul Play": [
+                "June 19 vs. DAL"
+            ]
+        },
+        "1616": {
+            "George Campbell (MTL)\u00c2\u00a0- Suspended: Yellow Card Accumulation": [
+                "June 19 vs. RBNY"
+            ]
+        },
         "9668": {
-            "James Sands (NYC) - Suspended: Red Card - Violent Conduct": [
-                "March 9 vs. POR"
+            "Mitja Ilenic (NYC) - Suspended: Red Card - DOGSO": [
+                "June 19 vs. LA"
             ]
         },
-        "1899": {
-            "Braian Ojeda (RSL) - Suspended: Red Card - Second Caution": [
-                "March 9 vs. COL"
-            ]
-        },
-        "1708": {
-            "Vanni Sartini (VAN) - Suspended: Technical Staff Red Card, Multiple League Office Policy Violations": [
-                "March 9 vs. SJ",
-                "March 16 vs. DAL",
-                "March 23 vs. RSL",
-                "March 30 vs. POR",
-                "April 6 vs. TOR"
+        "17012": {
+            "Tim Parker (STL) - Suspended: Yellow Card Accumulation": [
+                "June 19 vs. COL"
             ]
         }
     }

@@ -389,5 +389,133 @@
         "pre": "1baed1t",
         "match": "1baxia4",
         "post": "1bb0l69"
+    },
+    "2414904": {
+        "slug": "lavsstl-03-16-2024",
+        "pre": "1bg1ufd",
+        "match": "1bgma57",
+        "post": "1bgpc7p"
+    },
+    "289016660": {
+        "slug": "stlvscol-03-17-2024",
+        "match": "1bhar6i"
+    },
+    "2414914": {
+        "slug": "stlvsdc-03-23-2024",
+        "pre": "1blns1i",
+        "match": "1bm6yte",
+        "post": "1bmac7f"
+    },
+    "289016674": {
+        "slug": "stlvsntx-03-24-2024",
+        "match": "1bmxic9"
+    },
+    "2414999": {
+        "slug": "rslvsstl-03-30-2024",
+        "pre": "1brdf4h",
+        "match": "1brxoxx",
+        "post": "1bs0xh7"
+    },
+    "289016685": {
+        "slug": "skcvsstl-03-31-2024",
+        "match": "1bsk2fk"
+    },
+    "2415069": {
+        "slug": "stlvsdal-04-06-2024",
+        "pre": "1bx71le",
+        "match": "1bxq7rt",
+        "post": "1bxug2k"
+    },
+    "289016693": {
+        "slug": "stlvspor-04-07-2024",
+        "match": "1byhh8g"
+    },
+    "289016701": {
+        "slug": "atxvsstl-04-12-2024",
+        "match": "1c2q8uw"
+    },
+    "2414962": {
+        "slug": "stlvsatx-04-14-2024",
+        "pre": "1c3p5xx",
+        "match": "1c430kx",
+        "post": "1c46sa8"
+    },
+    "289016718": {
+        "slug": "stlvsslc-04-19-2024",
+        "match": "1c8eg6k"
+    },
+    "2414971": {
+        "slug": "skcvsstl-04-20-2024",
+        "pre": "1c8leup",
+        "match": "1c94bvj",
+        "post": "1c97dko"
+    },
+    "289016743": {
+        "slug": "minvsstl-05-03-2024",
+        "match": "1cjl2rd"
+    },
+    "2414998": {
+        "slug": "houvsstl-05-04-2024",
+        "pre": "1cjvznh",
+        "match": "1cke78z",
+        "post": "1ckh4db"
+    },
+    "2415014": {
+        "slug": "stlvschi-05-11-2024",
+        "pre": "1cpd7jv",
+        "match": "1cputk3",
+        "post": "1cpxov1"
+    },
+    "289016766": {
+        "slug": "stlvsatx-05-12-2024",
+        "match": "1cqjwa6"
+    },
+    "2415029": {
+        "slug": "stlvslafc-05-15-2024",
+        "pre": "1csg8rc",
+        "match": "1csznei",
+        "post": "1ct2u7w"
+    },
+    "2415048": {
+        "slug": "cinvsstl-05-18-2024",
+        "pre": "1cut3d7",
+        "match": "1cv9qhs",
+        "post": "1cvctop"
+    },
+    "289016781": {
+        "slug": "houvsstl-05-22-2024",
+        "match": "1cyem9b"
+    },
+    "2415163": {
+        "slug": "stlvssea-05-25-2024",
+        "pre": "1d07uuu",
+        "match": "1d0p0fs",
+        "post": "1d0ro9l"
+    },
+    "289016792": {
+        "slug": "stlvsttfc-05-26-2024",
+        "match": "1d1cz5n"
+    },
+    "2415089": {
+        "slug": "stlvspor-06-08-2024",
+        "pre": "1dazwmv",
+        "match": "1dbggmh",
+        "post": "1dbjd5t"
+    },
+    "2414942": {
+        "slug": "dalvsstl-06-15-2024",
+        "pre": "1dgdsn5",
+        "match": "1dgv2qo",
+        "post": "1dgy3a9"
+    },
+    "289016831": {
+        "slug": "stlvshou-06-16-2024",
+        "match": "1dhj4ax"
+    },
+    "2415114": {
+        "slug": "stlvscol-06-19-2024",
+        "pre": "1djekpi",
+        "match": "1djxyx2",
+        "post": "1dk13vf"
     }
 }
