@@ -14,7 +14,8 @@ logger = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser(prog='match_thread.py', usage='%(prog)s [options]', description='')
 parser.add_argument('--pre', action='store_true', help='Create a pre-match thread')
-parser.add_argument('--post', action='store_true', help='Create a pre-match thread')
+parser.add_argument('--post', action='store_true', help='Create a post-match thread')
+parser.add_argument('--no-post', action='store_true', help='Create a match thread with no post-match thread')
 parser.add_argument('-i', '--id', help='Match Opta ID')
 parser.add_argument('-s', '--sub', help='Subreddit')
 
@@ -134,6 +135,8 @@ def match_thread(opta_id, sub=prod_sub, pre_thread=None, thread=None, post=True)
             text = f'[Continue the discussion in the match thread.](https://www.reddit.com/r/{sub}/comments/{thread.id_from_url(thread.shortlink)})'
             comment(pre_thread, text)
         msg.send(f'{msg.user} Match thread posted! https://www.reddit.com/r/{sub}/comments/{thread.id_from_url(thread.shortlink)}')
+        if not post:
+            msg.send(f'No post-match thread for {thread.id_from_url(thread.shortlink)}')
     else:
         # thread already exists in the json
         reddit = util.get_reddit()
@@ -215,6 +218,7 @@ def main():
     args = parser.parse_args()
     id = args.id
     sub = args.sub
+    post = not args.no_post
     if id:
         if args.pre:
             # pre-match thread
@@ -231,9 +235,9 @@ def main():
         else:
             # match thread
             if sub:
-                match_thread(id, sub)
+                match_thread(id, sub, post=post)
             else:
-                match_thread(id)
+                match_thread(id, post=post)
 
 
 if __name__ == '__main__':

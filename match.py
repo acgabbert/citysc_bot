@@ -119,13 +119,17 @@ def process_feed(data) -> list[str]:
             scorer += ')'
             tm = comment['first_club']['opta_id']
             if tm in scorers.keys():
+                found = False
                 for i, x in enumerate(scorers[tm]):
                     if name in x:
+                        found = True
                         scorers[tm][i] = scorers[tm][i][:-1] + f', {scorer.split("(")[1][:-1]})'
-                scorers[tm].append(scorer)
+                if not found:
+                    scorers[tm].append(scorer)
             else:
                 scorers[tm] = [scorer]
         comments.append(adder)
+    print(scorers)
     return comments, scorers
 
 
@@ -136,18 +140,24 @@ def process_scorers(match_obj: Match, scorers: dict) -> Match:
         # TODO do this more gracefully
         if id == match_obj.home.opta_id:
             for p in scorers[id]:
-                if '(OG)' in p and p not in retval.away.goalscorers:
+                name = p.split('(')[0].strip()
+                added_away = not any(name not in g for g in retval.away.goalscorers)
+                added_home = not any(name not in g for g in retval.home.goalscorers)
+                if '(OG)' in p and added_away:
                     retval.away.goalscorers.append(p)
-                elif p not in retval.home.goalscorers:
+                elif added_home:
                     retval.home.goalscorers.append(p)
         elif id == match_obj.away.opta_id:
             for p in scorers[id]:
-                if '(OG)' in p and p not in retval.home.goalscorers:
+                name = p.split('(')[0].strip()
+                added_away = not any(name not in g for g in retval.away.goalscorers)
+                added_home = not any(name not in g for g in retval.home.goalscorers)
+                if '(OG)' in p and added_home:
                     retval.home.goalscorers.append(p)
-                elif p not in retval.away.goalscorers:
+                elif added_away:
                     retval.away.goalscorers.append(p)
         else:
-            logger.error('Scorers ID does not match either team.')
+            logger.error(f'Scorers ID {id} does not match either team - {scorers[id]}')
     return retval
 
 
