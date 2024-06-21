@@ -103,14 +103,14 @@ def db_query(query: str, data: tuple=None):
 
 def write_json(data, filename):
     """Write json data to filename."""
-    with open(filename, 'w') as f:
-        f.write(json.dumps(data, indent=4))
+    with open(filename, 'w', encoding='utf-8') as f:
+        f.write(json.dumps(data, indent=4, ensure_ascii=False))
     return
 
 
 def read_json(filename):
     """Read json data from a file to a dict."""
-    with open(filename, 'r') as f:
+    with open(filename, 'r', encoding='utf-8') as f:
         data = json.loads(f.read())
         return data
 

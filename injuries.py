@@ -1,3 +1,4 @@
+import os
 import requests
 from datetime import datetime
 from bs4 import BeautifulSoup
@@ -37,6 +38,7 @@ class MlsInjuries:
 
 def get_injury_content() -> BeautifulSoup:
     data = requests.get(INJ_URL)
+    data.encoding = 'utf-8'
     return BeautifulSoup(data.text, 'html.parser')
 
 
@@ -104,7 +106,9 @@ def main():
     retval = False
     soup = get_injury_content()
     inj_obj = populate_injuries(soup)
-    old_inj = util.read_json(INJ_FILE)
+    old_inj = {}
+    if os.path.exists(INJ_FILE):
+        old_inj = util.read_json(INJ_FILE)
     newest_inj = {'updated': '', 'injuries': {}}
     new_inj = inj_obj.to_dict()
     newest_inj = {'updated': new_inj['updated'], 'injuries': {}}
