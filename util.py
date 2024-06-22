@@ -135,7 +135,7 @@ Names = namedtuple('Names', 'full_name short_name abbrev')
 # a dict of namedtuples with each club's full/short/abbrev names
 names = {
     15296: Names('Austin FC', 'Austin', 'ATX'),
-    11901: Names('Atlanta United', 'Atlanta', 'ATL'),
+    11091: Names('Atlanta United', 'Atlanta', 'ATL'),
     1616: Names('CF Montréal', 'Montréal', 'MTL'),
     436: Names('Colorado Rapids', 'Colorado', 'COL'),
     16629: Names('Charlotte FC', 'Charlotte', 'CLT'),
