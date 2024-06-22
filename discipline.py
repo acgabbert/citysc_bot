@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 DISC_URL = 'https://www.mlssoccer.com/news/mls-disciplinary-summary'
 DISC_FILE = 'discipline.json'
+YELLOWS_TITLE = 'Yellow Accumulation'
 
 class MlsDiscipline:
     date_format = '%m/%d/%Y, %H:%M'
@@ -43,6 +44,7 @@ class MlsDiscipline:
 
 def get_discipline_content() -> BeautifulSoup:
     data = requests.get(DISC_URL)
+    data.encoding = 'utf-8'
     return BeautifulSoup(data.text, 'html.parser')
 
 
@@ -74,7 +76,7 @@ def parse_discipline(soup: BeautifulSoup):
     susp_pattern = r'.*\(([A-Z]{2,4})\).*'
     susp_pattern_2 = r'.*vs\.\s+([A-Z]{2,4}).*(\n.*vs\.\s+[A-Z]{2,4}.*)*'
     # how to match accent marks??
-    yellow = r'[\w\s\-\.]*\([A-Z]{2,4}\)'
+    yellow = r'([\w\s\-\.]*)\(([A-Z]{2,4})\)'
     for i, tag in enumerate(susp):
         # suspension notices
         player = re.search(susp_pattern, tag.text)
@@ -101,21 +103,24 @@ def parse_discipline(soup: BeautifulSoup):
         #print(u'\xa0' in name)
         for match in matches:
             new_match = match
-            #unicodedata.normalize('NFC', new_match)
-            '''
-            if 'Â' in new_match:
-                new_match = new_match[:-1]
-            '''
             new_matches.append(new_match)
         disc_list[team][name] = new_matches
     for tag in yellows:
         # can't use capture groups here (with parentheses) - 
         # otherwise the returned strings will be empty
-        #players = unicodedata.normalize('NFC', tag.text)
         players = tag.text
-        yellow_stripped = list(map(str.strip, re.findall(yellow, players)))
-        #print(yellow_stripped)
-        pass
+        yellow_list = re.findall(yellow, players)
+        #yellow_stripped = list(map(str.strip, re.findall(yellow, players)))
+        for p, t in yellow_list:
+            p = str.strip(p)
+            if t in disc_list:
+                if YELLOWS_TITLE in disc_list[t]:
+                    disc_list[t][YELLOWS_TITLE].append(p)
+                else:
+                    disc_list[t][YELLOWS_TITLE] = [p]
+            else:
+                disc_list[t] = {YELLOWS_TITLE: [p]}
+        print(yellow_list)
     return disc_list
 
 

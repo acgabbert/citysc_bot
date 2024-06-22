@@ -1,7 +1,7 @@
 import logging
 import time
 
-from discipline import DISC_URL
+from discipline import DISC_URL, YELLOWS_TITLE
 from injuries import INJ_URL
 import match
 import util
@@ -138,16 +138,24 @@ def pre_match_thread(match_obj: match.Match):
         markdown += f'\n---\n\n### [Disciplinary Summary]({DISC_URL})\n\n'
         if match_obj.home.discipline:
             for player in match_obj.home.discipline.keys():
+                if player == YELLOWS_TITLE:
+                    for p in match_obj.home.discipline[player]:
+                        markdown += f'- {p} ({match_obj.home.abbrev}) is one caution away from a suspension/fine.\n'
+                    continue
                 markdown += f'- {player} ('
                 for item in match_obj.home.discipline[player]:
                     markdown += f'{item}, '
-                markdown = f'{markdown[:-2]})'
+                markdown = f'{markdown[:-2]})\n'
         if match_obj.away.discipline:
             for player in match_obj.away.discipline.keys():
+                if player == YELLOWS_TITLE:
+                    for p in match_obj.away.discipline[player]:
+                        markdown += f'- {p} ({match_obj.away.abbrev}) is one caution away from a suspension/fine.\n'
+                    continue
                 markdown += f'- {player} ('
                 for item in match_obj.away.discipline[player]:
                     markdown += f'{item}, '
-                markdown = f'{markdown[:-2]})'
+                markdown = f'{markdown[:-2]})\n'
     markdown += match_footer(match_obj)
     return title, markdown
 
