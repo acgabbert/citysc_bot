@@ -1,10 +1,11 @@
 import time
 import logging
 from datetime import datetime, timedelta
+import asyncio
 
 import config
 import discord as msg
-import mls_api as mls
+import mls_api_async as mls
 import mls_schedule
 import util
 import match_constants as const
@@ -73,13 +74,13 @@ class Match(mls.MlsObject):
             return False
 
 
-def call_match_api(url, params, filename):
+async def call_match_api(url, params, filename):
     try:
         opta_id = params[const.GAME_ID]
         filename = f'{filename}-{opta_id}'
     except KeyError:
         pass
-    data, _ = mls.call_api(url, params)
+    data, _ = await mls.call_api(url, params)
     util.write_json(data, f'assets/{filename}.json')
     return data
 
@@ -178,7 +179,7 @@ def process_club(data, away=False) -> club.ClubMatch:
     return retval
 
 
-def get_match_data(match_obj: Match, update=False) -> Match:
+async def get_match_data(match_obj: Match, update=False) -> Match:
     """Get the match data for a match.
     Specfically, this is one place to get the formation matrix.
     Populates the following data in the Match object:
@@ -199,7 +200,7 @@ def get_match_data(match_obj: Match, update=False) -> Match:
     params[const.GAME_ID] = match_obj.opta_id
     try:
         # should only get one dict for match data
-        data = call_match_api(url, params, 'match-data')[0]
+        data = (await call_match_api(url, params, 'match-data'))[0]
     except IndexError:
         message = f'{url} returned no data.'
         logger.error(message)
@@ -253,7 +254,7 @@ def get_match_data(match_obj: Match, update=False) -> Match:
     return retval
 
 
-def get_preview(match_obj: Match) -> Match:
+async def get_preview(match_obj: Match) -> Match:
     """Get the preview (match facts) for a match.
     Returns a list of comments.
     """
@@ -261,7 +262,7 @@ def get_preview(match_obj: Match) -> Match:
     url = const.PREVIEW_URL
     params = const.PREVIEW_PARAMS
     params[const.GAME_ID] = match_obj.opta_id
-    data = call_match_api(url, params, 'preview')
+    data = await call_match_api(url, params, 'preview')
     comments = []
     for row in data:
         comments.append(row['fact'])
@@ -269,20 +270,20 @@ def get_preview(match_obj: Match) -> Match:
     return retval
 
 
-def get_feed(match_obj: Match) -> Match:
+async def get_feed(match_obj: Match) -> Match:
     """Get the full feed from a match."""
     retval = match_obj
     url = const.FEED_URL
     params = const.FULL_FEED_PARAMS
     params[const.GAME_ID] = match_obj.opta_id
-    data = call_match_api(url, params, 'feed')
+    data = await call_match_api(url, params, 'feed')
     comments, scorers = process_feed(data)
     retval = process_scorers(retval, scorers)
     retval.feed = comments
     return retval
 
 
-def get_summary(match_obj: Match) -> Match:
+async def get_summary(match_obj: Match) -> Match:
     """Get the summary feed from a match.
     Includes goals, red cards, substitutions (?)
     Returns a list of comments.
@@ -292,7 +293,7 @@ def get_summary(match_obj: Match) -> Match:
     params = const.SUMMARY_PARAMS
     params[const.GAME_ID] = match_obj.opta_id
     # TODO refactor all of these try/except blocks, because not all of them take data[0]
-    data = call_match_api(url, params, 'summary')
+    data = await call_match_api(url, params, 'summary')
     comments, scorers = process_feed(data)
     retval = process_scorers(retval, scorers)
     retval.summary = comments
@@ -306,17 +307,17 @@ def get_player_name(player):
     return name
 
 
-def get_lineups(match_obj: Match) -> Match:
+async def get_lineups(match_obj: Match) -> Match:
     """Get the lineups from a match."""
     retval = match_obj
     url = const.LINEUP_URL
     params = const.LINEUP_PARAMS
     params[const.GAME_ID] = match_obj.opta_id
-    data = call_match_api(url, params, 'lineups')
+    data = await call_match_api(url, params, 'lineups')
     subs_url = const.SUBS_URL
     subs_params = const.SUBS_PARAMS
     subs_params[const.GAME_ID] = match_obj.opta_id
-    subs = call_match_api(subs_url, subs_params, 'subs')
+    subs = await call_match_api(subs_url, subs_params, 'subs')
     for p in data:
         team_id = p['club']['opta_id']
         status = p['status']
@@ -341,13 +342,13 @@ def get_lineups(match_obj: Match) -> Match:
     return retval
 
 
-def get_managers(match_obj: Match) -> Match:
+async def get_managers(match_obj: Match) -> Match:
     """Get managers from a match."""
     retval = match_obj
     url = const.MANAGER_URL
     params = const.MANAGER_PARAMS
     params[const.GAME_ID] = match_obj.opta_id
-    data = call_match_api(url, params, 'managers')
+    data = await call_match_api(url, params, 'managers')
     for manager in data:
         team_id = manager['club']['opta_id']
         first = manager['manager']['first_name']
@@ -380,13 +381,13 @@ def process_stats(data, team: club.ClubMatch) -> club.ClubMatch:
     return team
 
 
-def get_stats(match_obj: Match) -> Match:
+async def get_stats(match_obj: Match) -> Match:
     """Get stats from a match."""
     retval = match_obj
     url = const.STATS_URL
     params = const.STATS_PARAMS
     params[const.GAME_ID] = match_obj.opta_id
-    data = call_match_api(url, params, 'stats')
+    data = await call_match_api(url, params, 'stats')
     for team in data:
         try:
             if team['side'] == 'home':
@@ -402,26 +403,26 @@ def get_stats(match_obj: Match) -> Match:
     return retval
 
 
-def get_recent_form(match_obj: Match) -> Match:
+async def get_recent_form(match_obj: Match) -> Match:
     """Get recent form for the teams participating in a match"""
     retval = match_obj
     url = const.RECENT_FORM_URL + str(match_obj.home.opta_id) + '?'
     params = const.RECENT_FORM_PARAMS
     params['secondClub'] = match_obj.away.opta_id
     params['matchDate'] = datetime.fromtimestamp(match_obj.date).isoformat()
-    data = call_match_api(url, params, 'recent-form')
+    data = await call_match_api(url, params, 'recent-form')
     retval.home.recent_form = data['firstClubFormGuide']
     retval.away.recent_form = data['secondClubFormGuide']
     return retval
 
 
-def get_broadcasters(match_obj: Match) -> Match:
+async def get_broadcasters(match_obj: Match) -> Match:
     retval = match_obj
     url = mls_schedule.BASE_URL + f'/{match_obj.opta_id}'
-    data, status_code = mls.call_api(url)
+    data, status_code = await mls.call_api(url)
     if status_code == 204:
         url = mls_schedule.NEXTPRO_URL + f'/{match_obj.opta_id}'
-        data = mls.call_api(url)[0]
+        data = await mls.call_api(url)[0]
     if data is None:
         # no broadcast info...
         return retval
@@ -458,13 +459,13 @@ def get_broadcasters(match_obj: Match) -> Match:
     return retval
 
 
-def get_videos(match_obj: Match) -> Match:
+async def get_videos(match_obj: Match) -> Match:
     retval = match_obj
     vid_url = 'https://mlssoccer.com/video/'
     url = 'https://dapi.mlssoccer.com/v2/content/en-us/brightcovevideos'
     params = {'fields.optaMatchId': match_obj.opta_id}
     # TODO why isn't this using call_match_api? because of the indexing? 
-    data = mls.call_api(url, params)[0]['items']
+    data = await mls.call_api(url, params)[0]['items']
     util.write_json(data, f'assets/videos-{match_obj.opta_id}.json')
     vids = []
     for vid in data:
@@ -518,43 +519,43 @@ def get_discipline(match_obj: Match) -> Match:
     return retval
 
 
-def get_prematch_data(match_obj: Match) -> Match:
+async def get_prematch_data(match_obj: Match) -> Match:
     """Get data for a pre-match thread (no stats, lineups, etc)"""
     logger.info(f'Getting pre-match data for {match_obj.opta_id}')
-    match_obj = get_match_data(match_obj)
-    match_obj = get_recent_form(match_obj)
-    match_obj = get_preview(match_obj)
-    match_obj = get_broadcasters(match_obj)
-    match_obj = get_injuries(match_obj)
-    match_obj = get_discipline(match_obj)
+    match_obj = await get_match_data(match_obj)
+    match_obj = await get_recent_form(match_obj)
+    match_obj = await get_preview(match_obj)
+    match_obj = await get_broadcasters(match_obj)
+    match_obj = await get_injuries(match_obj)
+    match_obj = await get_discipline(match_obj)
     return match_obj
 
 
-def get_all_data(match_obj: Match) -> Match:
+async def get_all_data(match_obj: Match) -> Match:
     """Get all data for a match thread (only a summary feed)."""
     logger.info(f'Getting all data for {match_obj.opta_id}')
-    match_obj = get_broadcasters(match_obj)
-    match_obj = get_match_data(match_obj)
-    match_obj = get_recent_form(match_obj)
-    match_obj = get_preview(match_obj)
-    match_obj = get_lineups(match_obj)
-    match_obj = get_managers(match_obj)
-    match_obj = get_stats(match_obj)
-    match_obj = get_summary(match_obj)
-    match_obj = get_videos(match_obj)
+    match_obj = await get_broadcasters(match_obj)
+    match_obj = await get_match_data(match_obj)
+    match_obj = await get_recent_form(match_obj)
+    match_obj = await get_preview(match_obj)
+    match_obj = await get_lineups(match_obj)
+    match_obj = await get_managers(match_obj)
+    match_obj = await get_stats(match_obj)
+    match_obj = await get_summary(match_obj)
+    match_obj = await get_videos(match_obj)
     if match_obj.is_aggregate:
         prev_match = get_previous_match(match_obj)
     return match_obj
 
 
-def get_match_update(match_obj: Match) -> Match:
+async def get_match_update(match_obj: Match) -> Match:
     """Get data for updating a match thread."""
     logger.info(f'Getting updated data for {match_obj.opta_id}')
-    match_obj = get_match_data(match_obj, update=True)
-    match_obj = get_lineups(match_obj)
-    match_obj = get_stats(match_obj)
-    match_obj = get_summary(match_obj)
-    match_obj = get_videos(match_obj)
+    match_obj = await get_match_data(match_obj, update=True)
+    match_obj = await get_lineups(match_obj)
+    match_obj = await get_stats(match_obj)
+    match_obj = await get_summary(match_obj)
+    match_obj = await get_videos(match_obj)
     return match_obj
 
 
@@ -584,13 +585,14 @@ def get_previous_match(match_obj: Match) -> Match:
 
 
 @util.time_dec(False)
-def main():
+async def main():
     opta_id = 2335158
     match_obj = Match(opta_id)
-    match_obj = get_match_data(match_obj)
-    match_obj = get_lineups(match_obj)
+    print(match_obj.id)
+    match_obj = await get_match_data(match_obj)
+    match_obj = await get_lineups(match_obj)
     print(match_obj.away.lineup_str())
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())

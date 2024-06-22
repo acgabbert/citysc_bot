@@ -9,6 +9,7 @@ import signal
 import subprocess
 from datetime import datetime
 from collections import namedtuple
+from inspect import iscoroutinefunction
 
 import config
 import discord as msg
@@ -66,7 +67,23 @@ def time_dec(tag):
                 message = f'{msg.user}\n{message}'
             msg.send(message)
             return func
-        return wrapper
+        @functools.wraps(func)
+        async def async_wrapper(*args, **kwargs):
+            start = time()
+            try:
+                await func(*args, **kwargs)
+            except Exception as e:
+                logging.error(f'Critical error: {str(e)}\n{traceback.format_exc()}')
+            end = time()
+            exe_time = f'%.2f' % (end-start)
+            module_name = str(inspect.getmodule(func)).split('/')[-1].replace(".py'>",'')
+            message = f'{module_name}.{func.__name__} finished. Execution time: {exe_time} seconds.'
+            logging.info(message)
+            if tag:
+                message = f'{msg.user}\n{message}'
+            msg.send(message)
+            return func
+        return async_wrapper if iscoroutinefunction(func) else wrapper
     return timed_func
 
 

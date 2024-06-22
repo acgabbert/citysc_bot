@@ -4,3 +4,5 @@ praw
 bs4
 selenium
 pillow
+aiohttp
+asyncio
