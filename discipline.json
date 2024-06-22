@@ -1,35 +1,39 @@
 {
-    "updated": "06/18/2024, 00:00",
+    "updated": "06/21/2024, 00:00",
     "discipline": {
+        "11091": {
+            "Thiago Almada (ATL) - Suspended: Yellow Card Accumulation": [
+                "June 22 vs. STL"
+            ]
+        },
+        "15296": {
+            "Jhojan Valencia (ATX) - Suspended: Yellow Card Accumulation": [
+                "June 22 vs. MIN"
+            ]
+        },
+        "16629": {
+            "Scott Arfield (CLT) - Suspended: Red Card - Serious Foul Play": [
+                "June 22 vs. PHI"
+            ]
+        },
+        "1903": {
+            "Asier Illarramendi (DAL) - Suspended: Yellow Card AccumulationÂ ": [
+                "June 22 vs. SEA"
+            ]
+        },
         "14880": {
             "Tomas Aviles (MIA) - Suspended: Yellow Card Accumulation": [
                 "June 29 vs. NSH"
-            ],
-            "Tomas Aviles (MIA) - Suspended: Red Card - Second Caution": [
-                "June 19 vs. CLB"
-            ],
-            "David Ruiz (MIA) - Suspended: Red Card - Second Caution": [
-                "June 19 vs. CLB"
-            ]
-        },
-        "6977": {
-            "Moses Nyeman (MIN) - Suspended: Red Card - Serious Foul Play": [
-                "June 19 vs. DAL"
             ]
         },
         "1616": {
-            "George Campbell (MTL)\u00c2\u00a0- Suspended: Yellow Card Accumulation": [
-                "June 19 vs. RBNY"
+            "JoaquÃ­n Sosa (MTL) - Suspended: Yellow Card AccumulationÂ ": [
+                "June 22 vs. COL"
             ]
         },
-        "9668": {
-            "Mitja Ilenic (NYC) - Suspended: Red Card - DOGSO": [
-                "June 19 vs. LA"
-            ]
-        },
-        "17012": {
-            "Tim Parker (STL) - Suspended: Yellow Card Accumulation": [
-                "June 19 vs. COL"
+        "1899": {
+            "Brayan Vera (RSL) - Suspended: Yellow Card AccumulationÂ ": [
+                "June 22 vs. LA"
             ]
         }
     }
