@@ -129,6 +129,7 @@ def process_feed(data) -> list[str]:
             else:
                 scorers[tm] = [scorer]
         comments.append(adder)
+    print(scorers)
     return comments, scorers
 
 
@@ -140,20 +141,20 @@ def process_scorers(match_obj: Match, scorers: dict) -> Match:
         if id == match_obj.home.opta_id:
             for p in scorers[id]:
                 name = p.split('(')[0].strip()
-                added_away = not any(name not in g for g in retval.away.goalscorers)
-                added_home = not any(name not in g for g in retval.home.goalscorers)
-                if '(OG)' in p and added_away:
+                added_away = any(name in g for g in retval.away.goalscorers)
+                added_home = any(name in g for g in retval.home.goalscorers)
+                if '(OG)' in p and not added_away:
                     retval.away.goalscorers.append(p)
-                elif added_home:
+                elif not added_home:
                     retval.home.goalscorers.append(p)
         elif id == match_obj.away.opta_id:
             for p in scorers[id]:
                 name = p.split('(')[0].strip()
-                added_away = not any(name not in g for g in retval.away.goalscorers)
-                added_home = not any(name not in g for g in retval.home.goalscorers)
-                if '(OG)' in p and added_home:
+                added_away = any(name in g for g in retval.away.goalscorers)
+                added_home = any(name in g for g in retval.home.goalscorers)
+                if '(OG)' in p and not added_home:
                     retval.home.goalscorers.append(p)
-                elif added_away:
+                elif not added_away:
                     retval.away.goalscorers.append(p)
         else:
             logger.error(f'Scorers ID {id} does not match either team - {scorers[id]}')
