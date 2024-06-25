@@ -74,12 +74,12 @@ def comment(pre_thread, text):
     return comment
 
 
-def pre_match_thread(opta_id, sub=prod_sub):
+async def pre_match_thread(opta_id, sub=prod_sub):
     """This function posts a pre-match/matchday thread
     Returns a PRAW submission object representing the pre-match thread"""
     # get a match object
     match_obj = match.Match(opta_id)
-    match_obj = match.get_prematch_data(match_obj)
+    match_obj = await match.get_prematch_data(match_obj)
     # get post details for the match object
     title, markdown = md.pre_match_thread(match_obj)
     if '/r/' in sub:
@@ -98,7 +98,7 @@ def pre_match_thread(opta_id, sub=prod_sub):
     return thread
 
 
-def match_thread(opta_id, sub=prod_sub, pre_thread=None, thread=None, post=True):
+async def match_thread(opta_id, sub=prod_sub, pre_thread=None, thread=None, post=True):
     """This function posts a match thread. It maintains and updates the thread
     until the game is finished.
     
@@ -109,7 +109,7 @@ def match_thread(opta_id, sub=prod_sub, pre_thread=None, thread=None, post=True)
     if still active"""
     # get a match object
     match_obj = match.Match(opta_id)
-    match_obj = match.get_all_data(match_obj)
+    match_obj = await match.get_all_data(match_obj)
 
     # get reddit ids of any threads that may already exist for this match
     data = util.read_json(threads_json)
@@ -146,7 +146,7 @@ def match_thread(opta_id, sub=prod_sub, pre_thread=None, thread=None, post=True)
     while True:
         before = time.time()
         try:
-            match_obj = match.get_match_update(match_obj)
+            match_obj = await match.get_match_update(match_obj)
         except Exception as e:
             message = (
                 f'Error while getting match update.\n'
@@ -181,7 +181,7 @@ def match_thread(opta_id, sub=prod_sub, pre_thread=None, thread=None, post=True)
         time.sleep(60)
 
 
-def post_match_thread(opta_id, sub=prod_sub, thread=None):
+async def post_match_thread(opta_id, sub=prod_sub, thread=None):
     """This function posts a post-match thread"""
     # get reddit ids of any threads that may already exist for this match
     data = util.read_json(threads_json)
@@ -194,7 +194,7 @@ def post_match_thread(opta_id, sub=prod_sub, thread=None):
         sub = sub[3:]
 
     match_obj = match.Match(opta_id)
-    match_obj = match.get_all_data(match_obj)
+    match_obj = await match.get_all_data(match_obj)
     title, markdown = md.post_match_thread(match_obj)
     post_thread = submit_thread(sub, title, markdown, mod=True, unsticky=thread)
     if thread is not None:
@@ -211,7 +211,7 @@ def post_match_thread(opta_id, sub=prod_sub, thread=None):
 
 
 @util.time_dec(False)
-def main():
+async def main():
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(logging.DEBUG)
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -226,21 +226,21 @@ def main():
         if args.pre:
             # pre-match thread
             if sub:
-                pre_match_thread(id, sub)
+                await pre_match_thread(id, sub)
             else:
-                pre_match_thread(id)
+                await pre_match_thread(id)
         elif args.post:
             # post-match thread
             if sub:
-                post_match_thread(id, sub)
+                await post_match_thread(id, sub)
             else:
-                post_match_thread(id)
+                await post_match_thread(id)
         else:
             # match thread
             if sub:
-                match_thread(id, sub, post=post)
+                await match_thread(id, sub, post=post)
             else:
-                match_thread(id, post=post)
+                await match_thread(id, post=post)
 
 
 if __name__ == '__main__':
