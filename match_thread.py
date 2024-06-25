@@ -143,8 +143,7 @@ def match_thread(opta_id, sub=prod_sub, pre_thread=None, thread=None, post=True)
         thread = praw.models.Submission(reddit=reddit, id=thread)
         msg.send(f'Found existing match thread')
     
-    while not match_obj.is_final:
-        time.sleep(60)
+    while True:
         before = time.time()
         try:
             match_obj = match.get_match_update(match_obj)
@@ -173,9 +172,13 @@ def match_thread(opta_id, sub=prod_sub, pre_thread=None, thread=None, post=True)
             continue
         
         logger.debug(f'Successfully updated {match_obj.opta_id} at minute {match_obj.minute}')
-        if match_obj.is_final and post:
-            # post a post-match thread before exiting the loop
-            post_match_thread(opta_id, sub, thread)
+        if match_obj.is_final:
+            msg.send(f'{msg.user} Match is finished, final update made')
+            if post:
+                # post a post-match thread before exiting the loop
+                post_match_thread(opta_id, sub, thread)
+            break
+        time.sleep(60)
 
 
 def post_match_thread(opta_id, sub=prod_sub, thread=None):
