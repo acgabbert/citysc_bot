@@ -249,15 +249,11 @@ def stats_table(match_obj: match.Match):
 
 @util.time_dec(False)
 def main():
-    """
-    matches = get_upcoming_matches(date_from=1674627098)
-    print(matches)
     opta_id = 2261385
     match_obj = match.Match(opta_id)
+    match_obj = match.get_all_data(match_obj)
     title, markdown = match_thread(match_obj)
     print(markdown)
-    """
-    pass
 
 
 if __name__ == '__main__':
