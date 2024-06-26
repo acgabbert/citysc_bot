@@ -422,7 +422,7 @@ async def get_broadcasters(match_obj: Match) -> Match:
     data, status_code = await mls.call_api(url)
     if status_code == 204:
         url = mls_schedule.NEXTPRO_URL + f'/{match_obj.opta_id}'
-        data = await mls.call_api(url)[0]
+        data = (await mls.call_api(url))[0]
     if data is None:
         # no broadcast info...
         return retval
@@ -465,7 +465,7 @@ async def get_videos(match_obj: Match) -> Match:
     url = 'https://dapi.mlssoccer.com/v2/content/en-us/brightcovevideos'
     params = {'fields.optaMatchId': match_obj.opta_id}
     # TODO why isn't this using call_match_api? because of the indexing? 
-    data = await mls.call_api(url, params)[0]['items']
+    data = (await mls.call_api(url, params))[0]['items']
     util.write_json(data, f'assets/videos-{match_obj.opta_id}.json')
     vids = []
     for vid in data:
