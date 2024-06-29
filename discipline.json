@@ -1,40 +1,38 @@
 {
-    "updated": "06/21/2024, 00:00",
+    "updated": "06/26/2024, 00:00",
     "discipline": {
-        "11091": {
-            "Thiago Almada (ATL) - Suspended: Yellow Card Accumulation": [
-                "June 22 vs. STL"
+        "11504": {
+            "Obinna Nwobodo (CIN) - Suspended: Red Card - Second Caution": [
+                "June 29 vs. DAL"
             ],
             "Yellow Accumulation": [
-                "Brooks Lennon"
-            ]
-        },
-        "15296": {
-            "Jhojan Valencia (ATX) - Suspended: Yellow Card Accumulation": [
-                "June 22 vs. MIN"
-            ],
-            "Yellow Accumulation": [
-                "Julio Cascante",
-                "Sebastián Driussi",
-                "Diego Rubio"
+                "Ian Murphy",
+                "Obinna Nwobodo",
+                "Luca Orellano"
             ]
         },
         "16629": {
-            "Scott Arfield (CLT) - Suspended: Red Card - Serious Foul Play": [
-                "June 22 vs. PHI"
+            "Ashley Westwood (CLT) - Suspended: Yellow Card Accumulation": [
+                "June 29 vs. HOU"
             ],
             "Yellow Accumulation": [
-                "Kerwin Vargas",
-                "Ashley Westwood"
+                "Kerwin Vargas"
             ]
         },
-        "1903": {
-            "Asier Illarramendi (DAL) - Suspended: Yellow Card Accumulation ": [
-                "June 22 vs. SEA"
+        "1326": {
+            "Matai Akinmboni (DC) - Suspended: Red Card - Second Caution": [
+                "June 29 vs. RBNY"
+            ],
+            "Christian Benteke (DC) - Suspended: Red Card - Offensive/Insulting/Abusive Language": [
+                "June 29 vs. RBNY"
+            ],
+            "Christian Benteke (DC) - Suspended: Yellow Card Accumulation ": [
+                "July 3 vs. CIN"
             ],
             "Yellow Accumulation": [
-                "Paul Arriola",
-                "Sebastien Ibeagha"
+                "Lucas Bartlett",
+                "Cristian Dájome",
+                "Mateusz Klich"
             ]
         },
         "14880": {
@@ -48,17 +46,37 @@
                 "Marcelo Weigandt"
             ]
         },
-        "1616": {
-            "Joaquín Sosa (MTL) - Suspended: Yellow Card Accumulation ": [
-                "June 22 vs. COL"
+        "6977": {
+            "Hassani Dotson (MIN) - Suspended: Red Card - Second Caution": [
+                "June 29 vs. POR"
             ],
             "Yellow Accumulation": [
-                "Ariel Lassiter"
+                "Wil Trapp"
             ]
         },
-        "1899": {
-            "Brayan Vera (RSL) - Suspended: Yellow Card Accumulation ": [
-                "June 22 vs. LA"
+        "399": {
+            "Daniel Edelman (RBNY) - Suspended: Yellow Card Accumulation ": [
+                "June 29 vs. DC"
+            ],
+            "Yellow Accumulation": [
+                "Frankie Amaya"
+            ]
+        },
+        "1708": {
+            "Alessandro Schöpf (VAN) - Suspended: Red Card - Second Caution": [
+                "June 29 vs. STL"
+            ]
+        },
+        "11091": {
+            "Yellow Accumulation": [
+                "Brooks Lennon"
+            ]
+        },
+        "15296": {
+            "Yellow Accumulation": [
+                "Julio Cascante",
+                "Sebastián Driussi",
+                "Diego Rubio"
             ]
         },
         "1207": {
@@ -67,20 +85,16 @@
                 "Fabian Herbers"
             ]
         },
-        "11504": {
-            "Yellow Accumulation": [
-                "Ian Murphy"
-            ]
-        },
         "436": {
             "Yellow Accumulation": [
                 "Djordje Mihailovic"
             ]
         },
-        "1326": {
+        "1903": {
             "Yellow Accumulation": [
-                "Christian Benteke",
-                "Mateusz Klich"
+                "Paul Arriola",
+                "Sebastien Ibeagha",
+                "Petar Musa"
             ]
         },
         "1230": {
@@ -88,9 +102,9 @@
                 "Joseph Paintsil"
             ]
         },
-        "6977": {
+        "1616": {
             "Yellow Accumulation": [
-                "Wil Trapp"
+                "Ariel Lassiter"
             ]
         },
         "15154": {
@@ -103,11 +117,14 @@
                 "Xavier Arreaga"
             ]
         },
-        "399": {
+        "9668": {
             "Yellow Accumulation": [
-                "Frankie Amaya",
-                "Kyle Duncan",
-                "Daniel Edelman"
+                "Santiago Rodriguez"
+            ]
+        },
+        "6900": {
+            "Yellow Accumulation": [
+                "César Araújo"
             ]
         },
         "5513": {
@@ -124,15 +141,18 @@
                 "Dario Zuparic"
             ]
         },
+        "1899": {
+            "Yellow Accumulation": [
+                "Andrés Gómez"
+            ]
+        },
         "1131": {
             "Yellow Accumulation": [
-                "Cristian Espinoza",
-                "Preston Judd"
+                "Cristian Espinoza"
             ]
         },
         "421": {
             "Yellow Accumulation": [
-                "Andreu Fontàs",
                 "Nemanja Radoja"
             ]
         },
@@ -144,7 +164,9 @@
         },
         "2077": {
             "Yellow Accumulation": [
+                "Deybi Flores",
                 "Kevin Long",
+                "Matty Longstaff",
                 "Jonathan Osorio"
             ]
         }
