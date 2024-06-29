@@ -21,7 +21,7 @@ def get_standings(**kwargs):
             comp = COMP + str(value)
         if key == 'season':
             season = SEASON + str(value)
-            print(season)
+            #print(season)
     url += comp + season
     data, _ = mls.call_api(url)
     return data

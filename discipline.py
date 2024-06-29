@@ -120,7 +120,6 @@ def parse_discipline(soup: BeautifulSoup):
                     disc_list[t][YELLOWS_TITLE] = [p]
             else:
                 disc_list[t] = {YELLOWS_TITLE: [p]}
-        print(yellow_list)
     return disc_list
 
 
