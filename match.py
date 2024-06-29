@@ -473,13 +473,13 @@ def get_videos(match_obj: Match) -> Match:
     return retval
 
 
-def get_injuries(match_obj: Match) -> Match:
+def get_injuries(match_obj: Match, force: bool = False) -> Match:
     retval = match_obj
     inj = util.read_json(injuries.INJ_FILE)
     date_format = '%m/%d/%Y, %H:%M'
     last_updated = datetime.strptime(inj['updated'], date_format)
     delta = datetime.now() - last_updated
-    if delta.days > 2:
+    if delta.days > 2 and not force:
         return retval
     inj = inj['injuries']
     home_inj = []
