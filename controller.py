@@ -92,7 +92,7 @@ def daily_setup(sub):
                 msg.send(f'{msg.user}\n{message}')
                 # schedule a matchday/pre-match thread for 4:00am
                 # right now static checking for if the team is CITY2 to skip matchday threads
-                if datetime.now().hour < 4 and team != 19202:
+                if team != 19202:
                     t = int(datetime.now().replace(hour=4, minute=0).timestamp())
                     scheduler.enterabs(t, 1, thread.pre_match_thread, argument=(id, sub))
                     prematch_time = time.strftime('%H:%M', time.localtime(t))

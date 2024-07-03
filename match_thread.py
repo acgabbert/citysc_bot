@@ -74,6 +74,18 @@ def comment(pre_thread, text):
     return comment
 
 
+def check_existing_threads(opta_id, thread_type='match'):
+    data = util.read_json(threads_json)
+    if str(opta_id) not in data.keys():
+        return False
+    else:
+        gm = data[str(opta_id)]
+        if thread_type in gm.keys():
+            return True
+        else:
+            return False  
+
+
 def pre_match_thread(opta_id, sub=prod_sub):
     """This function posts a pre-match/matchday thread
     Returns a PRAW submission object representing the pre-match thread"""
@@ -84,17 +96,33 @@ def pre_match_thread(opta_id, sub=prod_sub):
     title, markdown = md.pre_match_thread(match_obj)
     if '/r/' in sub:
         sub = sub[3:]
-    # TODO implement PRAW exception handling here or in submit_thread
-    thread = submit_thread(sub, title, markdown, new=True, mod=True)
-    msg.send(f'{msg.user} Pre-match thread posted! https://www.reddit.com/r/{sub}/comments/{thread.id_from_url(thread.shortlink)}')
     # keep track of threads
     data = util.read_json(threads_json)
     if str(opta_id) not in data.keys():
         # add it as an empty dict
         data[str(opta_id)] = {}
         data[str(opta_id)]['slug'] = match_obj.slug
-    data[str(opta_id)]['pre'] = thread.id_from_url(thread.shortlink)
-    util.write_json(data, threads_json)
+    gm = data[str(opta_id)]
+    if not 'pre' in gm.keys():
+         # TODO implement PRAW exception handling here or in submit_thread
+        thread = submit_thread(sub, title, markdown, new=True, mod=True)
+        msg.send(f'{msg.user} Pre-match thread posted! https://www.reddit.com/r/{sub}/comments/{thread.id_from_url(thread.shortlink)}')
+        data[str(opta_id)]['pre'] = thread.id_from_url(thread.shortlink)
+        util.write_json(data, threads_json)
+    else:
+        msg.send("Found existing pre-match thread")
+        thread = gm['pre']
+        reddit = util.get_reddit()
+        thread = praw.models.Submission(reddit=reddit, id=thread)
+        try:
+            thread.edit(markdown)
+        except Exception as e:
+            message = (
+                f'Error while editing pre-match thread.\n'
+                f'{str(e)}\n'
+            )
+            logger.error(message)
+            msg.send(f'{msg.user} {message}')
     return thread
 
 
