@@ -79,7 +79,9 @@ def call_match_api(url, params, filename):
         filename = f'{filename}-{opta_id}'
     except KeyError:
         pass
-    data, _ = mls.call_api(url, params)
+    data, status_code = mls.call_api(url, params)
+    if status_code != 200:
+        pass
     util.write_json(data, f'assets/{filename}.json')
     return data
 
@@ -317,6 +319,8 @@ def get_lineups(match_obj: Match) -> Match:
     subs_params = const.SUBS_PARAMS
     subs_params[const.GAME_ID] = match_obj.opta_id
     subs = call_match_api(subs_url, subs_params, 'subs')
+    retval.home.lineup = []
+    retval.away.lineup = []
     for p in data:
         team_id = p['club']['opta_id']
         status = p['status']
