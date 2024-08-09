@@ -128,7 +128,11 @@ def update_image_widget(name, subreddit='stlouiscitysc'):
     now = datetime.now()
     widget_name = f'{name} PNG'
     image_path = f'png/{name}-{now.month}-{now.day}.png'
-    im = Image.open(image_path)
+    try:
+        im = Image.open(image_path)
+    except:
+        msg.send(f'Failed to update widget {image_path}.')
+        return False
     size = im.size # format (width, height) tuple
     return update_widget(widget_name, (image_path, size), subreddit)
 
