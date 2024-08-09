@@ -553,5 +553,43 @@
         "pre": "1dxc70g",
         "match": "1dxwbjn",
         "post": "1dxz1ol"
+    },
+    "2415180": {
+        "slug": "stlvsvan-07-13-2024",
+        "pre": "1e299fb",
+        "match": "1e2oly8",
+        "post": "1e2rpvh"
+    },
+    "2415197": {
+        "slug": "seavsstl-07-17-2024",
+        "pre": "1e5dhrb",
+        "match": "1e5zx9n",
+        "post": "1e62uyu"
+    },
+    "2415206": {
+        "slug": "skcvsstl-07-20-2024",
+        "pre": "1e7rdgj",
+        "match": "1e89a5z",
+        "post": "1e8c6j1"
+    },
+    "289017124": {
+        "slug": "stlvsdal-07-27-2024",
+        "pre": "1dlrfkv",
+        "match": "1edv48z",
+        "post": "1edxr3x"
+    },
+    "289016915": {
+        "slug": "stlvsvcfc-08-02-2024",
+        "match": "1ein8gv"
+    },
+    "289017153": {
+        "slug": "stlvsfcj-08-04-2024",
+        "pre": "1ejww9a",
+        "match": "1ekaezu",
+        "post": "1ekdo3q"
+    },
+    "289017406": {
+        "slug": "stlvspor-08-09-2024",
+        "pre": "1enwac6"
     }
 }
