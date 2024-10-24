@@ -78,8 +78,9 @@ def get_standings(url=standings_url, xpath=standings_xpath, driver=None):
 
 def schedule_controller(url=schedule_url, xpath=schedule_xpath, driver=None):
     shots = 0
+    tries = 0
     date = datetime.now()
-    while shots < 2 and date.year == datetime.now().year:
+    while (shots < 2 or tries < 4) and date.year == datetime.now().year:
         dated_url = f'{url}{date.year}-{date.month}-{date.day}'
         logger.debug(f'checking {dated_url}')
         driver = get_mls_driver(dated_url)
@@ -96,6 +97,7 @@ def schedule_controller(url=schedule_url, xpath=schedule_xpath, driver=None):
             shots += 1
         date += timedelta(days=7)
         driver.quit()
+        tries += 1
 
 
 def write_screenshot(data, filename):

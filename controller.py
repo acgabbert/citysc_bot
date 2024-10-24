@@ -125,10 +125,10 @@ def main(sub):
     root.info(message)
     msg.send(message)
     daily_setup(sub)
-    schedule.every().day.at('00:45').do(mls_selenium.main)
-    schedule.every().day.at('01:00').do(widgets.main)
-    schedule.every().day.at('01:15').do(injuries.main)
-    schedule.every().day.at('01:15').do(discipline.main)
+    #schedule.every().day.at('00:45').do(mls_selenium.main)
+    #schedule.every().day.at('01:00').do(widgets.main)
+    #schedule.every().day.at('01:15').do(injuries.main)
+    #schedule.every().day.at('01:15').do(discipline.main)
     schedule.every().day.at('01:30').do(daily_setup, sub)
     running = True
     while running:
