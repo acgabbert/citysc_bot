@@ -1,11 +1,15 @@
 FROM python:3.11-slim-buster as base
 
-WORKDIR /docker_bot
+WORKDIR /citysc_bot
 
-COPY requirements.txt requirements.txt
-RUN pip3 install -r requirements.txt
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . /docker_bot/
+COPY . .
 
-ENTRYPOINT ["python3"]
-CMD ["controller.py"]
+# Create a non-root user
+RUN useradd -m botuser && chown -R botuser:botuser /app
+USER botuser
+
+# Command to run the bot
+CMD ["python", "controller.py"]

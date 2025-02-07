@@ -13,3 +13,5 @@ __pycache__
 *.sh
 config.json
 scripts/*
+.env
+*.pyc

@@ -1,0 +1,10 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  citysc_bot:
+    build: .
+    volumes:
+      - ./config.py:/app/config.py:ro
+      - ./log:/citysc_bot/log
+    restart: unless-stopped
