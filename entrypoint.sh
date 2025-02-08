@@ -1,11 +1,5 @@
 #!/bin/bash
 
-# Add debug output
-echo "Current directory: $(pwd)"
-echo "Listing directory contents:"
-ls -la
-echo "Current user: $(id)"
-
 # Check for required config
 if [ ! -f "/app/config.py" ]; then
     echo "Error: config.py not found at /app/config.py"
