@@ -1,5 +1,10 @@
 # Hostname for logging purposes
 HOST = "host"
+# Teams to follow, by Opta ID
+TEAMS = [
+    17012, # St. Louis City SC
+    19202  # St. Louis City SC 2 (MLS Next Pro)
+]
 # Reddit config
 CLIENT_ID = ''
 SECRET_TOKEN = ''

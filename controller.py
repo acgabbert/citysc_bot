@@ -6,13 +6,9 @@ from datetime import datetime, timezone
 import schedule
 from multiprocessing import Process
 
-import discipline
 import discord as msg
-import injuries
 import match_thread as thread
 import mls_schedule
-import mls_selenium
-import widgets
 
 fh = logging.handlers.RotatingFileHandler('log/debug.log', maxBytes=1000000, backupCount=10)
 fh.setLevel(logging.DEBUG)
@@ -39,7 +35,7 @@ scheduler = sched.scheduler(time.time, time.sleep)
 - 17012: St. Louis City SC
 - 19202: St. Louis City SC 2
 """
-clubs = [17012, 19202]
+from config import TEAMS as clubs
 
 class Main:
     """Use this class to start a match thread in a separate process, 
