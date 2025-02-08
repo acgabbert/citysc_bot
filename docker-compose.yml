@@ -3,11 +3,11 @@ services:
   citysc_bot:
     build: .
     volumes:
+      - ${BOT_BASE_PATH:-/opt/citysc_bot}/config.py:/app/config.py:ro
       - ${BOT_BASE_PATH:-/opt/citysc_bot}/assets:/app/assets
       - ${BOT_BASE_PATH:-/opt/citysc_bot}/markdown:/app/markdown
       - ${BOT_BASE_PATH:-/opt/citysc_bot}/log:/app/log
       - ${BOT_BASE_PATH:-/opt/citysc_bot}/png:/app/png
-      - ${BOT_BASE_PATH:-/opt/citysc_bot}/config.py:/app/config.py
     environment:
       - TZ=America/Chicago
       - INIT_DIR=${BOT_BASE_PATH:-/opt/citysc_bot}

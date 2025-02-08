@@ -1,9 +1,16 @@
 #!/bin/bash
 
-# debug output
+# Add debug output
 echo "Current directory: $(pwd)"
 echo "Listing directory contents:"
 ls -la
+
+# Check for config.py
+if [ ! -f "/app/config.py" ]; then
+    echo "Error: config.py not found. Please create config.py in ${INIT_DIR}"
+    echo "You can use config-example.py as a template"
+    exit 1
+fi
 
 # Initialize directory structure if mounting to empty directory
 if [ -n "$INIT_DIR" ]; then
@@ -14,11 +21,6 @@ if [ -n "$INIT_DIR" ]; then
             mkdir -p "$INIT_DIR/$dir"
         fi
     done
-    
-    if [ ! -f "$INIT_DIR/config.py" ]; then
-        echo "Copying config-example.py to $INIT_DIR/config.py"
-        cp -n /app/config-example.py "$INIT_DIR/config.py"
-    fi
 fi
 
 echo "Starting main application..."
