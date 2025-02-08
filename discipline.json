@@ -1,87 +1,104 @@
 {
-    "updated": "07/19/2024, 00:00",
+    "updated": "10/16/2024, 00:00",
     "discipline": {
         "15296": {
-            "Julio Cascante (ATX) - Suspended: Yellow Card Accumulation ": [
-                "July 20 vs. CLT"
+            "Guilherme Biro (ATX) - Suspended: Red Card - Serious Foul Play": [
+                "October 19 vs. COL"
             ],
-            "Sebastián Driussi (ATX) Suspended: Red Card - Violent Conduct": [
-                "July 20 vs. CLT"
+            "Dani Pereira (ATX) - Suspended: Yellow Card Accumulation": [
+                "October 19 vs. COL"
             ],
             "Yellow Accumulation": [
-                "Sebastián Driussi",
-                "Jon Gallagher"
+                "Guilherme Biro",
+                "Julio Cascante",
+                "Diego Rubio"
             ]
         },
-        "11504": {
-            "Pat Noonan (CIN) - Suspended: Technical Staff Red Card - Second Caution ": [
-                "July 20 vs. RBNY"
-            ],
-            "Alvas Powell (CIN) - Suspended: Red Card - Second Caution": [
-                "July 20 vs. RBNY"
+        "1897": {
+            "Franco Escobar (HOU) - Suspended: Red Card - Second Caution": [
+                "October 19 vs. LA"
             ],
             "Yellow Accumulation": [
-                "Luciano Acosta",
-                "Kevin Kelsy",
-                "Yuya Kubo"
+                "Coco Carrasquilla",
+                "Franci Escobar",
+                "Micael"
             ]
         },
-        "1903": {
-            "Petar Musa (DAL) - Suspended: Yellow Card Accumulation ": [
-                "July 20 vs. NE"
-            ],
+        "1230": {
             "Yellow Accumulation": [
-                "Paul Arriola"
+                "Maxime Chanot",
+                "Timothy Tillman"
             ]
         },
-        "6977": {
-            "Michael Boxall (MIN) - Suspended: Yellow Card Accumulation": [
-                "July 20 vs. SJ"
+        "1616": {
+            "Nathan Saliba (MTL) - Suspended: Yellow Card Accumulation": [
+                "October 19 vs. NYC"
             ],
             "Yellow Accumulation": [
-                "Wil Trapp"
+                "George Campbell",
+                "Raheem Edwards"
             ]
         },
         "399": {
-            "Sean Nealis (RBNY) - Suspended: Red Card - DOGSO": [
-                "July 20 vs. CIN"
+            "Dylan Nealis (RBNY) - Suspended: Red Card - DOGSO": [
+                "October 19 vs. CLB"
             ],
             "Yellow Accumulation": [
-                "Frankie Amaya",
-                "Daniel Edelman",
                 "Noah Eile"
             ]
         },
-        "1899": {
-            "Cristian Arango (RSL) - Suspended: Violating the MLS Anti-Harassment Policy": [
-                "July 20 vs. COL"
+        "6900": {
+            "Wilder Cartagena (ORL) - Suspended: Yellow Card Accumulation": [
+                "October 19 vs. ATL"
             ],
             "Yellow Accumulation": [
-                "Cristian Arango",
-                "Emeka Eneli",
-                "Alexandros Katranis",
-                "Diego Luna"
+                "César Araújo"
             ]
         },
-        "17012": {
-            "Chris Durkin (STL) - Suspended: Yellow Card Accumulation": [
-                "July 20 vs. SKC"
+        "1581": {
+            "Kamal Miller (POR) - Suspended: Yellow Card Accumulation": [
+                "October 19 vs. SEA"
             ],
             "Yellow Accumulation": [
-                "Anthony Markanich",
-                "Célio Pompeu",
-                "Tomas Totland",
-                "Indiana Vassilev"
+                "Eryk Williamson"
+            ]
+        },
+        "1899": {
+            "Brayan Vera (RSL) - Suspended: Red Card - Spitting at or on Someone": [
+                "October 19 vs. VAN",
+                "1st match of playoffs"
+            ],
+            "Yellow Accumulation": [
+                "Matt Crooks",
+                "Emeka Eneli",
+                "Justen Glad",
+                "Alexandros Katranis"
+            ]
+        },
+        "1708": {
+            "Vanni Sartini (VAN) - Suspended: Technical Staff Yellow Card Accumulation": [
+                "October 19 vs. RSL"
+            ],
+            "Yellow Accumulation": [
+                "Fafa Picault"
             ]
         },
         "11091": {
             "Yellow Accumulation": [
-                "Brooks Lennon"
+                "Stian Gregersen"
             ]
         },
         "1207": {
             "Yellow Accumulation": [
-                "Rafael Czichos"
+                "Federico Navarro",
+                "Wyatt Omsberg"
+            ]
+        },
+        "11504": {
+            "Yellow Accumulation": [
+                "Kevin Kelsy",
+                "Ian Murphy",
+                "DeAndre Yedlin"
             ]
         },
         "16629": {
@@ -89,82 +106,67 @@
                 "Nathan Byrne"
             ]
         },
-        "1326": {
+        "436": {
             "Yellow Accumulation": [
-                "Lucas Bartlett"
+                "Calvin Harris",
+                "Rafael Navarro"
             ]
         },
-        "1230": {
+        "1326": {
             "Yellow Accumulation": [
-                "Edwin Cerrillo",
-                "Riqui Puig"
+                "Lucas Bartlett",
+                "Christian Benteke",
+                "Aaron Herrera"
             ]
         },
         "14880": {
             "Yellow Accumulation": [
-                "Noah Allen",
-                "Sergio Busquets"
+                "Jordi Alba",
+                "Ian Fray",
+                "Luis Suárez"
             ]
         },
-        "1616": {
+        "6977": {
             "Yellow Accumulation": [
-                "George Campbell",
-                "Raheem Edwards",
-                "Ariel Lassiter",
-                "Samuel Piette",
-                "Nathan Saliba"
+                "Jefferson Diaz",
+                "Anthony Markanich",
+                "Miguel Tapias"
             ]
         },
         "15154": {
             "Yellow Accumulation": [
-                "Aníbal Godoy",
-                "Dru Yearwood"
+                "Anibal Godoy"
             ]
         },
         "928": {
             "Yellow Accumulation": [
-                "Ian Harkes"
+                "Nacho Gil",
+                "Matt Polster"
             ]
         },
         "9668": {
             "Yellow Accumulation": [
-                "Santiago Rodriguez"
+                "Keaton Parks"
             ]
         },
         "5513": {
             "Yellow Accumulation": [
-                "Alejandro Bedoya",
-                "Damion Lowe"
-            ]
-        },
-        "1581": {
-            "Yellow Accumulation": [
-                "Kamal Miller"
-            ]
-        },
-        "1131": {
-            "Yellow Accumulation": [
-                "Vítor Costa",
-                "Jack Skahan"
+                "Dániel Gazdag",
+                "Kai Wagner"
             ]
         },
         "421": {
             "Yellow Accumulation": [
-                "Jake Davis",
                 "Nemanja Radoja"
             ]
         },
-        "2077": {
+        "17012": {
             "Yellow Accumulation": [
-                "Federico Bernardeschi",
-                "Lorenzo Insigne",
-                "Jonathan Osorio",
-                "Raoul Petretta"
-            ]
-        },
-        "1708": {
-            "Yellow Accumulation": [
-                "Brian White"
+                "Jannes Horn",
+                "Henry Kessler",
+                "Joakim Nilsson",
+                "Célio Pompeu",
+                "Tomas Totland"
             ]
         }
     }
