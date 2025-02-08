@@ -10,4 +10,5 @@ services:
     environment:
       - TZ=America/Chicago
       - INIT_DIR=${BOT_BASE_PATH:-/opt/citysc_bot}
+    user: "1000:1000"  # Run as UID 1000
     restart: unless-stopped

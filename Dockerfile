@@ -19,8 +19,9 @@ COPY *.py ./
 RUN rm -f config*.py
 COPY *.sh ./
 
-# Create required directories
-RUN mkdir -p assets markdown log png
+# Create required directories with proper permissions
+RUN mkdir -p assets markdown log png && \
+    chown -R 1000:1000 /app
 
 # Create a non-root user
 RUN useradd -m botuser && chown -R botuser:botuser /app
