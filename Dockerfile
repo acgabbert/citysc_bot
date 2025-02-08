@@ -1,3 +1,4 @@
+# Dockerfile modifications
 FROM python:3.11-slim-bookworm
 
 # Install system dependencies and Chromium
@@ -15,6 +16,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+# Create required directories
 RUN mkdir -p /citysc_bot/assets /citysc_bot/markdown /citysc_bot/log /citysc_bot/png
 
 # Create a non-root user
@@ -24,5 +26,9 @@ USER botuser
 # Set Chrome options for running in container
 ENV CHROME_OPTIONS="--headless --no-sandbox --disable-dev-shm-usage"
 
-# Command to run the bot
+# Add an entrypoint script
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["python", "controller.py"]
