@@ -17,6 +17,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the source code
 COPY *.py ./
 RUN rm -f config*.py
+COPY *.sh ./
 
 # Create required directories
 RUN mkdir -p assets markdown log png
