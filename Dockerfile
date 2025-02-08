@@ -20,6 +20,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+RUN mkdir /citysc_bot/assets /citysc_bot/markdown /citysc_bot/log /citysc_bot/png
+
 RUN wget -q "https://storage.googleapis.com/chrome-for-testing-public/132.0.6834.159/linux64/chromedriver-linux64.zip" \
     && unzip chromedriver-linux64.zip -d /usr/local/bin/ \
     && rm chromedriver-linux64.zip \

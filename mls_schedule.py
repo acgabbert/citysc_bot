@@ -9,14 +9,14 @@ import util
 BASE_URL = 'https://sportapi.mlssoccer.com/api/matches'
 PARAMS = {
     'culture': 'en-us',
-    'date_from': '2023-12-31',
-    'date_to': '2024-12-31',
+    'date_from': '2024-12-31',
+    'date_to': '2025-12-31',
     'competition': 98,
     'clubOptaId': 17012
 }
-# returns optaId and matchDate for all matches in 2024
-LITE_URL = 'https://sportapi.mlssoccer.com/api/matchesLite/2024'
-SCHEDULE_LITE = 'https://sportapi.mlssoccer.com/api/matchesLite/2024?culture=en-us&competition=98&matchType=Regular'
+# returns optaId and matchDate for all matches in 2025
+LITE_URL = 'https://sportapi.mlssoccer.com/api/matchesLite/2025'
+SCHEDULE_LITE = 'https://sportapi.mlssoccer.com/api/matchesLite/2025?culture=en-us&competition=98&matchType=Regular'
 MATCH_RESULT = 'https://stats-api.mlssoccer.com/v1/matches?&include=away_club_match&include=home_club_match'
 GAME_ID = '&match_game_id='
 NEXTPRO_URL = 'https://sportapi.mlsnextpro.com/api/matches'

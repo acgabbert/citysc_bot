@@ -589,7 +589,7 @@ def get_previous_match(match_obj: Match) -> Match:
 
 @util.time_dec(False)
 def main():
-    opta_id = 2335158
+    opta_id = 289017508
     match_obj = Match(opta_id)
     match_obj = get_match_data(match_obj)
     match_obj = get_lineups(match_obj)
