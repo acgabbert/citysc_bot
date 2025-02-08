@@ -1,6 +1,4 @@
-# docker-compose.yml
 version: '3.8'
-
 services:
   citysc_bot:
     build: .
@@ -8,4 +6,5 @@ services:
       - ${BOT_BASE_PATH:-/opt/citysc_bot}:/citysc_bot
     environment:
       - TZ=America/Chicago
+      - INIT_DIR=${BOT_BASE_PATH:-/opt/citysc_bot}
     restart: unless-stopped
