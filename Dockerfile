@@ -8,22 +8,26 @@ RUN apt-get update && apt-get install -y \
     chromium-driver \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /citysc_bot
+WORKDIR /app
 
+# Copy requirements first to leverage Docker cache
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy the source code
+COPY *.py ./
+COPY entrypoint.sh /entrypoint.sh
+
 # Create required directories
-RUN mkdir -p /citysc_bot/assets /citysc_bot/markdown /citysc_bot/log /citysc_bot/png
+RUN mkdir -p assets markdown log png
 
 # Create a non-root user
-RUN useradd -m botuser && chown -R botuser:botuser /citysc_bot
+RUN useradd -m botuser && chown -R botuser:botuser /app
 USER botuser
 
 # Set Chrome options for running in container
 ENV CHROME_OPTIONS="--headless --no-sandbox --disable-dev-shm-usage"
 
-# Add an entrypoint script
-COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
