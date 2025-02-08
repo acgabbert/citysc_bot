@@ -13,7 +13,7 @@ from config import EXE_PATH
 
 logger = logging.getLogger(__name__)
 
-standings_url = 'https://www.mlssoccer.com/standings/2024/conference#season=2024&live=false'
+standings_url = 'https://www.mlssoccer.com/standings/2025/conference#season=2025&live=false'
 standings_xpath = f"//div[@class='mls-c-standings__wrapper']"
 
 schedule_url = 'https://www.mlssoccer.com/schedule/scores#competition=all&club=17012&date='
