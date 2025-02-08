@@ -5,6 +5,7 @@ services:
   citysc_bot:
     build: .
     volumes:
-      - ./config.py:/app/config.py:ro
-      - ./log:/citysc_bot/log
+      - ${BOT_BASE_PATH:-/opt/citysc_bot}:/citysc_bot
+    environment:
+      - TZ=America/Chicago
     restart: unless-stopped
