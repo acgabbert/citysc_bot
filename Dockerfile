@@ -34,5 +34,5 @@ ENV CHROME_OPTIONS="--headless --no-sandbox --disable-dev-shm-usage"
 
 RUN chmod +x entrypoint.sh
 
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["/bin/bash", "./entrypoint.sh"]
 CMD ["python", "controller.py"]
