@@ -36,6 +36,7 @@ scheduler = sched.scheduler(time.time, time.sleep)
 - 19202: St. Louis City SC 2
 """
 from config import TEAMS as clubs
+from config import SUB
 
 class Main:
     """Use this class to start a match thread in a separate process, 
@@ -142,5 +143,5 @@ if __name__ == '__main__':
         if '/r/' not in sub:
             sub = f'/r/{sub}'
     else:
-        sub = '/r/u_citysc_bot'
+        sub = SUB
     main(sub)

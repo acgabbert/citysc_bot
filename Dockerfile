@@ -20,7 +20,7 @@ RUN rm -f config*.py
 COPY *.sh ./
 
 # Create required directories with proper permissions
-RUN mkdir -p assets markdown log png && \
+RUN mkdir assets markdown log png && \
     chown -R 1000:1000 /app
 
 # Create a non-root user
