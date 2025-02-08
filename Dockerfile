@@ -10,10 +10,17 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /citysc_bot
 
+# Debug: List contents of build context
+RUN pwd && ls -la
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy all source files
 COPY . .
+
+# Debug: List contents after copy
+RUN pwd && ls -la
 
 # Create required directories
 RUN mkdir -p /citysc_bot/assets /citysc_bot/markdown /citysc_bot/log /citysc_bot/png
@@ -25,9 +32,4 @@ USER botuser
 # Set Chrome options for running in container
 ENV CHROME_OPTIONS="--headless --no-sandbox --disable-dev-shm-usage"
 
-# Add an entrypoint script
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-ENTRYPOINT ["/entrypoint.sh"]
 CMD ["python", "controller.py"]
