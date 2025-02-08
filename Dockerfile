@@ -17,7 +17,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the source code
 COPY *.py ./
 RUN rm -f config*.py
-COPY entrypoint.sh /entrypoint.sh
 
 # Create required directories
 RUN mkdir -p assets markdown log png
@@ -32,7 +31,7 @@ ENV PYTHONPATH=/app
 # Set Chrome options for running in container
 ENV CHROME_OPTIONS="--headless --no-sandbox --disable-dev-shm-usage"
 
-RUN chmod +x /entrypoint.sh
+RUN chmod +x entrypoint.sh
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["entrypoint.sh"]
 CMD ["python", "controller.py"]

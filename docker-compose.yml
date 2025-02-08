@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   citysc_bot:
     build: .
