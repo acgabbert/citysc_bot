@@ -9,7 +9,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from config import EXE_PATH
+# from config import EXE_PATH
 
 logger = logging.getLogger(__name__)
 
@@ -22,15 +22,20 @@ schedule_xpath = f"//div[@class='mls-c-schedule__matches']"
 schedule_no_matches = 'mls-c-schedule__no-results-text'
 
 def get_mls_driver(url, width=375, height=2800):
-    service = ChromeService()
+    service = ChromeService(executable_path='/usr/bin/chromedriver')
     options = Options()
     options.add_argument('--headless')
     options.add_argument('--disable-notifications')
-    options.add_argument('--remote-debugging-port=9222')
-    driver = webdriver.Chrome(options=options)
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
+    options.add_argument('--disable-gpu')
+    # Use chromium binary location
+    options.binary_location = '/usr/bin/chromium'
+    driver = webdriver.Chrome(service=service, options=options)
     driver.set_window_size(width, height)
     
     driver.get(url)
+    # Rest of the function remains the same...
     # click the onetrust cookie banner and wait until it goes away
     try:
         WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '//button[@id="onetrust-accept-btn-handler"]')))
