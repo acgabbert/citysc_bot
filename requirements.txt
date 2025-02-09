@@ -3,3 +3,6 @@ schedule
 praw
 bs4
 selenium
+backoff
+pydantic
+aiohttp
