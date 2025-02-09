@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Union
 import asyncio
 from urllib.parse import urljoin
 import logging
@@ -136,8 +136,13 @@ class MLSApiClient:
         path: str, 
         params: Optional[Dict[str, Any]] = None,
         allow_404: bool = False
-    ) -> Dict[str, Any]:
-        """Make an API request to either endpoint"""
+    ) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
+        """Make an API request to either endpoint
+        
+        Returns:
+            Union[Dict[str, Any], List[Dict[str, Any]]]: The JSON response, 
+            which may be either a dictionary or a list of dictionaries
+        """
         base_url = self._get_base_url(endpoint)
         url = urljoin(base_url, path)
         session = self._sessions[endpoint]
@@ -182,7 +187,7 @@ class MLSApiClient:
     # Stats API endpoints
     async def get_match_stats(self, match_id: int) -> Dict[str, Any]:
         """Get match statistics from stats API"""
-        return await self._make_request(
+        response = await self._make_request(
             ApiEndpoint.STATS,
             "matches",
             params={
@@ -197,8 +202,12 @@ class MLSApiClient:
                 ]
             }
         )
+        # response is formatted as an array
+        if not response:
+            return {}
+        return response[0]  # Return the first match object
 
-    async def get_match_commentary(self, match_id: int) -> Dict[str, Any]:
+    async def get_match_commentary(self, match_id: int) -> List[Dict[str, Any]]:
         """Get match commentary from stats API"""
         return await self._make_request(
             ApiEndpoint.STATS,
@@ -209,7 +218,7 @@ class MLSApiClient:
             }
         )
     
-    async def get_preview(self, match_id: int) -> Dict[str, Any]:
+    async def get_preview(self, match_id: int) -> List[Dict[str, Any]]:
         """Get the preview (match facts) for a match."""
         return await self._make_request(
             ApiEndpoint.STATS,
@@ -220,7 +229,7 @@ class MLSApiClient:
             }
         )
     
-    async def get_feed(self, match_id: int) -> Dict[str, Any]:
+    async def get_feed(self, match_id: int) -> List[Dict[str, Any]]:
         """Get the full feed from a match."""
         return await self._make_request(
             ApiEndpoint.STATS,
@@ -243,7 +252,7 @@ class MLSApiClient:
             }
         )
     
-    async def get_summary(self, match_id: int) -> Dict[str, Any]:
+    async def get_summary(self, match_id: int) -> List[Dict[str, Any]]:
         """Get the summary feed from a match."""
         return await self._make_request(
             ApiEndpoint.STATS,
@@ -261,7 +270,7 @@ class MLSApiClient:
             }
         )
     
-    async def get_lineups(self, match_id: int) -> Dict[str, Any]:
+    async def get_lineups(self, match_id: int) -> List[Dict[str, Any]]:
         """Get the lineups from a match."""
         return await self._make_request(
             ApiEndpoint.STATS,
@@ -272,7 +281,7 @@ class MLSApiClient:
             }
         )
     
-    async def get_subs(self, match_id: int) -> Dict[str, Any]:
+    async def get_subs(self, match_id: int) -> List[Dict[str, Any]]:
         """Get the subs from a match."""
         return await self._make_request(
             ApiEndpoint.STATS,
@@ -283,7 +292,7 @@ class MLSApiClient:
             }
         )
     
-    async def get_managers(self, match_id: int) -> Dict[str, Any]:
+    async def get_managers(self, match_id: int) -> List[Dict[str, Any]]:
         """Get managers for a match."""
         return await self._make_request(
             ApiEndpoint.STATS,

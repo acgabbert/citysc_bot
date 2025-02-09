@@ -79,7 +79,7 @@ class Match(mls.MlsObject):
         else:
             return False
     
-    def update_from_match_stats(self, data: Dict[str, Any], update: bool = False) -> None:
+    def update_from_stats(self, data: Dict[str, Any], update: bool = False) -> None:
         """Update existing Match object from API response"""
         if not update:
             self.home = process_club(data["home_club"])
@@ -108,6 +108,39 @@ class Match(mls.MlsObject):
         
         if data.get("period") == "HalfTime":
             self.minute = "HT"
+
+    def update_from_preview(self, data: Dict[str, Any]) -> None:
+        for row in data:
+            self.preview.append(row['fact'])
+    
+
+    def update_from_lineups(self, data: Dict[str, Any]) -> None:
+        for p in data.values():
+            team_id = p.get("club", {}).get()
+    
+
+    def update_from_commentary(self, data: Dict[str, Any]) -> None:
+        return
+    
+
+    def update_from_summary(self, data: Dict[str, Any]) -> None:
+        return
+    
+
+    def update_from_subs(self, data: Dict[str, Any]) -> None:
+        return
+    
+
+    def update_from_managers(self, data: Dict[str, Any]) -> None:
+        return
+    
+
+    def update_from_info(self, data: Dict[str, Any]) -> None:
+        return
+    
+
+    def update_from_videos(self, data: Dict[str, Any]) -> None:
+        return
 
     @staticmethod
     def _process_competition_name(data: Dict[str, Any]) -> str:
