@@ -114,9 +114,21 @@ class Match(mls.MlsObject):
             self.preview.append(row['fact'])
     
 
-    def update_from_lineups(self, data: Dict[str, Any]) -> None:
-        for p in data.values():
-            team_id = p.get("club", {}).get()
+    def update_from_lineups(self, data: List[Dict[str, Any]]) -> None:
+        for p in data:
+            team_id: int = p.get("club", {}).get("opta_id", -1)
+            status: str = p.get("status", "")
+            name = get_player_name(p.get("player", {}))
+            formation_place: int = p.get("formation_place", -1)
+            player_id: int = p.get("player", {}).get("opta_id", -1)
+            adder = player.Player(player_id, name, status, formation_place, team_id)
+            if team_id == self.home.opta_id and adder not in self.home.lineup:
+                self.home.lineup.append(adder)
+            elif team_id == self.away.opta_id and adder not in self.away.lineup:
+                self.away.lineup.append(adder)
+            else:
+                logger.error(f'Error: player {name}, game {self.opta_id} does not match either team. {team_id}')
+
     
 
     def update_from_commentary(self, data: Dict[str, Any]) -> None:
@@ -127,12 +139,27 @@ class Match(mls.MlsObject):
         return
     
 
-    def update_from_subs(self, data: Dict[str, Any]) -> None:
-        return
+    def update_from_subs(self, data: List[Dict[str, Any]]) -> None:
+        for p in data:
+            off_name = get_player_name(p.get("off_player"))
+            on_name = get_player_name(p.get("on_player"))
+            minute = p.get("minute_display", "0'")
+            if p.get("club", {}).get("opta_id", -1) == self.home.opta_id:
+                self.home.subs[off_name] = (on_name, minute)
+            elif p.get("club", {}).get("opta_id", -1) == self.away.opta_id:
+                self.away.subs[off_name] = (on_name, minute)
     
 
-    def update_from_managers(self, data: Dict[str, Any]) -> None:
-        return
+    def update_from_managers(self, data: List[Dict[str, Any]]) -> None:
+        for manager in data:
+            team_id = manager.get("club", {}).get("opta_id", -1)
+            first = manager.get("manager", {}).get("first_name")
+            last = manager.get("manager", {}).get("last_name")
+            name = f'{first} {last}'
+            if team_id == self.home.opta_id:
+                self.home.manager = name
+            elif team_id == self.away.opta_id:
+                self.away.manager = name
     
 
     def update_from_info(self, data: Dict[str, Any]) -> None:
