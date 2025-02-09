@@ -334,14 +334,6 @@ class MLSApiClient:
         )
         return [MatchSchedule.model_validate(match) for match in data]
 
-    async def get_match_info(self, match_id: int) -> MatchSchedule:
-        """Get match info from sport API"""
-        data = await self._make_request(
-            ApiEndpoint.SPORT,
-            f"matches/{match_id}"
-        )
-        return MatchSchedule.model_validate(data)
-
     async def get_standings(
         self,
         season_id: int,

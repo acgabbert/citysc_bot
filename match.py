@@ -41,11 +41,11 @@ class Match(mls.MlsObject):
     result_type: str = ''
     started: bool = False
     is_final: bool = False
-    preview: list[str] = []
-    feed: list[str] = []
-    videos: list[str] = []
-    summary: list[str] = []
-    broadcasters: list[str] = []
+    preview: List[str] = []
+    feed: List[str] = []
+    videos: List[tuple[str, str]] = []
+    summary: List[str] = []
+    broadcasters: List[str] = []
 
     def __init__(self, opta_id):
         super().__init__(opta_id)
@@ -110,11 +110,18 @@ class Match(mls.MlsObject):
             self.minute = "HT"
 
     def update_from_preview(self, data: Dict[str, Any]) -> None:
+        # clear existing state
+        self.preview.clear()
+
         for row in data:
             self.preview.append(row['fact'])
     
 
     def update_from_lineups(self, data: List[Dict[str, Any]]) -> None:
+        # clear existing state
+        self.home.lineup.clear()
+        self.away.lineup.clear()
+
         for p in data:
             team_id: int = p.get("club", {}).get("opta_id", -1)
             status: str = p.get("status", "")
@@ -129,14 +136,37 @@ class Match(mls.MlsObject):
             else:
                 logger.error(f'Error: player {name}, game {self.opta_id} does not match either team. {team_id}')
 
-    
+    def update_from_feed(self, data: List[Dict[str, Any]]) -> None:
+        """Process a feed (summary or full feed)"""
+        # clear existing state
+        self.summary.clear()
+        self.home.goalscorers.clear()
+        self.away.goalscorers.clear()
 
-    def update_from_commentary(self, data: Dict[str, Any]) -> None:
-        return
-    
-
-    def update_from_summary(self, data: Dict[str, Any]) -> None:
-        return
+        # process new state
+        comments, scorers = process_feed(data)
+        for id in scorers.keys():
+            if id == self.home.opta_id:
+                for p in scorers[id]:
+                    name = p.split('(')[0].strip()
+                    added_away = any(name in g for g in self.away.goalscorers)
+                    added_home = any(name in g for g in self.home.goalscorers)
+                    if '(OG)' in p and not added_away:
+                        self.away.goalscorers.append(p)
+                    elif not added_home:
+                        self.home.goalscorers.append(p)
+            elif id == self.away.opta_id:
+                for p in scorers[id]:
+                    name = p.split('(')[0].strip()
+                    added_away = any(name in g for g in self.away.goalscorers)
+                    added_home = any(name in g for g in self.home.goalscorers)
+                    if '(OG)' in p and not added_home:
+                        self.home.goalscorers.append(p)
+                    elif not added_away:
+                        self.away.goalscorers.append(p)
+            else:
+                logger.error(f'Scorers ID {id} does not match either team - {scorers[id]}')
+        self.summary = comments
     
 
     def update_from_subs(self, data: List[Dict[str, Any]]) -> None:
@@ -166,8 +196,13 @@ class Match(mls.MlsObject):
         return
     
 
-    def update_from_videos(self, data: Dict[str, Any]) -> None:
-        return
+    def update_from_videos(self, data: List[Dict[str, Any]]) -> None:
+        # clear existing state
+        self.videos.clear()
+        
+        vid_url = 'https://mlssoccer.com/video/'
+        for vid in data:
+            self.videos.append((vid['title'],f'{vid_url}{vid["slug"]}'))
 
     @staticmethod
     def _process_competition_name(data: Dict[str, Any]) -> str:
