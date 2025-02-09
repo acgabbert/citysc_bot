@@ -36,6 +36,8 @@ class MLSApiRateLimitError(MLSApiError):
 class ApiEndpoint(Enum):
     STATS = "stats"
     SPORT = "sport"
+    VIDEO = "video"
+    NEXT_PRO = "nextpro"
 
 class Competition(Enum):
     MLS = 98
@@ -52,6 +54,8 @@ class MLSApiConfig:
     """Configuration for the MLS API client"""
     stats_base_url: str = "https://stats-api.mlssoccer.com/v1/"
     sport_base_url: str = "https://sportapi.mlssoccer.com/api/"
+    video_base_url: str = "https://dapi.mlssoccer.com/v2/"
+    nextpro_base_url: str = "https://sportapi.mlsnextpro.com/api/matches"
     user_agent: str = config.USER_AGENT_STR
     timeout: int = 30
     max_retries: int = 3
@@ -73,15 +77,21 @@ class MLSApiClient:
         self.config = config
         self._sessions: Dict[ApiEndpoint, Optional[aiohttp.ClientSession]] = {
             ApiEndpoint.STATS: None,
-            ApiEndpoint.SPORT: None
+            ApiEndpoint.SPORT: None,
+            ApiEndpoint.VIDEO: None,
+            ApiEndpoint.NEXT_PRO: None
         }
         self._rate_limiters: Dict[ApiEndpoint, asyncio.Semaphore] = {
             ApiEndpoint.STATS: asyncio.Semaphore(self.config.rate_limit_calls),
-            ApiEndpoint.SPORT: asyncio.Semaphore(self.config.rate_limit_calls)
+            ApiEndpoint.SPORT: asyncio.Semaphore(self.config.rate_limit_calls),
+            ApiEndpoint.VIDEO: asyncio.Semaphore(self.config.rate_limit_calls),
+            ApiEndpoint.NEXT_PRO: asyncio.Semaphore(self.config.rate_limit_calls)
         }
         self._last_requests: Dict[ApiEndpoint, List[float]] = {
             ApiEndpoint.STATS: [],
-            ApiEndpoint.SPORT: []
+            ApiEndpoint.SPORT: [],
+            ApiEndpoint.VIDEO: [],
+            ApiEndpoint.NEXT_PRO: []
         }
 
     async def __aenter__(self):
@@ -90,6 +100,12 @@ class MLSApiClient:
             headers={"User-Agent": self.config.user_agent}
         )
         self._sessions[ApiEndpoint.SPORT] = aiohttp.ClientSession(
+            headers={"User-Agent": self.config.user_agent}
+        )
+        self._sessions[ApiEndpoint.VIDEO] = aiohttp.ClientSession(
+            headers={"User-Agent": self.config.user_agent}
+        )
+        self._sessions[ApiEndpoint.NEXT_PRO] = aiohttp.ClientSession(
             headers={"User-Agent": self.config.user_agent}
         )
         return self
@@ -103,6 +119,10 @@ class MLSApiClient:
     def _get_base_url(self, endpoint: ApiEndpoint) -> str:
         if endpoint == ApiEndpoint.STATS:
             return self.config.stats_base_url
+        if endpoint == ApiEndpoint.VIDEO:
+            return self.config.video_base_url
+        if endpoint == ApiEndpoint.NEXT_PRO:
+            return self.config.nextpro_base_url
         return self.config.sport_base_url
 
     @backoff.on_exception(
@@ -114,7 +134,8 @@ class MLSApiClient:
         self, 
         endpoint: ApiEndpoint,
         path: str, 
-        params: Optional[Dict[str, Any]] = None
+        params: Optional[Dict[str, Any]] = None,
+        allow_404: bool = False
     ) -> Dict[str, Any]:
         """Make an API request to either endpoint"""
         base_url = self._get_base_url(endpoint)
@@ -141,14 +162,16 @@ class MLSApiClient:
                 ) as response:
                     if response.status == 204:  # No content
                         return {}
+                    if response.status == 404 and allow_404:
+                        return {}
                     if response.status != 200:
                         text = await response.text()
                         if response.status == 429:
                             raise MLSApiRateLimitError(f"Rate limit exceeded for {endpoint.value}")
                         elif 400 <= response.status < 500:
-                            raise MLSApiClientError(f"Client error {response.status}: {text}")
+                            raise MLSApiClientError(f"Client error {response.status}: {text}\n{url}\n{params}")
                         else:
-                            raise MLSApiServerError(f"Server error {response.status}: {text}")
+                            raise MLSApiServerError(f"Server error {response.status}: {text}\n{url}\n{params}")
                     return await response.json()
                     
             except asyncio.TimeoutError as e:
@@ -326,6 +349,47 @@ class MLSApiClient:
                 "competitionId": competition.value
             }
         )
+    
+    async def get_recent_form(
+        self,
+        club_id: int,
+        second_club_id: int,
+        match_date: datetime
+    ) -> Dict[str, Any]:
+        """Get recent form for the teams participating in a match"""
+        return await self._make_request(
+            ApiEndpoint.SPORT,
+            f"previousMatches/{club_id}",
+            params={
+                "culture": "en-us",
+                "secondClub": second_club_id,
+                "matchDate": match_date.isoformat(),
+                "maxItems": 3,
+                "formGuideMatchesCount": 5
+            }
+        )
+    
+    # Video API endpoints
+    async def get_videos(self, match_id: int) -> Dict[str, Any]:
+        """Get standings from sport API"""
+        return await self._make_request(
+            ApiEndpoint.SPORT,
+            "content/en-us/brightcovevideos",
+            params={
+                'fields.optaMatchId': match_id
+            },
+            allow_404=True
+        )
+    
+    # MLS Next Pro API endpoints
+    async def get_nextpro_match_info(self, match_id: int) -> Dict[str, Any]:
+        """Get match info for an MLS Next Pro match"""
+        data = await self._make_request(
+            ApiEndpoint.NEXT_PRO,
+            f"matches/{match_id}"
+        )
+        return MatchSchedule.model_validate(data)
+
 
 # Example usage:
 async def main():

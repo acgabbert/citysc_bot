@@ -1,3 +1,4 @@
+import asyncio
 import time
 import logging
 from typing import Dict, List, Optional, Any
@@ -13,38 +14,43 @@ import player
 import club
 import injuries
 import discipline
+from api_client import MLSApiClient
 
 logger = logging.getLogger(__name__)
 
 
 class Match(mls.MlsObject):
+    home: club.ClubMatch
+    away: club.ClubMatch
+    is_aggregate: bool = False
+    apple_tier: str = ''
+    apple_url: str = ''
+    leg: str = ''
+    round_name: str = ''
+    round_number: int = 0
+    is_aggregate: bool = False
+    id: int = -1
+    previous_match_id: int = -1
+    previous_match_opta_id: int = -1
+    venue: str = ''
+    comp: str = ''
+    comp_id: int = -1
+    slug: str = ''
+    date: int = -1
+    minute: str = ''
+    result_type: str = ''
+    started: bool = False
+    is_final: bool = False
+    preview: list[str] = []
+    feed: list[str] = []
+    videos: list[str] = []
+    summary: list[str] = []
+    broadcasters: list[str] = []
+
     def __init__(self, opta_id):
         super().__init__(opta_id)
-        self.id: int = -1
-        self.previous_match_id: int = -1
-        self.previous_match_opta_id: int = -1
-        self.venue: str = ''
-        self.comp: str = ''
-        self.comp_id: int = -1
-        self.slug: str = ''
-        self.date: int = -1
-        self.home: club.ClubMatch = club.ClubMatch(-1)
-        self.away: club.ClubMatch = club.ClubMatch(-1)
-        self.minute: str = ''
-        self.result_type: str = ''
-        self.started: bool = False
-        self.is_final: bool = False
-        self.preview: list[str] = []
-        self.feed: list[str] = []
-        self.videos: list[str] = []
-        self.summary: list[str] = []
-        self.broadcasters: list[str] = []
-        self.apple_tier: str = ''
-        self.apple_url: str = ''
-        self.leg: str = ''
-        self.round_name: str = ''
-        self.round_number: int = 0
-        self.is_aggregate: bool = False
+        self.home = club.ClubMatch(-1)
+        self.away = club.ClubMatch(-1)
     
     def get_date_time(self):
         """Return date, time in match thread format."""
@@ -73,44 +79,44 @@ class Match(mls.MlsObject):
         else:
             return False
     
-    @classmethod
-    def from_api_response(cls, data: Dict[str, Any], update: bool = False) -> "Match":
-        """Create Match object from API response"""
-        match = cls(data["opta_id"])
+    def update_from_match_stats(self, data: Dict[str, Any], update: bool = False) -> None:
+        """Update existing Match object from API response"""
         if not update:
-            match.home = process_club(data["home_club"])
-            match.away = process_club(data["away_club"])
+            self.home = process_club(data["home_club"])
+            self.away = process_club(data["away_club"])
         
         # process core match data
-        match.venue = data.get("venue", {}).get("name", "Unknown")
-        match.comp = cls._process_competition_name(data.get("competition", {}).get("name", ""))
-        match.comp_id = data.get("competition", {}).get("opta_id", -1)
-        match.round_name = data.get("round_name", "")
-        match.round_number = data.get("round_number", 0)
+        self.venue = data.get("venue", {}).get("name", "Unknown")
+        self.comp = self._process_competition_name(data)
+        self.comp_id = data.get("competition", {}).get("opta_id", -1)
+        self.round_name = data.get("round_name", "")
+        self.round_number = data.get("round_number", 0)
         
         if data.get("leg") and "leg" in data["leg"].lower():
-            match.leg = data.get("type", "")
+            self.leg = data.get("type", "")
             
-        match.id = data.get("id", -1)
-        match.previous_match_id = data.get("previous_match_id", -1)
-        match.is_aggregate = data.get("is_aggregate", False)
+        self.id = data.get("id", -1)
+        self.previous_match_id = data.get("previous_match_id", -1)
+        self.is_aggregate = data.get("is_aggregate", False)
         
         # Process match state
-        match.date = cls._process_date(data.get("date", 0))
-        match.minute = data.get("minute_display", "")
-        match.result_type = cls._process_result_type(data)
-        match.started = data.get("first_half_start") is not None
-        match.is_final = data.get("is_final", False)
+        self.date = self._process_date(data.get("date", 0))
+        self.minute = data.get("minute_display", "")
+        self.result_type = self._process_result_type(data)
+        self.started = data.get("first_half_start") is not None
+        self.is_final = data.get("is_final", False)
         
         if data.get("period") == "HalfTime":
-            match.minute = "HT"
-            
-        return match
+            self.minute = "HT"
 
     @staticmethod
-    def _process_competition_name(comp_name: str) -> str:
+    def _process_competition_name(data: Dict[str, Any]) -> str:
         """Process competition name with business logic"""
+        comp_name = data.get("competition", {}).get("name", "")
+        comp_type = data.get("type", "")
         if comp_name == "US Major League Soccer":
+            if comp_type == "Cup" or "Best of" in comp_type:
+                return "MLS Cup Playoffs"
             return "MLS"
         elif comp_name == "Major League Soccer - Regular Season":
             return "MLS"
@@ -616,6 +622,22 @@ def get_all_data(match_obj: Match) -> Match:
     if match_obj.is_aggregate:
         prev_match = get_previous_match(match_obj)
     return match_obj
+
+async def get_full_match_data(match_id: int) -> Dict[str, Any]:
+    async with MLSApiClient() as client:
+        tasks = {
+            'stats': client.get_match_stats(match_id),
+            'preview': client.get_preview(match_id),
+            'lineups': client.get_lineups(match_id),
+            'commentary': client.get_match_commentary(match_id),
+            'summary': client.get_summary(match_id),
+            'subs': client.get_subs(match_id),
+            'managers': client.get_managers(match_id),
+            'match_info': client.get_match_info(match_id),
+            'videos': client.get_videos(match_id)
+        }
+        results = await asyncio.gather(*tasks.values())
+        return dict(zip(tasks.keys(), results))
 
 
 def get_match_update(match_obj: Match) -> Match:
