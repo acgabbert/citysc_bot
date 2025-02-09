@@ -1,5 +1,6 @@
 import time
 import logging
+from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
 
 import config
@@ -19,31 +20,31 @@ logger = logging.getLogger(__name__)
 class Match(mls.MlsObject):
     def __init__(self, opta_id):
         super().__init__(opta_id)
-        self.id = -1
-        self.previous_match_id = -1
-        self.previous_match_opta_id = -1
-        self.venue = ''
-        self.comp = ''
-        self.comp_id = -1
-        self.slug = ''
-        self.date = -1
-        self.home = club.ClubMatch(-1)
-        self.away = club.ClubMatch(-1)
-        self.minute = ''
-        self.result_type = ''
-        self.started = False
-        self.is_final = False
-        self.preview = []
-        self.feed = []
-        self.videos = []
-        self.summary = []
-        self.broadcasters = []
-        self.apple_tier = ''
-        self.apple_url = ''
-        self.leg = ''
-        self.round_name = ''
-        self.round_number = 0
-        self.is_aggregate = False
+        self.id: int = -1
+        self.previous_match_id: int = -1
+        self.previous_match_opta_id: int = -1
+        self.venue: str = ''
+        self.comp: str = ''
+        self.comp_id: int = -1
+        self.slug: str = ''
+        self.date: int = -1
+        self.home: club.ClubMatch = club.ClubMatch(-1)
+        self.away: club.ClubMatch = club.ClubMatch(-1)
+        self.minute: str = ''
+        self.result_type: str = ''
+        self.started: bool = False
+        self.is_final: bool = False
+        self.preview: list[str] = []
+        self.feed: list[str] = []
+        self.videos: list[str] = []
+        self.summary: list[str] = []
+        self.broadcasters: list[str] = []
+        self.apple_tier: str = ''
+        self.apple_url: str = ''
+        self.leg: str = ''
+        self.round_name: str = ''
+        self.round_number: int = 0
+        self.is_aggregate: bool = False
     
     def get_date_time(self):
         """Return date, time in match thread format."""
@@ -71,6 +72,72 @@ class Match(mls.MlsObject):
             return True
         else:
             return False
+    
+    @classmethod
+    def from_api_response(cls, data: Dict[str, Any], update: bool = False) -> "Match":
+        """Create Match object from API response"""
+        match = cls(data["opta_id"])
+        if not update:
+            match.home = process_club(data["home_club"])
+            match.away = process_club(data["away_club"])
+        
+        # process core match data
+        match.venue = data.get("venue", {}).get("name", "Unknown")
+        match.comp = cls._process_competition_name(data.get("competition", {}).get("name", ""))
+        match.comp_id = data.get("competition", {}).get("opta_id", -1)
+        match.round_name = data.get("round_name", "")
+        match.round_number = data.get("round_number", 0)
+        
+        if data.get("leg") and "leg" in data["leg"].lower():
+            match.leg = data.get("type", "")
+            
+        match.id = data.get("id", -1)
+        match.previous_match_id = data.get("previous_match_id", -1)
+        match.is_aggregate = data.get("is_aggregate", False)
+        
+        # Process match state
+        match.date = cls._process_date(data.get("date", 0))
+        match.minute = data.get("minute_display", "")
+        match.result_type = cls._process_result_type(data)
+        match.started = data.get("first_half_start") is not None
+        match.is_final = data.get("is_final", False)
+        
+        if data.get("period") == "HalfTime":
+            match.minute = "HT"
+            
+        return match
+
+    @staticmethod
+    def _process_competition_name(comp_name: str) -> str:
+        """Process competition name with business logic"""
+        if comp_name == "US Major League Soccer":
+            return "MLS"
+        elif comp_name == "Major League Soccer - Regular Season":
+            return "MLS"
+        return comp_name
+    
+    @staticmethod
+    def _process_date(date: int) -> int:
+        """Process date with business logic"""
+        if date > 999999999999:
+            return date / 1000
+        return date
+    
+    @staticmethod
+    def _process_result_type(data: Dict[str, Any]) -> str:
+        """Process result type with business logic"""
+        result = data.get("result_type")
+        
+        if result == "FullTime" or result == "Aggregate" or result == "NormalResult":
+            return "FT"
+        elif result == "PenaltyShootout":
+            return "FT-Pens"
+        elif result == "AfterExtraTime":
+            return "AET"
+        elif result is None and data.get("period") == "FullTime":
+            return "FT"
+        
+        return ""
 
 
 def call_match_api(url, params, filename):

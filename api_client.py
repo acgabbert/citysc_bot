@@ -219,6 +219,57 @@ class MLSApiClient:
                             'commentary_timestamp', 'commentary_opta_id']
             }
         )
+    
+    async def get_summary(self, match_id: int) -> Dict[str, Any]:
+        """Get the summary feed from a match."""
+        return await self._make_request(
+            ApiEndpoint.STATS,
+            "commentaries",
+            params={
+                "match_game_id": match_id,
+                'commentary_type': ['secondyellow card', 'penalty goal', 'own goal',
+                                    'yellow card', 'red card', 'substitution', 'goal',
+                                    'penalty miss', 'penalty saved', 'lineup', 'start',
+                                    'end 1', 'end 2', 'end 3', 'end 4', 'end 5', 'end 14',
+                                    'start delay', 'end delay', 'postponed'],
+                'include': ['club', 'player'],
+                'order_by': ['commentary_period', 'commentary_minute', 'commentary_second',
+                            'commentary_timestamp', 'commentary_opta_id']
+            }
+        )
+    
+    async def get_lineups(self, match_id: int) -> Dict[str, Any]:
+        """Get the lineups from a match."""
+        return await self._make_request(
+            ApiEndpoint.STATS,
+            "players/matches",
+            params={
+                "match_game_id": match_id,
+                'include': ['player', 'club']
+            }
+        )
+    
+    async def get_subs(self, match_id: int) -> Dict[str, Any]:
+        """Get the subs from a match."""
+        return await self._make_request(
+            ApiEndpoint.STATS,
+            "substitutions",
+            params={
+                "match_game_id": match_id,
+                'include': ['player_match', 'club', 'player']
+            }
+        )
+    
+    async def get_managers(self, match_id: int) -> Dict[str, Any]:
+        """Get managers for a match."""
+        return await self._make_request(
+            ApiEndpoint.STATS,
+            "managers/matches",
+            params={
+                "match_game_id": match_id,
+                "include": ["manager", "club"]
+            }
+        )
 
     # Sport API endpoints
     async def get_schedule(
