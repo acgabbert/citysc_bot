@@ -189,6 +189,26 @@ class MLSApiClient:
         """Get match statistics from stats API"""
         response = await self._make_request(
             ApiEndpoint.STATS,
+            "clubs/matches",
+            params={
+                "match_game_id": match_id,
+                "include": [
+                    'club',
+                    'match',
+                    'competition',
+                    'statistics'
+                ]
+            }
+        )
+        # response is formatted as an array
+        if not response:
+            return {}
+        return response[0]  # Return the first match object
+
+    async def get_match_data(self, match_id: int) -> Dict[str, Any]:
+        """Get match data from stats API"""
+        response = await self._make_request(
+            ApiEndpoint.STATS,
             "matches",
             params={
                 "match_game_id": match_id,
@@ -333,6 +353,14 @@ class MLSApiClient:
             params=params
         )
         return [MatchSchedule.model_validate(match) for match in data]
+
+    async def get_match_info(self, match_id: int) -> MatchSchedule:
+        """Get match info from sport API"""
+        data = await self._make_request(
+            ApiEndpoint.SPORT,
+            f"matches/{match_id}"
+        )
+        return MatchSchedule.model_validate(data)
 
     async def get_standings(
         self,
