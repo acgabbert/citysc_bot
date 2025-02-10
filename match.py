@@ -79,7 +79,7 @@ class Match(mls.MlsObject):
         else:
             return False
     
-    def update_from_info(self, data: List[Dict[str, Any]], update: bool = False) -> None:
+    def update_from_data(self, data: List[Dict[str, Any]], update: bool = False) -> None:
         """Update existing Match object from API response"""
         if not update:
             self.home = process_club(data["home_club"], data["home_club_match"])
@@ -451,11 +451,24 @@ async def get_full_match_data(match_id: int) -> Dict[str, Any]:
             'summary': client.get_summary(match_id),
             'subs': client.get_subs(match_id),
             'managers': client.get_managers(match_id),
-            'match_info': client.get_match_info(match_id),
             'videos': client.get_videos(match_id)
         }
         results = await asyncio.gather(*tasks.values())
         return dict(zip(tasks.keys(), results))
+    
+async def get_match(opta_id: int) -> Match:
+    m = Match(opta_id)
+    data = await get_full_match_data(opta_id)
+    m.update_from_data(data.get("data"))
+    m.update_from_feed(data.get("feed"))
+    m.update_from_stats(data.get("stats"))
+    m.update_from_preview(data.get("preview"))
+    m.update_from_lineups(data.get("lineups"))
+    m.update_from_managers(data.get("managers"))
+    m.update_from_subs(data.get("subs"))
+    m.update_from_schedule_info(data.get("info"))
+
+    return m
 
 
 def get_match_update(match_obj: Match) -> Match:
