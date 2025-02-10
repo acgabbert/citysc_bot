@@ -1,6 +1,6 @@
 requests
 schedule
-praw
+asyncpraw
 bs4
 selenium
 backoff

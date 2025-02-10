@@ -4,7 +4,7 @@ import logging
 import sqlite3
 import inspect
 import json
-import praw
+import asyncpraw
 import signal
 import subprocess
 from datetime import datetime
@@ -198,8 +198,8 @@ names = {
 }
 
 
-def get_reddit() -> praw.Reddit:
-    reddit = praw.Reddit(
+def get_reddit() -> asyncpraw.Reddit:
+    reddit = asyncpraw.Reddit(
         client_id=config.CLIENT_ID,
         client_secret=config.SECRET_TOKEN,
         password=config.PASSWORD,
