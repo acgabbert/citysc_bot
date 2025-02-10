@@ -1,7 +1,7 @@
 import argparse
 import asyncio
 import logging
-import praw, praw.models
+import asyncpraw, asyncpraw.models
 import sys
 import time
 from typing import Optional, Union, Dict, Any
@@ -26,14 +26,14 @@ prod_sub = config.SUB
 threads_json = config.THREADS_JSON
 
 
-def submit_thread(
+async def submit_thread(
     subreddit: str,
     title: str,
     text: str,
     mod: bool = False,
     new: bool = False,
     unsticky: Optional[Union[str, praw.models.Submission]] = None
-) -> praw.models.Submission:
+) -> asyncpraw.models.Submission:
     """Submit a thread to the provided subreddit.
     
     Args:
@@ -47,23 +47,23 @@ def submit_thread(
     Returns:
         The created Reddit submission
     """
-    reddit: praw.Reddit = util.get_reddit()
-    subreddit: praw.models.Subreddit = reddit.subreddit(subreddit)
+    reddit: asyncpraw.Reddit = util.get_reddit()
+    subreddit: asyncpraw.models.Subreddit = await reddit.subreddit(subreddit)
     # TODO implement PRAW exception handling? 
-    thread: praw.models.Submission = subreddit.submit(title, selftext=text, send_replies=False)
+    thread: asyncpraw.models.Submission = await subreddit.submit(title, selftext=text, send_replies=False)
     if mod:
         time.sleep(10)
-        thread_mod = thread.mod
+        thread_mod: asyncpraw.models.reddit.submission.SubmissionModeration = thread.mod
         try:
             if new:
-                thread_mod.suggested_sort(sort='new')
-            thread_mod.sticky()
+                await thread_mod.suggested_sort(sort='new')
+            await thread_mod.sticky()
             if unsticky is not None:
                 if type(unsticky) is str:
                     unsticky = praw.models.Submission(reddit=reddit, id=unsticky)
                 if type(unsticky) is praw.models.Submission:
-                    unsticky_mod = unsticky.mod
-                    unsticky_mod.sticky(state=False)
+                    unsticky_mod: asyncpraw.models.reddit.submission.SubmissionModeration = unsticky.mod
+                    await unsticky_mod.sticky(state=False)
         except Exception as e:
             message = f'Error in moderation clause. Thread {thread.id}'
             if unsticky is not None:
@@ -74,10 +74,10 @@ def submit_thread(
     return thread
 
 
-def comment(
+async def comment(
     pre_thread: Union[str, praw.models.Submission],
     text: str
-) -> Optional[praw.models.Comment]:
+) -> Optional[asyncpraw.models.Comment]:
     """Add a distinguished comment to a thread.
     
     Args:
@@ -87,17 +87,17 @@ def comment(
     Returns:
         The created comment or None if unsuccessful
     """
-    reddit: praw.Reddit = util.get_reddit()
-    comment_obj: Optional[praw.models.Comment] = None
+    reddit: asyncpraw.Reddit = util.get_reddit()
+    comment_obj: Optional[asyncpraw.models.Comment] = None
 
     if type(pre_thread) is str:
-        pre_thread = praw.models.Submission(reddit=reddit, id=pre_thread)
+        pre_thread = asyncpraw.models.Submission(reddit=reddit, id=pre_thread)
     if type(pre_thread) is praw.models.Submission:
-        comment_obj = pre_thread.reply(text)
+        comment_obj = await pre_thread.reply(text)
         time.sleep(10)
         comment_mod = comment_obj.mod
         try:
-            comment_mod.distinguish(sticky=True)
+            await comment_mod.distinguish(sticky=True)
         except Exception as e:
             message = (
                 f'Error in moderation clause. Comment {comment_obj.id}\n'
@@ -128,7 +128,7 @@ async def pre_match_thread(opta_id: Union[str, int], sub: str = prod_sub):
         sub = sub[3:]
     
     # TODO implement PRAW exception handling here or in submit_thread
-    thread: praw.models.Submission = submit_thread(sub, title, markdown, new=True, mod=True)
+    thread: asyncpraw.models.Submission = await submit_thread(sub, title, markdown, new=True, mod=True)
     msg.send(f'{msg.user} Pre-match thread posted! https://www.reddit.com/r/{sub}/comments/{thread.id_from_url(thread.shortlink)}')
     
     # keep track of threads
@@ -143,7 +143,7 @@ async def pre_match_thread(opta_id: Union[str, int], sub: str = prod_sub):
     return thread
 
 
-def match_thread(
+async def match_thread(
     opta_id: Union[str, int],
     sub: str = prod_sub,
     pre_thread: Optional[Union[str, praw.models.Submission]] = None,
@@ -180,7 +180,7 @@ def match_thread(
         title, markdown = md.match_thread(match_obj)
         if '/r/' in sub:
             sub = sub[3:]
-        thread = submit_thread(sub, title, markdown, mod=True, new=True, unsticky=pre_thread)
+        thread = await submit_thread(sub, title, markdown, mod=True, new=True, unsticky=pre_thread)
         data[str(opta_id)]['match'] = thread.id_from_url(thread.shortlink)
         util.write_json(data, threads_json)
         if pre_thread is not None:
@@ -191,8 +191,8 @@ def match_thread(
             msg.send(f'No post-match thread for {thread.id_from_url(thread.shortlink)}')
     else:
         # thread already exists in the json
-        reddit: praw.Reddit = util.get_reddit()
-        thread = praw.models.Submission(reddit=reddit, id=thread)
+        reddit: asyncpraw.Reddit = util.get_reddit()
+        thread = asyncpraw.models.Submission(reddit=reddit, id=thread)
         msg.send(f'Found existing match thread')
     
     while True:
@@ -212,7 +212,7 @@ def match_thread(
         logger.info(f'Match update took {round(after-before, 2)} secs')
         _, markdown = md.match_thread(match_obj)
         try:
-            thread.edit(markdown)
+            await thread.edit(markdown)
         except Exception as e:
             message = (
                 f'Error while editing match thread.\n'
@@ -228,15 +228,15 @@ def match_thread(
             msg.send(f'{msg.user} Match is finished, final update made')
             if post:
                 # post a post-match thread before exiting the loop
-                post_match_thread(opta_id, sub, thread)
+                await post_match_thread(opta_id, sub, thread)
             break
         time.sleep(60)
 
 
-def post_match_thread(
+async def post_match_thread(
     opta_id: Union[str, int],
     sub: str = prod_sub,
-    thread: Optional[Union[str, praw.models.Submission]] = None
+    thread: Optional[Union[str, asyncpraw.models.Submission]] = None
 ) -> None:
     """Post a post-match thread.
     
@@ -258,11 +258,11 @@ def post_match_thread(
     match_obj: match.Match = match.Match(opta_id)
     match_obj = match.get_all_data(match_obj)
     title, markdown = md.post_match_thread(match_obj)
-    post_thread: praw.models.Submission = submit_thread(sub, title, markdown, mod=True, unsticky=thread)
+    post_thread: asyncpraw.models.Submission = await submit_thread(sub, title, markdown, mod=True, unsticky=thread)
 
     if thread is not None:
         text = f'[Continue the discussion in the post-match thread.](https://www.reddit.com/r/{sub}/comments/{post_thread.id_from_url(post_thread.shortlink)})'
-        comment(thread, text)
+        await comment(thread, text)
     msg.send(f'{msg.user} Post-match thread posted! https://www.reddit.com/r/{sub}/comments/{post_thread.id_from_url(post_thread.shortlink)}')
     
     if str(opta_id) not in data.keys():
@@ -294,15 +294,15 @@ async def main():
         elif args.post:
             # post-match thread
             if sub:
-                post_match_thread(id, sub)
+                await post_match_thread(id, sub)
             else:
-                post_match_thread(id)
+                await post_match_thread(id)
         else:
             # match thread
             if sub:
-                match_thread(id, sub, post=post)
+                await match_thread(id, sub, post=post)
             else:
-                match_thread(id, post=post)
+                await match_thread(id, post=post)
 
 
 if __name__ == '__main__':
