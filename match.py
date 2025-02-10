@@ -20,37 +20,71 @@ logger = logging.getLogger(__name__)
 
 
 class Match(mls.MlsObject):
-    home: club.ClubMatch
-    away: club.ClubMatch
-    is_aggregate: bool = False
-    apple_tier: str = ''
-    apple_url: str = ''
-    leg: str = ''
-    round_name: str = ''
-    round_number: int = 0
-    is_aggregate: bool = False
-    id: int = -1
-    previous_match_id: int = -1
-    previous_match_opta_id: int = -1
-    venue: str = ''
-    comp: str = ''
-    comp_id: int = -1
-    slug: str = ''
-    date: int = -1
-    minute: str = ''
-    result_type: str = ''
-    started: bool = False
-    is_final: bool = False
-    preview: List[str] = []
-    feed: List[str] = []
-    videos: List[tuple[str, str]] = []
-    summary: List[str] = []
-    broadcasters: List[str] = []
 
     def __init__(self, opta_id):
         super().__init__(opta_id)
+        # Core properties
         self.home = club.ClubMatch(-1)
         self.away = club.ClubMatch(-1)
+        self.id = -1
+
+        # TV info
+        self.apple_tier = ""
+        self.apple_url = ""
+        self.broadcasters: List[str] = []
+
+        # Match metadata
+        self.venue = ""
+        self.comp = ""
+        self.comp_id = -1
+        self.date = -1
+        self.slug = ""
+        self.is_aggregate = False
+        self.leg = ""
+        self.round_name = ""
+        self.round_number = 0
+        self.previous_match_id = -1
+        self.previous_match_opta_id = -1
+
+        # Match state
+        self.minute = ""
+        self.result_type = ""
+        self.started = False
+        self.is_final = False
+
+        # Match content
+        self.preview: List[str] = []
+        self.feed: List[str] = []
+        self.videos: List[tuple[str, str]] = []
+        self.summary: List[str] = []
+
+    @classmethod
+    async def create(cls, opta_id: int) -> "Match":
+        """Factory method to create and populate a Match instance"""
+        match = cls(opta_id)
+        data = await get_full_match_data(opta_id)
+
+        match.update_from_stats(data.get("stats"))
+        match.update_from_data(data.get("data"))
+        match.update_from_schedule_info(data.get("info"))
+        match.update_from_preview(data.get("preview"))
+        match.update_from_lineups(data.get("lineups"))
+        match.update_from_feed(data.get("commentary"))
+        match.update_from_feed(data.get("summary"))
+        match.update_from_subs(data.get("subs"))
+        match.update_from_managers(data.get("managers"))
+        match.update_from_videos(data.get("videos"))
+
+        return match
+    
+    async def refresh(self) -> None:
+        data = await get_match_update(self.opta_id)
+        self.update_from_data(data.get("data"), update=True)
+        self.update_from_stats(data.get("stats"))
+        self.update_from_lineups(data.get("lineups"))
+        self.update_from_feed(data.get("summary"))
+        self.update_from_videos(data.get("videos"))
+
     
     def get_date_time(self):
         """Return date, time in match thread format."""
@@ -439,19 +473,31 @@ async def get_prematch_data(match_id: int) -> Dict[str, Any]:
     return match_obj
     """
 
-async def get_full_match_data(match_id: int) -> Dict[str, Any]:
+async def get_full_match_data(opta_id: int) -> Dict[str, Any]:
     async with MLSApiClient() as client:
         tasks = {
-            'stats': client.get_match_stats(match_id),
-            'data': client.get_match_data(match_id),
-            'info': client.get_match_info(match_id),
-            'preview': client.get_preview(match_id),
-            'lineups': client.get_lineups(match_id),
-            'commentary': client.get_match_commentary(match_id),
-            'summary': client.get_summary(match_id),
-            'subs': client.get_subs(match_id),
-            'managers': client.get_managers(match_id),
-            'videos': client.get_videos(match_id)
+            'stats': client.get_match_stats(opta_id),
+            'data': client.get_match_data(opta_id),
+            'info': client.get_match_info(opta_id),
+            'preview': client.get_preview(opta_id),
+            'lineups': client.get_lineups(opta_id),
+            'commentary': client.get_match_commentary(opta_id),
+            'summary': client.get_summary(opta_id),
+            'subs': client.get_subs(opta_id),
+            'managers': client.get_managers(opta_id),
+            'videos': client.get_videos(opta_id)
+        }
+        results = await asyncio.gather(*tasks.values())
+        return dict(zip(tasks.keys(), results))
+    
+async def get_match_update(opta_id: int) -> Dict[str, Any]:
+    async with MLSApiClient() as client:
+        tasks = {
+            'data': client.get_match_data(opta_id),
+            'stats': client.get_match_stats(opta_id),
+            'lineups': client.get_lineups(opta_id),
+            'summary': client.get_summary(opta_id),
+            'videos': client.get_videos(opta_id)
         }
         results = await asyncio.gather(*tasks.values())
         return dict(zip(tasks.keys(), results))
@@ -471,7 +517,7 @@ async def get_match(opta_id: int) -> Match:
     return m
 
 
-def get_match_update(match_obj: Match) -> Match:
+def legacy_get_match_update(match_obj: Match) -> Match:
     """Get data for updating a match thread."""
     logger.info(f'Getting updated data for {match_obj.opta_id}')
     match_obj = get_match_data(match_obj, update=True)

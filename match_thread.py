@@ -1,11 +1,10 @@
-import time
 import argparse
+import asyncio
 import logging
-import praw
+import praw, praw.models
 import sys
+import time
 from typing import Optional, Union, Dict, Any
-
-import praw.models
 
 import config
 import match
@@ -109,7 +108,7 @@ def comment(
     return comment_obj
 
 
-def pre_match_thread(opta_id: Union[str, int], sub: str = prod_sub):
+async def pre_match_thread(opta_id: Union[str, int], sub: str = prod_sub):
     """Post a pre-match/matchday thread.
     
     Args:
@@ -120,8 +119,8 @@ def pre_match_thread(opta_id: Union[str, int], sub: str = prod_sub):
         The created pre-match thread
     """
     # get a match object
-    match_obj: match.Match = match.Match(opta_id)
-    match_obj = match.get_prematch_data(match_obj)
+    match_obj: match.Match = await match.Match.create(opta_id)
+
     # get post details for the match object
     title, markdown = md.pre_match_thread(match_obj)
     
@@ -274,7 +273,7 @@ def post_match_thread(
 
 
 @util.time_dec(False)
-def main():
+async def main():
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(logging.DEBUG)
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -289,9 +288,9 @@ def main():
         if args.pre:
             # pre-match thread
             if sub:
-                pre_match_thread(id, sub)
+                await pre_match_thread(id, sub)
             else:
-                pre_match_thread(id)
+                await pre_match_thread(id)
         elif args.post:
             # post-match thread
             if sub:
@@ -307,4 +306,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
