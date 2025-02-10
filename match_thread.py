@@ -271,7 +271,7 @@ def post_match_thread(
     data[str(opta_id)]['post'] = post_thread.id_from_url(post_thread.shortlink)
     util.write_json(data, threads_json)
 
-
+# TODO rewrite this to gracefully handle async
 @util.time_dec(False)
 async def main():
     handler = logging.StreamHandler(sys.stdout)
