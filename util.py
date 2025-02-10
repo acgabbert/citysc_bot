@@ -5,6 +5,7 @@ import sqlite3
 import inspect
 import json
 import asyncpraw
+import asyncio
 import signal
 import subprocess
 from datetime import datetime
@@ -51,22 +52,49 @@ def setup_logger(name, log_file, level=logging.INFO):
 def time_dec(tag):
     def timed_func(func):
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        async def async_wrapper(*args, **kwargs):
             start = time()
+            result = None
             try:
-                func(*args, **kwargs)
+                if asyncio.iscoroutinefunction(func):
+                    result =  await func(*args, **kwargs)
+                else: 
+                    result = func(*args, **kwargs)
             except Exception as e:
                 logging.error(f'Critical error: {str(e)}\n{traceback.format_exc()}')
-            end = time()
-            exe_time = f'%.2f' % (end-start)
-            module_name = str(inspect.getmodule(func)).split('/')[-1].replace(".py'>",'')
-            message = f'{module_name}.{func.__name__} finished. Execution time: {exe_time} seconds.'
-            logging.info(message)
-            if tag:
-                message = f'{msg.user}\n{message}'
-            msg.send(message)
-            return func
-        return wrapper
+            finally:
+                end = time()
+                exe_time = f'%.2f' % (end-start)
+                module_name = str(inspect.getmodule(func)).split('/')[-1].replace(".py'>",'')
+                message = f'{module_name}.{func.__name__} finished. Execution time: {exe_time} seconds.'
+                logging.info(message)
+                if tag:
+                    message = f'{msg.user}\n{message}'
+                msg.send(message)
+            return result 
+        
+        @functools.wraps(func)
+        def sync_wrapper(*args, **kwargs):
+            start = time()
+            result = None
+            try:
+                result = func(*args, **kwargs)
+            except Exception as e:
+                logging.error(f'Critical error: {str(e)}\n{traceback.format_exc()}')
+            finally:
+                end = time()
+                exe_time = f'%.2f' % (end-start)
+                module_name = str(inspect.getmodule(func)).split('/')[-1].replace(".py'>",'')
+                message = f'{module_name}.{func.__name__} finished. Execution time: {exe_time} seconds.'
+                logging.info(message)
+                if tag:
+                    message = f'{msg.user}\n{message}'
+                msg.send(message)
+            return result 
+        
+        if asyncio.iscoroutinefunction(func):
+            return async_wrapper
+        return sync_wrapper
     return timed_func
 
 
