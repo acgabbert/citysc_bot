@@ -76,6 +76,17 @@ class Match(mls.MlsObject):
         match.update_from_videos(data.get("videos"))
 
         return match
+
+    @classmethod
+    async def create_prematch(cls, opta_id: int) -> "Match":
+        """Factory method to create and populate a Match instance"""
+        match = cls(opta_id)
+        data = await get_previous_match_data(opta_id)
+
+        match.update_from_stats(data.get("stats"))
+        match.update_from_data(data.get("data"))
+
+        return match
     
     async def refresh(self) -> None:
         data = await get_match_update(self.opta_id)
@@ -144,7 +155,17 @@ class Match(mls.MlsObject):
             self.minute = "HT"
 
     def update_from_stats(self, data: Dict[str, Any]) -> None:
-        return
+        for team in data:
+            try:
+                if team.get("side") == 'home':
+                    self.home = process_stats(team, self.home)
+                elif team.get("side") == 'away':
+                    self.away = process_stats(team, self.away)
+                else:
+                    logger.error(f"Team {team.get("opta_id", "NONE")}, match {self.opta_id} is not home or away.")
+            except KeyError:
+                # data most likely hasn't been populated yet
+                logger.info(f"No stats yet for match {self.opta_id}.")
     
     def update_from_preview(self, data: Dict[str, Any]) -> None:
         # clear existing state
@@ -501,6 +522,15 @@ async def get_match_update(opta_id: int) -> Dict[str, Any]:
         }
         results = await asyncio.gather(*tasks.values())
         return dict(zip(tasks.keys(), results))
+
+async def get_previous_match_data(opta_id: int) -> Dict[str, Any]:
+    async with MLSApiClient() as client:
+        tasks = {
+            'data': client.get_match_data(opta_id),
+            'stats': client.get_match_stats(opta_id)
+        }
+        results = await asyncio.gather(*tasks.values())
+        return dict(zip(tasks.keys(), results))
     
 async def get_match(opta_id: int) -> Match:
     m = Match(opta_id)
@@ -517,18 +547,7 @@ async def get_match(opta_id: int) -> Match:
     return m
 
 
-def legacy_get_match_update(match_obj: Match) -> Match:
-    """Get data for updating a match thread."""
-    logger.info(f'Getting updated data for {match_obj.opta_id}')
-    match_obj = get_match_data(match_obj, update=True)
-    match_obj = get_lineups(match_obj)
-    match_obj = get_stats(match_obj)
-    match_obj = get_summary(match_obj)
-    match_obj = get_videos(match_obj)
-    return match_obj
-
-
-def get_previous_match(match_obj: Match) -> Match:
+async def get_previous_match(match_obj: Match) -> Match:
     date = datetime.fromtimestamp(int(match_obj.date))
     date_from = date - timedelta(days=31)
     date_from = f'{date_from.year}-{date_from.month}-{date_from.day}'
@@ -536,12 +555,10 @@ def get_previous_match(match_obj: Match) -> Match:
     sched = mls_schedule.get_schedule(team=match_obj.home.opta_id, comp=match_obj.comp_id, date_from=date_from, date_to=date_to)
     prev_match = Match(-1)
     for m in sched:
-        prev_match = Match(m['optaId'])
-        prev_match = get_match_data(prev_match)
+        prev_match = await Match.create_prematch(m['optaId'])
         if prev_match.id == match_obj.previous_match_id:
             match_obj.previous_match_opta_id = prev_match.opta_id
             break
-    prev_match = get_stats(prev_match)
     if prev_match.home.opta_id == match_obj.away.opta_id:
         match_obj.away.previous_goals = prev_match.home.goals
         match_obj.home.previous_goals = prev_match.away.goals
@@ -554,13 +571,11 @@ def get_previous_match(match_obj: Match) -> Match:
 
 
 @util.time_dec(False)
-def main():
+async def main():
     opta_id = 289017508
-    match_obj = Match(opta_id)
-    match_obj = get_match_data(match_obj)
-    match_obj = get_lineups(match_obj)
+    match_obj: Match = await Match.create(opta_id)
     print(match_obj.away.lineup_str())
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())

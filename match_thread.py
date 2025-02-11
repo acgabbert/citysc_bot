@@ -160,8 +160,7 @@ async def match_thread(
         post: Whether to create a post-match thread when done
     """
     # get a match object
-    match_obj: match.Match = match.Match(opta_id)
-    match_obj = match.get_all_data(match_obj)
+    match_obj: match.Match = await match.Match.create(opta_id)
 
     # get reddit ids of any threads that may already exist for this match
     data: Dict[str, Any] = util.read_json(threads_json)
@@ -198,7 +197,7 @@ async def match_thread(
     while True:
         before = time.time()
         try:
-            match_obj = match.get_match_update(match_obj)
+            await match_obj.refresh()
         except Exception as e:
             message = (
                 f'Error while getting match update.\n'
@@ -255,8 +254,7 @@ async def post_match_thread(
     if '/r/' in sub:
         sub = sub[3:]
 
-    match_obj: match.Match = match.Match(opta_id)
-    match_obj = match.get_all_data(match_obj)
+    match_obj: match.Match = await match.Match.create(opta_id)
     title, markdown = md.post_match_thread(match_obj)
     post_thread: asyncpraw.models.Submission = await submit_thread(sub, title, markdown, mod=True, unsticky=thread)
 
