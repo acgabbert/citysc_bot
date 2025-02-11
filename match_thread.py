@@ -32,7 +32,7 @@ async def submit_thread(
     text: str,
     mod: bool = False,
     new: bool = False,
-    unsticky: Optional[Union[str, praw.models.Submission]] = None
+    unsticky: Optional[Union[str, asyncpraw.models.Submission]] = None
 ) -> asyncpraw.models.Submission:
     """Submit a thread to the provided subreddit.
     
@@ -60,8 +60,8 @@ async def submit_thread(
             await thread_mod.sticky()
             if unsticky is not None:
                 if type(unsticky) is str:
-                    unsticky = praw.models.Submission(reddit=reddit, id=unsticky)
-                if type(unsticky) is praw.models.Submission:
+                    unsticky = asyncpraw.models.Submission(reddit=reddit, id=unsticky)
+                if type(unsticky) is asyncpraw.models.Submission:
                     unsticky_mod: asyncpraw.models.reddit.submission.SubmissionModeration = unsticky.mod
                     await unsticky_mod.sticky(state=False)
         except Exception as e:
@@ -75,7 +75,7 @@ async def submit_thread(
 
 
 async def comment(
-    pre_thread: Union[str, praw.models.Submission],
+    pre_thread: Union[str, asyncpraw.models.Submission],
     text: str
 ) -> Optional[asyncpraw.models.Comment]:
     """Add a distinguished comment to a thread.
@@ -92,7 +92,7 @@ async def comment(
 
     if type(pre_thread) is str:
         pre_thread = asyncpraw.models.Submission(reddit=reddit, id=pre_thread)
-    if type(pre_thread) is praw.models.Submission:
+    if type(pre_thread) is asyncpraw.models.Submission:
         comment_obj = await pre_thread.reply(text)
         time.sleep(10)
         comment_mod = comment_obj.mod
@@ -146,8 +146,8 @@ async def pre_match_thread(opta_id: Union[str, int], sub: str = prod_sub):
 async def match_thread(
     opta_id: Union[str, int],
     sub: str = prod_sub,
-    pre_thread: Optional[Union[str, praw.models.Submission]] = None,
-    thread: Optional[Union[str, praw.models.Submission]] = None,
+    pre_thread: Optional[Union[str, asyncpraw.models.Submission]] = None,
+    thread: Optional[Union[str, asyncpraw.models.Submission]] = None,
     post: bool = True
 ) -> None:
     """Post and maintain a match thread.
