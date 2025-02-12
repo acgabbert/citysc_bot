@@ -1,7 +1,7 @@
 import argparse
 import asyncio
 import logging
-import asyncpraw, asyncpraw.models, asyncprawcore
+import asyncpraw, asyncpraw.models, asyncprawcore.exceptions
 import sys
 import time
 from typing import Optional, Union, Dict, Any
@@ -32,7 +32,8 @@ async def submit_thread(
     text: str,
     mod: bool = False,
     new: bool = False,
-    unsticky: Optional[Union[str, asyncpraw.models.Submission]] = None
+    unsticky: Optional[Union[str, asyncpraw.models.Submission]] = None,
+    reddit: Optional[asyncpraw.Reddit] = None
 ) -> asyncpraw.models.Submission:
     """Submit a thread to the provided subreddit.
     
@@ -47,9 +48,10 @@ async def submit_thread(
     Returns:
         The created Reddit submission
     """
-    reddit: asyncpraw.Reddit = None
+    should_close_client = reddit is None
     try:
-        reddit = util.get_reddit()
+        if reddit is None:
+            reddit = util.get_reddit()
         subreddit_obj: asyncpraw.models.Subreddit = await reddit.subreddit(subreddit_obj)
 
         # add exponential backoff retry for submittion
@@ -88,7 +90,7 @@ async def submit_thread(
                         unsticky = asyncpraw.models.Submission(reddit=reddit, id=unsticky)
                     if type(unsticky) is asyncpraw.models.Submission:
                         unsticky_mod: asyncpraw.models.reddit.submission.SubmissionModeration = unsticky.mod
-                        mod_tasks.append(unsticky.mod.sticky(state=False))
+                        mod_tasks.append(unsticky_mod.sticky(state=False))
 
                 await asyncio.gather(*mod_tasks)
 
@@ -104,17 +106,20 @@ async def submit_thread(
         return thread
     
     except Exception as e:
-        logger.error(f"Failed to submit thread: {str(e)}")
+        message = f'Failed to submit thread "{title}":\n{str(e)}'
+        logger.error(message)
+        msg.send(message)
         raise
     finally:
         # Ensure proper cleanup of Reddit client
-        if reddit and hasattr(reddit, "close"):
+        if should_close_client and reddit and hasattr(reddit, "close"):
             await reddit.close()
 
 
 async def comment(
     pre_thread: Union[str, asyncpraw.models.Submission],
-    text: str
+    text: str,
+    reddit: Optional[asyncpraw.Reddit] = None
 ) -> Optional[asyncpraw.models.Comment]:
     """Add a distinguished comment to a thread.
     
@@ -125,25 +130,39 @@ async def comment(
     Returns:
         The created comment or None if unsuccessful
     """
-    reddit: asyncpraw.Reddit = util.get_reddit()
-    comment_obj: Optional[asyncpraw.models.Comment] = None
+    should_close_client = reddit is None
+    try:
+        if reddit is None:
+            reddit = util.get_reddit()
+        comment_obj: Optional[asyncpraw.models.Comment] = None
 
-    if type(pre_thread) is str:
-        pre_thread = asyncpraw.models.Submission(reddit=reddit, id=pre_thread)
-    if type(pre_thread) is asyncpraw.models.Submission:
-        comment_obj = await pre_thread.reply(text)
-        time.sleep(10)
-        comment_mod = comment_obj.mod
-        try:
-            await comment_mod.distinguish(sticky=True)
-        except Exception as e:
-            message = (
-                f'Error in moderation clause. Comment {comment_obj.id}\n'
-                f'{str(e)}'
-            )
-            logger.error(message)
-            msg.send(message)
-    return comment_obj
+        if type(pre_thread) is str:
+            pre_thread = asyncpraw.models.Submission(reddit=reddit, id=pre_thread)
+        if type(pre_thread) is asyncpraw.models.Submission:
+            comment_obj = await pre_thread.reply(text)
+            time.sleep(10) # Give Reddit time to process the comment
+            comment_mod: asyncpraw.models.reddit.comment.CommentModeration = comment_obj.mod
+            try:
+                await comment_mod.distinguish(sticky=True)
+            except Exception as e:
+                message = (
+                    f'Error in moderation clause. Comment {comment_obj.id}\n'
+                    f'{str(e)}'
+                )
+                logger.error(message)
+                msg.send(message)
+                raise
+        return comment_obj
+    
+    except Exception as e:
+        message = f'Failed to submit comment: "{text}"\n{str(e)}'
+        logger.error(message)
+        msg.send(message)
+        raise
+    finally:
+        # Ensure proper cleanup of Reddit client
+        if should_close_client and reddit and hasattr(reddit, "close"):
+            await reddit.close()
 
 
 async def pre_match_thread(opta_id: Union[str, int], sub: str = prod_sub):
@@ -236,6 +255,21 @@ async def match_thread(
         before = time.time()
         try:
             await match_obj.refresh()
+            after = time.time()
+            logger.info(f'Match update took {round(after-before, 2)} secs')
+            _, markdown = md.match_thread(match_obj)
+            try:
+                await thread.edit(markdown)
+                logger.debug(f'Successfully updated {match_obj.opta_id} at minute {match_obj.minute}')
+            except Exception as e:
+                message = (
+                    f'Error while editing match thread.\n'
+                    f'{str(e)}\n'
+                    f'Continuing while loop.'
+                )
+                logger.error(message)
+                msg.send(f'{msg.user} {message}')
+            
         except Exception as e:
             message = (
                 f'Error while getting match update.\n'
@@ -244,23 +278,7 @@ async def match_thread(
             )
             logger.error(message)
             msg.send(f'{msg.user} {message}')
-            continue
-        after = time.time()
-        logger.info(f'Match update took {round(after-before, 2)} secs')
-        _, markdown = md.match_thread(match_obj)
-        try:
-            await thread.edit(markdown)
-        except Exception as e:
-            message = (
-                f'Error while editing match thread.\n'
-                f'{str(e)}\n'
-                f'Continuing while loop.'
-            )
-            logger.error(message)
-            msg.send(f'{msg.user} {message}')
-            continue
         
-        logger.debug(f'Successfully updated {match_obj.opta_id} at minute {match_obj.minute}')
         if match_obj.is_final:
             msg.send(f'{msg.user} Match is finished, final update made')
             if post:
