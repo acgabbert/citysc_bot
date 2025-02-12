@@ -1,7 +1,7 @@
 import argparse
 import asyncio
 import logging
-import asyncpraw, asyncpraw.models
+import asyncpraw, asyncpraw.models, asyncprawcore
 import sys
 import time
 from typing import Optional, Union, Dict, Any
@@ -27,7 +27,7 @@ threads_json = config.THREADS_JSON
 
 
 async def submit_thread(
-    subreddit: str,
+    subreddit_obj: str,
     title: str,
     text: str,
     mod: bool = False,
@@ -47,31 +47,69 @@ async def submit_thread(
     Returns:
         The created Reddit submission
     """
-    reddit: asyncpraw.Reddit = util.get_reddit()
-    subreddit: asyncpraw.models.Subreddit = await reddit.subreddit(subreddit)
-    # TODO implement PRAW exception handling? 
-    thread: asyncpraw.models.Submission = await subreddit.submit(title, selftext=text, send_replies=False)
-    if mod:
-        time.sleep(10)
-        thread_mod: asyncpraw.models.reddit.submission.SubmissionModeration = thread.mod
-        try:
-            if new:
-                await thread_mod.suggested_sort(sort='new')
-            await thread_mod.sticky()
-            if unsticky is not None:
-                if type(unsticky) is str:
-                    unsticky = asyncpraw.models.Submission(reddit=reddit, id=unsticky)
-                if type(unsticky) is asyncpraw.models.Submission:
-                    unsticky_mod: asyncpraw.models.reddit.submission.SubmissionModeration = unsticky.mod
-                    await unsticky_mod.sticky(state=False)
-        except Exception as e:
-            message = f'Error in moderation clause. Thread {thread.id}'
-            if unsticky is not None:
-                message += f', unsticky {unsticky.id}'
-            message += f'\n{str(e)}'
-            logger.error(message)
-            msg.send(message)
-    return thread
+    reddit: asyncpraw.Reddit = None
+    try:
+        reddit = util.get_reddit()
+        subreddit_obj: asyncpraw.models.Subreddit = await reddit.subreddit(subreddit_obj)
+
+        # add exponential backoff retry for submittion
+        max_retries = 3
+        retry_delay = 5
+
+        for attempt in range(max_retries):
+            try:
+                thread: asyncpraw.models.Submission = await subreddit_obj.submit(
+                    title,
+                    selftext=text,
+                    send_replies=False
+                )
+                break
+            except asyncprawcore.exceptions.ServerError as e:
+                if attempt == max_retries - 1:
+                    logger.error(f"Failed to submit after {max_retries} attempts: {str(e)}")
+                    raise
+                wait_time = retry_delay * (2 ** attempt)
+                logger.warning(f"Reddit server error, retrying in {wait_time}s...")
+                await asyncio.sleep(wait_time)
+                continue
+    
+        if mod:
+            try:
+                await asyncio.sleep(10) # Give Reddit time to process the submission
+                thread_mod: asyncpraw.models.reddit.submission.SubmissionModeration = thread.mod
+
+                mod_tasks = []
+                if new:
+                    mod_tasks.append(thread_mod.suggested_sort(sort='new'))
+                mod_tasks.append(thread_mod.sticky())
+
+                if unsticky:
+                    if type(unsticky) is str:
+                        unsticky = asyncpraw.models.Submission(reddit=reddit, id=unsticky)
+                    if type(unsticky) is asyncpraw.models.Submission:
+                        unsticky_mod: asyncpraw.models.reddit.submission.SubmissionModeration = unsticky.mod
+                        mod_tasks.append(unsticky.mod.sticky(state=False))
+
+                await asyncio.gather(*mod_tasks)
+
+            except Exception as e:
+                message = (
+                    f"Error in moderation clause for thread {thread.id}. "
+                    f"Unsticky target: {unsticky.id if unsticky else "None"}\n{str(e)}"
+                )
+                logger.error(message)
+                msg.send(message)
+                # Continue since the post was created successfully
+    
+        return thread
+    
+    except Exception as e:
+        logger.error(f"Failed to submit thread: {str(e)}")
+        raise
+    finally:
+        # Ensure proper cleanup of Reddit client
+        if reddit and hasattr(reddit, "close"):
+            await reddit.close()
 
 
 async def comment(
