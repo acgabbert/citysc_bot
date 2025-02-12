@@ -11,6 +11,7 @@ import match
 import match_markdown as md
 import util
 import discord as msg
+from reddit_client import RedditClient
 
 logger = logging.getLogger(__name__)
 
@@ -231,61 +232,66 @@ async def match_thread(
             pre_thread = gm['pre']
         if 'match' in gm.keys():
             thread = gm['match']
-
-    if thread is None:
-        title, markdown = md.match_thread(match_obj)
-        if '/r/' in sub:
-            sub = sub[3:]
-        thread = await submit_thread(sub, title, markdown, mod=True, new=True, unsticky=pre_thread)
-        data[str(opta_id)]['match'] = thread.id_from_url(thread.shortlink)
-        util.write_json(data, threads_json)
-        if pre_thread is not None:
-            text = f'[Continue the discussion in the match thread.](https://www.reddit.com/r/{sub}/comments/{thread.id_from_url(thread.shortlink)})'
-            comment(pre_thread, text)
-        msg.send(f'{msg.user} Match thread posted! https://www.reddit.com/r/{sub}/comments/{thread.id_from_url(thread.shortlink)}')
-        if not post:
-            msg.send(f'No post-match thread for {thread.id_from_url(thread.shortlink)}')
-    else:
-        # thread already exists in the json
-        reddit: asyncpraw.Reddit = util.get_reddit()
-        thread = asyncpraw.models.Submission(reddit=reddit, id=thread)
-        msg.send(f'Found existing match thread')
     
-    while True:
-        before = time.time()
-        try:
-            await match_obj.refresh()
-            after = time.time()
-            logger.info(f'Match update took {round(after-before, 2)} secs')
-            _, markdown = md.match_thread(match_obj)
+    async with RedditClient() as reddit:
+        if thread is None:
+            title, markdown = md.match_thread(match_obj)
+            if '/r/' in sub:
+                sub = sub[3:]
+            thread = await reddit.submit_thread(
+                sub, title, markdown,
+                mod=True, new=True, unsticky=pre_thread
+            )
+            data[str(opta_id)]['match'] = thread.id_from_url(thread.shortlink)
+            util.write_json(data, threads_json)
+            if pre_thread is not None:
+                text = f'[Continue the discussion in the match thread.](https://www.reddit.com/r/{sub}/comments/{thread.id_from_url(thread.shortlink)})'
+                comment(pre_thread, text)
+            msg.send(f'{msg.user} Match thread posted! https://www.reddit.com/r/{sub}/comments/{thread.id_from_url(thread.shortlink)}')
+            if not post:
+                msg.send(f'No post-match thread for {thread.id_from_url(thread.shortlink)}')
+        else:
+            # thread already exists in the json
+            thread = reddit.get_thread(thread)
+            await thread.load()
+            msg.send(f'Found existing match thread')
+        
+        while True:
+            before = time.time()
             try:
-                await thread.edit(markdown)
-                logger.debug(f'Successfully updated {match_obj.opta_id} at minute {match_obj.minute}')
+                await match_obj.refresh()
+                after = time.time()
+                logger.info(f'Match update took {round(after-before, 2)} secs')
+                _, markdown = md.match_thread(match_obj)
+                try:
+                    await reddit.edit_thread(thread, markdown)
+                    logger.debug(f'Successfully updated {match_obj.opta_id} at minute {match_obj.minute}')
+                except Exception as e:
+                    message = (
+                        f'Error while editing match thread.\n'
+                        f'{str(e)}\n'
+                        f'Continuing while loop.'
+                    )
+                    logger.error(message)
+                    msg.send(f'{msg.user} {message}')
+                
             except Exception as e:
                 message = (
-                    f'Error while editing match thread.\n'
+                    f'Error while getting match update.\n'
                     f'{str(e)}\n'
                     f'Continuing while loop.'
                 )
                 logger.error(message)
                 msg.send(f'{msg.user} {message}')
             
-        except Exception as e:
-            message = (
-                f'Error while getting match update.\n'
-                f'{str(e)}\n'
-                f'Continuing while loop.'
-            )
-            logger.error(message)
-            msg.send(f'{msg.user} {message}')
-        
-        if match_obj.is_final:
-            msg.send(f'{msg.user} Match is finished, final update made')
-            if post:
-                # post a post-match thread before exiting the loop
-                await post_match_thread(opta_id, sub, thread)
-            break
-        time.sleep(60)
+            if match_obj.is_final:
+                msg.send(f'{msg.user} Match is finished, final update made')
+                if post:
+                    # post a post-match thread before exiting the loop
+                    # TODO refactor this with the new client!
+                    await post_match_thread(opta_id, sub, thread)
+                break
+            await asyncio.sleep(60)
 
 
 async def post_match_thread(
