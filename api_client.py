@@ -185,7 +185,7 @@ class MLSApiClient:
                 raise MLSApiError(f"Request to {url} failed: {str(e)}") from e
 
     # Stats API endpoints
-    async def get_match_stats(self, match_id: int) -> Dict[str, Any]:
+    async def get_match_stats(self, match_id: int) -> List[Dict[str, Any]]:
         """Get match statistics from stats API"""
         response = await self._make_request(
             ApiEndpoint.STATS,
@@ -202,8 +202,8 @@ class MLSApiClient:
         )
         # response is formatted as an array
         if not response:
-            return {}
-        return response[0]  # Return the first match object
+            return []
+        return response
 
     async def get_match_data(self, match_id: int) -> Dict[str, Any]:
         """Get match data from stats API"""

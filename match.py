@@ -64,8 +64,8 @@ class Match(mls.MlsObject):
         match = cls(opta_id)
         data = await get_full_match_data(opta_id)
 
-        match.update_from_stats(data.get("stats"))
         match.update_from_data(data.get("data"))
+        match.update_from_stats(data.get("stats"))
         match.update_from_schedule_info(data.get("info"))
         match.update_from_preview(data.get("preview"))
         match.update_from_lineups(data.get("lineups"))
@@ -154,18 +154,30 @@ class Match(mls.MlsObject):
         if data.get("period") == "HalfTime":
             self.minute = "HT"
 
-    def update_from_stats(self, data: Dict[str, Any]) -> None:
-        for team in data:
+    def update_from_stats(self, data: List[Dict[str, Any]]) -> None:
+        """Update match stats from API response data"""
+        if not data:
+            logger.debug(f"No stats data available for match {self.opta_id}")
+            return
+
+        for team_data in data:
             try:
-                if team.get("side") == 'home':
-                    self.home = process_stats(team, self.home)
-                elif team.get("side") == 'away':
-                    self.away = process_stats(team, self.away)
+                team_side = team_data.get("side")
+                if not team_side:
+                    logger.error(f"Missing side information in stats for match {self.opta_id}")
+                    continue
+
+                # Update stats for the appropriate existing team object
+                if team_side == "home":
+                    self._process_team_stats(self.home, team_data)
+                elif team_side == "away":
+                    self._process_team_stats(self.away, team_data)
                 else:
-                    logger.error(f"Team {team.get("opta_id", "NONE")}, match {self.opta_id} is not home or away.")
-            except KeyError:
-                # data most likely hasn't been populated yet
-                logger.info(f"No stats yet for match {self.opta_id}.")
+                    logger.error(f"Invalid team side '{team_side}' in match {self.opta_id}")
+
+            except Exception as e:
+                logger.error(f"Error processing stats for match {self.opta_id}: {str(e)}")
+                continue
     
     def update_from_preview(self, data: Dict[str, Any]) -> None:
         # clear existing state
@@ -310,6 +322,34 @@ class Match(mls.MlsObject):
             return "FT"
         
         return ""
+    
+    
+    def _process_team_stats(self, team: club.ClubMatch, team_data: Dict[str, Any]) -> None:
+        """Update stats for a specific team"""
+        # Update basic stats
+        team.goals = team_data.get("score", -1)
+        
+        # Update shootout score if penalties occurred
+        if team_data.get("first_penalty_kick") is not None:
+            team.shootout_score = team_data.get("shootout_score")
+
+        # Process detailed statistics
+        statistics = team_data.get("statistics", {})
+        if not statistics:
+            logger.debug(f"No detailed statistics for team {team.opta_id}")
+            return
+
+        # Update all standard stats fields
+        for stat_field in const.STATS_FIELDS:
+            value = statistics.get(stat_field, 0)  # Default to 0 if stat doesn't exist
+            setattr(team, stat_field, value)
+
+        # Calculate pass accuracy
+        if team.total_pass > 0:
+            accuracy = (team.accurate_pass / team.total_pass) * 100
+            team.pass_accuracy = f"{accuracy:.1f}"
+        else:
+            team.pass_accuracy = "0.0"
 
 
 def process_formation(data):
@@ -411,7 +451,7 @@ def get_player_name(player):
 
 def process_stats(data, team: club.ClubMatch) -> club.ClubMatch:
     """Process stats fields from const.STATS_FIELDS"""
-    team.goals = data['score']
+    team.goals = data.get("score", -1)
     if data['first_penalty_kick'] is not None:
         team.shootout_score = data['shootout_score']
     stats = data['statistics']
@@ -572,9 +612,10 @@ async def get_previous_match(match_obj: Match) -> Match:
 
 @util.time_dec(False)
 async def main():
-    opta_id = 289017508
+    opta_id = 2415296
     match_obj: Match = await Match.create(opta_id)
     print(match_obj.away.lineup_str())
+    print(match_obj.home.goals)
 
 
 if __name__ == '__main__':
