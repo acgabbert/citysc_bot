@@ -1,13 +1,11 @@
 import asyncio
 import time
 import logging
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Any
 from datetime import datetime, timedelta
 
-import config
 import discord as msg
 import mls_api as mls
-import mls_schedule
 import util
 import match_constants as const
 import player

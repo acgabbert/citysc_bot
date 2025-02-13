@@ -1,12 +1,13 @@
+import aiohttp
+import asyncio
+import backoff
+import inspect
+import logging
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from typing import Dict, List, Optional, Any, Union
-import asyncio
 from urllib.parse import urljoin
-import logging
-import aiohttp
-import backoff
 from pydantic import BaseModel, Field
 
 import config
@@ -62,6 +63,7 @@ class MLSApiConfig:
     max_retries: int = 3
     rate_limit_calls: int = 10
     rate_limit_period: int = 1  # seconds
+    log_responses: bool = True
 
 class MatchSchedule(BaseModel):
     """Model for schedule response from sport API"""
@@ -178,7 +180,20 @@ class MLSApiClient:
                             raise MLSApiClientError(f"Client error {response.status}: {text}\n{url}\n{params}")
                         else:
                             raise MLSApiServerError(f"Server error {response.status}: {text}\n{url}\n{params}")
-                    return await response.json()
+                    
+                    response_data = await response.json()
+
+                    if hasattr(self.config, "log_responses") and self.config.log_responses:
+                        try:
+                            caller_name = inspect.stack()[1].function
+                            # Extract match_id from params if it exists
+                            match_id = params.get('match_game_id', '') if params else ''
+                            filename = f"assets/{caller_name.split('get_')[1]}_{match_id}.json"
+                            util.write_json(response_data, filename)
+                        except Exception as e:
+                            logger.error(f"Failed to log response: {str(e)}")
+
+                    return response_data
                     
             except asyncio.TimeoutError as e:
                 raise MLSApiTimeoutError(f"Request to {url} timed out") from e
@@ -204,6 +219,10 @@ class MLSApiClient:
         # response is formatted as an array
         if not response:
             return []
+        try:
+            util.write_json(response, f"assets/{inspect.stack()[0][3].split("get_")[1]}_{match_id}.json")
+        except Exception as e:
+            logger.error(f"Failed to write JSON: {str(e)}")
         return response
 
     async def get_match_data(self, match_id: int) -> Dict[str, Any]:
@@ -226,6 +245,10 @@ class MLSApiClient:
         # response is formatted as an array
         if not response:
             return {}
+        try:
+            util.write_json(response, f"assets/{inspect.stack()[0][3].split("get_")[1]}_{match_id}.json")
+        except Exception as e:
+            logger.error(f"Failed to write JSON: {str(e)}")
         return response[0]  # Return the first match object
 
     async def get_match_commentary(self, match_id: int) -> List[Dict[str, Any]]:
