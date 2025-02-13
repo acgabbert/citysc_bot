@@ -183,6 +183,7 @@ class MLSApiClient:
                     
                     response_data = await response.json()
 
+                    # Log responses to assets/ directory
                     if hasattr(self.config, "log_responses") and self.config.log_responses:
                         try:
                             caller_name = inspect.stack()[1].function
@@ -219,10 +220,6 @@ class MLSApiClient:
         # response is formatted as an array
         if not response:
             return []
-        try:
-            util.write_json(response, f"assets/{inspect.stack()[0][3].split("get_")[1]}_{match_id}.json")
-        except Exception as e:
-            logger.error(f"Failed to write JSON: {str(e)}")
         return response
 
     async def get_match_data(self, match_id: int) -> Dict[str, Any]:
@@ -245,10 +242,6 @@ class MLSApiClient:
         # response is formatted as an array
         if not response:
             return {}
-        try:
-            util.write_json(response, f"assets/{inspect.stack()[0][3].split("get_")[1]}_{match_id}.json")
-        except Exception as e:
-            logger.error(f"Failed to write JSON: {str(e)}")
         return response[0]  # Return the first match object
 
     async def get_match_commentary(self, match_id: int) -> List[Dict[str, Any]]:

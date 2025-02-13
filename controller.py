@@ -1,14 +1,19 @@
 import argparse
-import time
-import sched
 import logging, logging.handlers
-from datetime import datetime, timezone
+import sched
 import schedule
+import time
+from datetime import datetime, timezone
 from multiprocessing import Process
 
+import discipline
 import discord as msg
+import injuries
 import match_thread as thread
 import mls_schedule
+import mls_selenium
+import widgets
+from config import FEATURE_FLAGS, SUB, TEAMS as clubs
 
 fh = logging.handlers.RotatingFileHandler('log/debug.log', maxBytes=1000000, backupCount=10)
 fh.setLevel(logging.DEBUG)
@@ -35,8 +40,6 @@ scheduler = sched.scheduler(time.time, time.sleep)
 - 17012: St. Louis City SC
 - 19202: St. Louis City SC 2
 """
-from config import TEAMS as clubs
-from config import SUB
 
 class Main:
     """Use this class to start a match thread in a separate process, 
@@ -118,15 +121,22 @@ def daily_setup(sub):
 
 
 def main(sub):
-    message = f'Started {__name__} at {time.time()}. Subreddit {sub}'
+    message = f'Started {__name__} at {time.time()}. Subreddit {sub}\n'
+    message += str(FEATURE_FLAGS)
     root.info(message)
     msg.send(message)
-    daily_setup(sub)
-    #schedule.every().day.at('00:45').do(mls_selenium.main)
-    #schedule.every().day.at('01:00').do(widgets.main)
-    #schedule.every().day.at('01:15').do(injuries.main)
-    #schedule.every().day.at('01:15').do(discipline.main)
-    schedule.every().day.at('01:30').do(daily_setup, sub)
+
+    if FEATURE_FLAGS['enable_daily_setup']:
+        daily_setup(sub)
+    if FEATURE_FLAGS['enable_widgets']:
+        schedule.every().day.at('00:45').do(mls_selenium.main)
+        schedule.every().day.at('01:00').do(widgets.main)
+    if FEATURE_FLAGS['enable_injuries']:
+        schedule.every().day.at('01:15').do(injuries.main)
+    if FEATURE_FLAGS['enable_discipline']:
+        schedule.every().day.at('01:15').do(discipline.main)
+    if FEATURE_FLAGS['enable_daily_setup']:
+        schedule.every().day.at('01:30').do(daily_setup, sub)
     running = True
     while running:
         try:

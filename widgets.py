@@ -1,9 +1,9 @@
+import asyncpraw.models
 from datetime import datetime
-import praw
 from PIL import Image
 
 import discord as msg
-from match import Match, get_match_data
+from match import Match
 import mls_schedule
 from standings import get_clubs
 import util
@@ -28,8 +28,7 @@ def get_upcoming(opta_id):
     ids = mls_schedule.get_upcoming_matches(data)
     matches = []
     for id in ids:
-        m = Match(id)
-        get_match_data(m)
+        m = Match.create_prematch(id)
         matches.append(m)
     matches.sort()
     return matches
@@ -85,7 +84,7 @@ def sidebar_edit(text: str):
         return text
 
 
-def get_widgets(reddit, subreddit) -> list[praw.models.Widget]:
+def get_widgets(reddit, subreddit) -> list[asyncpraw.models.Widget]:
     """Returns a list of the widgets in a subreddit's sidebar"""
     if reddit is None:
         reddit = util.get_reddit()

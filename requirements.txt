@@ -1,8 +1,9 @@
+aiohttp
+asyncpraw
+backoff
+bs4
+pillow
+pydantic
 requests
 schedule
-asyncpraw
-bs4
 selenium
-backoff
-pydantic
-aiohttp
