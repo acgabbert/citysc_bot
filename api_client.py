@@ -10,6 +10,7 @@ import backoff
 from pydantic import BaseModel, Field
 
 import config
+import util
 
 logger = logging.getLogger(__name__)
 
@@ -432,11 +433,13 @@ async def main():
             schedule = await client.get_schedule(
                 club_opta_id=17012,  # St. Louis City SC
                 competition=Competition.MLS,
-                match_type=MatchType.REGULAR
+                match_type=MatchType.REGULAR,
+                date_from="2025-02-15",
+                date_to="2025-11-23"
             )
             
             # Get standings
-            standings = await client.get_standings(2024)
+            #standings = await client.get_standings(2025)
             
             print(f"Match info: {match_info}")
             print(f"Schedule: Found {len(schedule)} matches")

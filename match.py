@@ -292,8 +292,8 @@ class Match(mls.MlsObject):
         """Process competition name with business logic"""
         comp_name = data.get("competition", {}).get("name", "")
         comp_type = data.get("type", "")
-        if comp_name == "US Major League Soccer":
-            if comp_type == "Cup" or "Best of" in comp_type:
+        if "Major League Soccer" in comp_name:
+            if "Cup" in comp_type or "Best of" in comp_type:
                 return "MLS Cup Playoffs"
             return "MLS"
         elif comp_name == "Major League Soccer - Regular Season":
@@ -592,7 +592,9 @@ async def get_previous_match(match_obj: Match) -> Match:
     date_from = date - timedelta(days=31)
     date_from = f'{date_from.year}-{date_from.month}-{date_from.day}'
     date_to = f'{date.year}-{date.month}-{date.day}'
-    sched = mls_schedule.get_schedule(team=match_obj.home.opta_id, comp=match_obj.comp_id, date_from=date_from, date_to=date_to)
+    async with MLSApiClient() as client:
+        sched = await client.get_schedule(team=match_obj.home.opta_id, comp=match_obj.comp_id, date_from=date_from, date_to=date_to)
+    
     prev_match = Match(-1)
     for m in sched:
         prev_match = await Match.create_prematch(m['optaId'])

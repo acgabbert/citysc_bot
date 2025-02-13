@@ -131,8 +131,11 @@ def db_query(query: str, data: tuple=None):
 
 def write_json(data, filename):
     """Write json data to filename."""
-    with open(filename, 'w', encoding='utf-8') as f:
-        f.write(json.dumps(data, indent=4, ensure_ascii=False))
+    try:
+        with open(filename, 'w', encoding='utf-8') as f:
+            f.write(json.dumps(data, indent=4, ensure_ascii=False))
+    except Exception as e:
+        logging.error(f"Error writing file {filename}\n{str(e)}")
     return
 
 
