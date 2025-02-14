@@ -11,7 +11,7 @@ import discord as msg
 import injuries
 import match_thread as thread
 import mls_schedule
-import mls_selenium
+import mls_playwright
 import widgets
 from config import FEATURE_FLAGS, SUB, TEAMS as clubs
 
@@ -129,7 +129,7 @@ def main(sub):
     if FEATURE_FLAGS['enable_daily_setup']:
         daily_setup(sub)
     if FEATURE_FLAGS['enable_widgets']:
-        schedule.every().day.at('00:45').do(mls_selenium.main)
+        schedule.every().day.at('00:45').do(mls_playwright.main)
         schedule.every().day.at('01:00').do(widgets.main)
     if FEATURE_FLAGS['enable_injuries']:
         schedule.every().day.at('01:15').do(injuries.main)
