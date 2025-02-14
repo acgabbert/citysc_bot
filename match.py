@@ -263,9 +263,9 @@ class Match(mls.MlsObject):
     def update_from_schedule_info(self, data: Dict[str, Any]) -> None:
         self.broadcasters.clear()
         self.slug = data.get("slug")
-        self.apple_tier = data.get("appleSubscriptionTier")
-        self.apple_url = data.get("appleStreamURL").split("?")[0]
-        broadcasters: List[Dict[str, Any]] = data.get("broadcasters")
+        self.apple_tier = data.get("appleSubscriptionTier", "")
+        self.apple_url = data.get("appleStreamURL", "").split("?")[0]
+        broadcasters: List[Dict[str, Any]] = data.get("broadcasters", [])
         for b in broadcasters:
             if b.get("broadcasterType") not in ['US TV', 'International Streaming', 'US Streaming']:
                 continue

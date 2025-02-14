@@ -186,7 +186,7 @@ class MLSApiClient:
                     # Log responses to assets/ directory
                     if hasattr(self.config, "log_responses") and self.config.log_responses:
                         try:
-                            caller_name = inspect.stack()[1].function
+                            caller_name = inspect.stack()[2].function
                             # Extract match_id from params if it exists
                             match_id = params.get('match_game_id', '') if params else ''
                             filename = f"assets/{caller_name.split('get_')[1]}_{match_id}.json"
