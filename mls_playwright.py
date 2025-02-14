@@ -7,7 +7,7 @@ import discord as msg
 
 logger = logging.getLogger(__name__)
 
-standings_url = 'https://www.mlssoccer.com/standings/2025/conference#season=2025&live=false'
+standings_url = 'https://www.mlssoccer.com/standings/2024/conference#season=2024&live=false'
 schedule_url = 'https://www.mlssoccer.com/schedule/scores#competition=all&club=17012&date='
 schedule_no_matches = 'mls-c-schedule__no-results-text'
 
@@ -85,7 +85,7 @@ async def schedule_controller():
     browser, playwright = await setup_browser()
     
     try:
-        while (shots < 2 or tries < 4) and date.year == datetime.now().year:
+        while (shots < 2 and tries < 4) and date.year == datetime.now().year:
             dated_url = f'{schedule_url}{date.year}-{date.month}-{date.day}'
             logger.debug(f'Checking {dated_url}')
             

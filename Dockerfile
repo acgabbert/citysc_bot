@@ -14,6 +14,11 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Install Playwright and browsers
+RUN pip install playwright
+RUN playwright install chromium
+RUN playwright install-deps
+
 # Copy the source code
 COPY *.py ./
 RUN rm -f config*.py
