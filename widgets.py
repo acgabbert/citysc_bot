@@ -1,18 +1,26 @@
+import argparse
+import asyncpraw.models
 import asyncpraw.models
 from datetime import datetime
 from PIL import Image
+from typing import Optional
 
 import discord as msg
 from match import Match
 import mls_schedule
-from standings import get_clubs
 import util
 import widget_markdown as md
+from config import SUB, TEST_SUB
+from match import Match
+from standings import get_clubs
 
 STL_CITY = 17012
 
 UPCOMING_FILE = 'markdown/upcoming.md'
 STANDINGS_FILE = 'markdown/western_conference.md'
+
+parser = argparse.ArgumentParser(prog='widgets.py', usage='%(prog)s [options]', description='')
+parser.add_argument('-s', '--sub', help='Subreddit')
 
 """
 Image Widget names:
@@ -160,11 +168,23 @@ def update_sidebar(text=None, subreddit='stlouiscitysc'):
 
 
 def main():
+    args = parser.parse_args()
+    sub: Optional[str] = args.sub
     #u_changed = upcoming()
     #s_changed = standings()
-    update_image_widget('Western Conference')
-    update_image_widget('This Week')
-    update_image_widget('Next Week')
+    if sub:
+        print(f'updating widget for sub {sub}')
+        update_image_widget('Western Conference', sub)
+    else:
+        update_image_widget('Western Conference', SUB)
+    if sub:
+        update_image_widget('This Week', sub)
+    else:
+        update_image_widget('This Week', SUB)
+    if sub:
+        update_image_widget('Next Week', sub)
+    else:
+        update_image_widget('Next Week', SUB)
     #if u_changed or s_changed:
         # update sidebar here
         #update_sidebar()

@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-import discord as msg
 import logging
 from PIL import Image
 from selenium import webdriver
@@ -9,7 +8,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-# from config import EXE_PATH
+import discord as msg
+from config import EXE_PATH
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ schedule_xpath = f"//div[@class='mls-c-schedule__matches']"
 schedule_no_matches = 'mls-c-schedule__no-results-text'
 
 def get_mls_driver(url, width=375, height=2800):
-    service = ChromeService(executable_path='/usr/bin/chromedriver')
+    service = ChromeService(executable_path=EXE_PATH)
     options = Options()
     options.add_argument('--headless')
     options.add_argument('--disable-notifications')
@@ -30,7 +30,7 @@ def get_mls_driver(url, width=375, height=2800):
     options.add_argument('--disable-dev-shm-usage')
     options.add_argument('--disable-gpu')
     # Use chromium binary location
-    options.binary_location = '/usr/bin/chromium'
+    #options.binary_location = '/usr/bin/chromium'
     driver = webdriver.Chrome(service=service, options=options)
     driver.set_window_size(width, height)
     
@@ -62,9 +62,11 @@ def get_screenshot(url, outer_xpath, inner_xpath=None, title=None, driver=None):
     if driver is None:
         driver = get_mls_driver(url)
     logger.debug(f'getting {url}\nfinding elements by {outer_xpath}')
+    print(f'getting {url}\nfinding elements by {outer_xpath}')
     elements = driver.find_elements(By.XPATH, outer_xpath)
     i = 0
     logger.debug(f'found {len(elements)} elements')
+    print(f'found {len(elements)} elements')
     filename = ''
     for element in elements:
         if inner_xpath is not None:
@@ -78,7 +80,7 @@ def get_screenshot(url, outer_xpath, inner_xpath=None, title=None, driver=None):
 
 
 def get_standings(url=standings_url, xpath=standings_xpath, driver=None):
-    get_screenshot(url, xpath, '//tr[@class="mls-o-table__header-group mls-o-table__header-group--main"]', driver=driver)
+    get_screenshot(url, xpath, '//tr[@class="mls-o-table__header-group mls-o-table__header-group--main"]', title="Standings", driver=driver)
 
 
 def schedule_controller(url=schedule_url, xpath=schedule_xpath, driver=None):
@@ -90,7 +92,7 @@ def schedule_controller(url=schedule_url, xpath=schedule_xpath, driver=None):
         logger.debug(f'checking {dated_url}')
         driver = get_mls_driver(dated_url)
         if len(driver.find_elements(By.CLASS_NAME, schedule_no_matches)) > 0:
-            msg.send(f'No matches for {url}')
+            msg.send(f'No matches for {dated_url}')
         else:
             title = ''
             if shots == 0:

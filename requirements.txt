@@ -7,3 +7,6 @@ pydantic
 requests
 schedule
 selenium
+praw
+bs4
+playwright
