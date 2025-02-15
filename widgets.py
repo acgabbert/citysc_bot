@@ -9,6 +9,7 @@ from typing import Optional
 import discord as msg
 from match import Match
 import mls_schedule
+from reddit_client import RedditClient
 import util
 import widget_markdown as md
 from config import SUB, TEST_SUB
@@ -144,7 +145,8 @@ async def update_image_widget(name, subreddit='stlouiscitysc'):
         msg.send(f'Failed to update widget {image_path}.')
         return False
     size = im.size # format (width, height) tuple
-    return await update_widget(widget_name, (image_path, size), subreddit)
+    async with RedditClient() as client:
+        return await client.update_image_widget(widget_name, image_path, size, subreddit)
 
 
 def update_sidebar(text=None, subreddit='stlouiscitysc'):

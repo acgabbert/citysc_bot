@@ -106,7 +106,7 @@ class RedditClient:
     ) -> asyncpraw.models.Submission:
         """Submit a new thread to Reddit."""
         if '/r/' in subreddit:
-            subreddit = subreddit[3:]
+            subreddit = subreddit.split('/r/')[1]
             
         subreddit_obj = await self.client.subreddit(subreddit)
         
@@ -199,7 +199,7 @@ class RedditClient:
     ) -> asyncpraw.models.SubredditWidgets:
         """Get a list of the widgets in a subreddit's sidebar"""
         if '/r/' in subreddit:
-            subreddit = subreddit[3:]
+            subreddit = subreddit.split('/r/')[1]
         sub = await self.client.subreddit(subreddit)
         return await sub.widgets
 
@@ -212,14 +212,14 @@ class RedditClient:
     
     async def update_image_widget(
         self,
-        widget_name,
-        image_path,
-        image_size,
-        subreddit
+        widget_name: str,
+        image_path: str,
+        image_size: tuple[int, int],
+        subreddit: str
     ) -> bool:
         """Update a subreddit's image widget"""
         if '/r/' in subreddit:
-            subreddit = subreddit[3:]
+            subreddit = subreddit.split('/r/')[1]
         widgets = await self.get_widgets(subreddit)
         updated = False
         async for w in widgets.sidebar():        
@@ -229,7 +229,7 @@ class RedditClient:
                     image_data = await self.get_image_data(widgets, image_path, image_size)
                     await mod.update(data=image_data)
                     updated = True
-                    msg.send(f'Updated {widget_name} widget!')
+                    msg.send(f'Updated {widget_name} widget on subreddit {subreddit}!')
                     break
                 except Exception as e:
                     message = (
@@ -237,4 +237,6 @@ class RedditClient:
                         f'{str(e)}\n'
                     )
                     msg.send(f'{msg.user}\n{message}')
+        if not updated:
+            msg.send(f'{msg.user}\nNo widgets matching name "{widget_name}" on subreddit "{subreddit}" updated.')
         return updated
