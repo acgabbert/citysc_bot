@@ -1,18 +1,28 @@
+import argparse
+import asyncio
+import asyncpraw.models
+import asyncpraw.models
 from datetime import datetime
-import praw
 from PIL import Image
+from typing import Optional
 
 import discord as msg
-from match import Match, get_match_data
+from match import Match
 import mls_schedule
-from standings import get_clubs
+from reddit_client import RedditClient
 import util
 import widget_markdown as md
+from config import SUB, TEST_SUB
+from match import Match
+from standings import get_clubs
 
 STL_CITY = 17012
 
 UPCOMING_FILE = 'markdown/upcoming.md'
 STANDINGS_FILE = 'markdown/western_conference.md'
+
+parser = argparse.ArgumentParser(prog='widgets.py', usage='%(prog)s [options]', description='')
+parser.add_argument('-s', '--sub', help='Subreddit')
 
 """
 Image Widget names:
@@ -28,8 +38,7 @@ def get_upcoming(opta_id):
     ids = mls_schedule.get_upcoming_matches(data)
     matches = []
     for id in ids:
-        m = Match(id)
-        get_match_data(m)
+        m = Match.create_prematch(id)
         matches.append(m)
     matches.sort()
     return matches
@@ -85,33 +94,34 @@ def sidebar_edit(text: str):
         return text
 
 
-def get_widgets(reddit, subreddit) -> list[praw.models.Widget]:
+async def get_sidebar_widgets(reddit, subreddit) -> asyncpraw.models.SubredditWidgets:
     """Returns a list of the widgets in a subreddit's sidebar"""
     if reddit is None:
         reddit = util.get_reddit()
-    sub = reddit.subreddit(subreddit)
+    sub = await reddit.subreddit(subreddit)
     return sub.widgets
 
 
-def get_image_data(widget, image_path, size):
-    image_url = widget.mod.upload_image(image_path)
+async def get_image_data(widget, image_path, size):
+    image_url = await widget.mod.upload_image(image_path)
     image_data = [{'width': size[0], 'height': size[1], 'url': image_url, 'linkUrl': ''}]
     return image_data
 
 
-def update_widget(widget_name, data, subreddit='stlouiscitysc'):
+async def update_widget(widget_name, data, subreddit='stlouiscitysc'):
+    # TODO refactor this with the new client!
     r = util.get_reddit()
-    widget_obj = get_widgets(r, subreddit)
+    widget_obj = await get_sidebar_widgets(r, subreddit)
     updated = False
-    for w in widget_obj.sidebar:
+    async for w in widget_obj.sidebar():
         if w.shortName == widget_name:
             try:
-                mod = w.mod
+                mod: asyncpraw.models.WidgetModeration = w.mod
                 if isinstance(data, str):
-                    mod.update(text=data)
+                    await mod.update(text=data)
                 else:
-                    image_data = get_image_data(widget_obj, data[0], data[1])
-                    mod.update(data=image_data)
+                    image_data = await get_image_data(widget_obj, data[0], data[1])
+                    await mod.update(data=image_data)
                 updated = True
                 msg.send(f'Updated {widget_name} widget!')
                 break
@@ -121,10 +131,11 @@ def update_widget(widget_name, data, subreddit='stlouiscitysc'):
                     f'{str(e)}\n'
                 )
                 msg.send(f'{msg.user}\n{message}')
+    await r.close()
     return updated
 
 
-def update_image_widget(name, subreddit='stlouiscitysc'):
+async def update_image_widget(name, subreddit='stlouiscitysc'):
     now = datetime.now()
     widget_name = f'{name} PNG'
     image_path = f'png/{name}-{now.month}-{now.day}.png'
@@ -134,7 +145,8 @@ def update_image_widget(name, subreddit='stlouiscitysc'):
         msg.send(f'Failed to update widget {image_path}.')
         return False
     size = im.size # format (width, height) tuple
-    return update_widget(widget_name, (image_path, size), subreddit)
+    async with RedditClient() as client:
+        return await client.update_image_widget(widget_name, image_path, size, subreddit)
 
 
 def update_sidebar(text=None, subreddit='stlouiscitysc'):
@@ -160,16 +172,28 @@ def update_sidebar(text=None, subreddit='stlouiscitysc'):
     return new_text
 
 
-def main():
+async def main():
+    args = parser.parse_args()
+    sub: Optional[str] = args.sub
     #u_changed = upcoming()
     #s_changed = standings()
-    update_image_widget('Western Conference')
-    update_image_widget('This Week')
-    update_image_widget('Next Week')
+    if sub:
+        print(f'updating widget for sub {sub}')
+        await update_image_widget('Western Conference', sub)
+    else:
+        await update_image_widget('Western Conference', SUB)
+    if sub:
+        await update_image_widget('This Week', sub)
+    else:
+        await update_image_widget('This Week', SUB)
+    if sub:
+        await update_image_widget('Next Week', sub)
+    else:
+        await update_image_widget('Next Week', SUB)
     #if u_changed or s_changed:
         # update sidebar here
         #update_sidebar()
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())

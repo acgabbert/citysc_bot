@@ -5,6 +5,24 @@ TEAMS = [
     17012, # St. Louis City SC
     19202  # St. Louis City SC 2 (MLS Next Pro)
 ]
+FEATURE_FLAGS = {
+    # Enable selenium and widget updates
+    'enable_widgets': True,
+    # Enable player availability updates
+    'enable_injuries': True,
+    # Enable player disciplinary updates
+    'enable_discipline': True,
+    # Enable daily match checking tasks
+    'enable_daily_setup':  True,
+    # Schedule times (24h format)
+    'schedule_times': {
+        'selenium': '00:45',
+        'widgets': '01:00',
+        'injuries': '01:15',
+        'discipline': '01:15',
+        'daily_setup': '01:30'
+    }
+}
 # Reddit config
 CLIENT_ID = ''
 SECRET_TOKEN = ''
@@ -21,6 +39,7 @@ DISCORD_TOKEN = ''
 MLS_BOT_WEBHOOK = 'https://discord.com/api/webhooks/'
 CSS_PATH = 'markdown/markdown.css'
 THREADS_JSON = 'threads.json'
+EXE_PATH = '/usr/bin/chromedriver'
 
 # More reddit config - widgets
 WIDGETS = {

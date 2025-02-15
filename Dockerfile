@@ -1,4 +1,4 @@
-FROM python:3.11-slim-bookworm
+FROM python:3.13-slim-bookworm
 
 # Install system dependencies and Chromium
 RUN apt-get update && apt-get install -y \
@@ -13,6 +13,11 @@ WORKDIR /app
 # Copy requirements first to leverage Docker cache
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Install Playwright and browsers
+RUN pip install playwright
+RUN playwright install chromium
+RUN playwright install-deps
 
 # Copy the source code
 COPY *.py ./
