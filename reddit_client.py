@@ -192,3 +192,49 @@ class RedditClient:
     ) -> asyncpraw.models.Submission:
         """Get a Reddit thread by ID."""
         return await self.client.submission(id=thread_id)
+    
+    async def get_widgets(
+        self,
+        subreddit: str
+    ) -> asyncpraw.models.SubredditWidgets:
+        """Get a list of the widgets in a subreddit's sidebar"""
+        if '/r/' in subreddit:
+            subreddit = subreddit[3:]
+        sub = await self.client.subreddit(subreddit)
+        return await sub.widgets
+
+
+    async def get_image_data(widget, image_path, size):
+        """Update an image widget with an uploaded image"""
+        image_url = await widget.mod.upload_image(image_path)
+        image_data = [{'width': size[0], 'height': size[1], 'url': image_url, 'linkUrl': ''}]
+        return image_data
+    
+    async def update_image_widget(
+        self,
+        widget_name,
+        image_path,
+        image_size,
+        subreddit
+    ) -> bool:
+        """Update a subreddit's image widget"""
+        if '/r/' in subreddit:
+            subreddit = subreddit[3:]
+        widgets = await self.get_widgets(subreddit)
+        updated = False
+        async for w in widgets.sidebar():        
+            if w.shortName == widget_name:
+                try:
+                    mod: asyncpraw.models.WidgetModeration = w.mod
+                    image_data = await self.get_image_data(widgets, image_path, image_size)
+                    await mod.update(data=image_data)
+                    updated = True
+                    msg.send(f'Updated {widget_name} widget!')
+                    break
+                except Exception as e:
+                    message = (
+                        f'Error while updating {widget_name} widget.\n'
+                        f'{str(e)}\n'
+                    )
+                    msg.send(f'{msg.user}\n{message}')
+        return updated
