@@ -5,6 +5,7 @@ from typing import Dict, List, Any
 from datetime import datetime, timedelta
 
 import discord as msg
+import mls_api as mls
 import util
 import match_constants as const
 import player
