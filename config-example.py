@@ -6,7 +6,7 @@ TEAMS = [
     19202  # St. Louis City SC 2 (MLS Next Pro)
 ]
 FEATURE_FLAGS = {
-    # Enable selenium and widget updates
+    # Enable playwright and widget updates
     'enable_widgets': True,
     # Enable player availability updates
     'enable_injuries': True,
@@ -39,7 +39,6 @@ DISCORD_TOKEN = ''
 MLS_BOT_WEBHOOK = 'https://discord.com/api/webhooks/'
 CSS_PATH = 'markdown/markdown.css'
 THREADS_JSON = 'threads.json'
-EXE_PATH = '/usr/bin/chromedriver'
 
 # More reddit config - widgets
 WIDGETS = {
