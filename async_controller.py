@@ -11,7 +11,7 @@ import match_thread as thread
 import mls_schedule
 import mls_playwright
 import widgets
-from config import FEATURE_FLAGS, SUB, TEAMS as clubs
+from config import FEATURE_FLAGS, SUB, TEAMS
 
 # Configure logging
 fh = logging.handlers.RotatingFileHandler('log/debug.log', maxBytes=1000000, backupCount=10)
@@ -55,35 +55,67 @@ class AsyncController:
             root.error(f"Error creating match thread: {str(e)}")
             msg.send(f"Error creating match thread for {opta_id}: {str(e)}")
     
+    async def get_next_run_time(self, hour: int, minute: int) -> datetime:
+        """Calculate the next run time for a given hour and minute"""
+        now = datetime.now()
+        next_run = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+        if now >= next_run:
+            next_run = next_run.replace(day=next_run.day + 1)
+        return next_run
+
+    async def schedule_task(self, name: str, hour: int, minute: int, coro, enabled: bool):
+        """Schedule a task to run at a specific time"""
+        while self.running and enabled:
+            try:
+                next_run = await self.get_next_run_time(hour, minute)
+                delay = (next_run - datetime.now()).total_seconds()
+                
+                message = f'Next run of {name} scheduled for {next_run.strftime("%Y-%m-%d %H:%M")}'
+                root.info(message)
+                msg.send(message)
+                
+                await asyncio.sleep(delay)
+                
+                message = f'Running {name}...'
+                root.info(message)
+                msg.send(message)
+                
+                await coro()
+                
+            except Exception as e:
+                message = f'Error in {name}: {str(e)}'
+                root.error(message)
+                msg.send(message)
+                await asyncio.sleep(60)  # Wait a minute before retrying
+
     async def schedule_daily_tasks(self):
         """Schedule and manage daily tasks based on feature flags"""
-        while self.running:
-            now = datetime.now()
-            next_run = now.replace(hour=1, minute=30, second=0, microsecond=0)
-            if now >= next_run:
-                next_run = next_run.replace(day=next_run.day + 1)
+        tasks = []
+        
+        # Schedule each task independently
+        if FEATURE_FLAGS['enable_widgets']:
+            tasks.extend([
+                self.schedule_task('mls_playwright', 0, 45, mls_playwright.main, True),
+                self.schedule_task('widgets', 1, 0, widgets.main, True),
+            ])
             
-            delay = (next_run - now).total_seconds()
-            await asyncio.sleep(delay)
+        if FEATURE_FLAGS['enable_injuries']:
+            tasks.append(
+                self.schedule_task('injuries', 1, 15, injuries.main, True)
+            )
             
-            if FEATURE_FLAGS['enable_daily_setup']:
-                await self.daily_setup()
+        if FEATURE_FLAGS['enable_discipline']:
+            tasks.append(
+                self.schedule_task('discipline', 1, 15, discipline.main, True)
+            )
             
-            # Schedule other daily tasks
-            tasks = []
-            current_time = time.strftime('%H:%M')
-            
-            if FEATURE_FLAGS['enable_widgets'] and current_time == '00:45':
-                tasks.append(mls_playwright.main())
-            if FEATURE_FLAGS['enable_widgets'] and current_time == '01:00':
-                tasks.append(widgets.main())
-            if FEATURE_FLAGS['enable_injuries'] and current_time == '01:15':
-                tasks.append(injuries.main())
-            if FEATURE_FLAGS['enable_discipline'] and current_time == '01:15':
-                tasks.append(discipline.main())
-                
-            if tasks:
-                await asyncio.gather(*tasks)
+        if FEATURE_FLAGS['enable_daily_setup']:
+            tasks.append(
+                self.schedule_task('daily_setup', 1, 30, self.daily_setup, True)
+            )
+        
+        if tasks:
+            await asyncio.gather(*tasks)
     
     async def daily_setup(self):
         """Check for upcoming matches and schedule threads"""
@@ -91,7 +123,7 @@ class AsyncController:
         root.info(message)
         msg.send(message)
         
-        for team in clubs:
+        for team in TEAMS:
             try:
                 # Get schedule data
                 if team == 19202:  # CITY2
