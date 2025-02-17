@@ -1,11 +1,19 @@
 FROM python:3.13-slim-bookworm
 
-# Install system dependencies and Chromium
+# Install system dependencies as root
 RUN apt-get update && apt-get install -y \
     wget \
     unzip \
     chromium \
     chromium-driver \
+    xvfb \
+    libgbm1 \
+    libnss3 \
+    libxss1 \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libgtk-3-0 \
+    fonts-noto-color-emoji \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -15,19 +23,19 @@ RUN useradd -m botuser && chown -R botuser:botuser /app
 
 # Create required directories with proper permissions
 RUN mkdir assets markdown log png && \
-    chown -R 1000:1000 /app
+    chown -R botuser:botuser /app
 
-# Switch to botuser before installing Python packages
+# Switch to botuser for Python package installation
 USER botuser
 
 # Copy requirements first to leverage Docker cache
 COPY --chown=botuser:botuser requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --user --no-cache-dir -r requirements.txt
 
-# Install Playwright and browsers
+# Install Playwright and browser as botuser
 RUN pip install --user playwright
 ENV PATH="/home/botuser/.local/bin:${PATH}"
-RUN playwright install --with-deps chromium
+RUN playwright install chromium
 
 # Copy the source code
 COPY --chown=botuser:botuser *.py ./
