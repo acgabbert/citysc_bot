@@ -201,10 +201,15 @@ class RedditClient:
         if '/r/' in subreddit:
             subreddit = subreddit.split('/r/')[1]
         sub = await self.client.subreddit(subreddit)
-        return await sub.widgets
+        return sub.widgets
 
 
-    async def get_image_data(widget, image_path, size):
+    async def get_image_data(
+        self,
+        widget: asyncpraw.models.SubredditWidgets,
+        image_path: str,
+        size: tuple[int, int]
+    ) -> list[dict[str, Any]]:
         """Update an image widget with an uploaded image"""
         image_url = await widget.mod.upload_image(image_path)
         image_data = [{'width': size[0], 'height': size[1], 'url': image_url, 'linkUrl': ''}]
@@ -222,7 +227,8 @@ class RedditClient:
             subreddit = subreddit.split('/r/')[1]
         widgets = await self.get_widgets(subreddit)
         updated = False
-        async for w in widgets.sidebar():        
+        async for w in widgets.sidebar():
+            print(w.shortName)
             if w.shortName == widget_name:
                 try:
                     mod: asyncpraw.models.WidgetModeration = w.mod
