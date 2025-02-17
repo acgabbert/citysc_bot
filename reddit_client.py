@@ -242,7 +242,7 @@ class RedditClient:
                         f'Error while updating {widget_name} widget.\n'
                         f'{str(e)}\n'
                     )
-                    msg.send(f'{msg.user}\n{message}')
+                    msg.send(message, tag=True)
         if not updated:
-            msg.send(f'{msg.user}\nNo widgets matching name "{widget_name}" on subreddit "{subreddit}" updated.')
+            msg.send(f'No widgets matching name "{widget_name}" on subreddit "{subreddit}" updated.', tag=True)
         return updated

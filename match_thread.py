@@ -44,7 +44,7 @@ async def pre_match_thread(opta_id: Union[str, int], sub: str = prod_sub):
     
     async with RedditClient() as reddit:
         thread: asyncpraw.models.Submission = await reddit.submit_thread(sub, title, markdown, new=True, mod=True)
-        msg.send(f'{msg.user} Pre-match thread posted! https://www.reddit.com/r/{sub}/comments/{thread.id_from_url(thread.shortlink)}')
+        msg.send(f'Pre-match thread posted! https://www.reddit.com/r/{sub}/comments/{thread.id_from_url(thread.shortlink)}', tag=True)
     
         # keep track of threads
         data: Dict[str, Any] = util.read_json(threads_json)
@@ -104,7 +104,7 @@ async def match_thread(
             if pre_thread is not None:
                 text = f'[Continue the discussion in the match thread.](https://www.reddit.com/r/{sub}/comments/{thread.id_from_url(thread.shortlink)})'
                 await reddit.add_comment(pre_thread, text)
-            msg.send(f'{msg.user} Match thread posted! https://www.reddit.com/r/{sub}/comments/{thread.id_from_url(thread.shortlink)}')
+            msg.send(f'Match thread posted! https://www.reddit.com/r/{sub}/comments/{thread.id_from_url(thread.shortlink)}', tag=True)
             if not post:
                 msg.send(f'No post-match thread for {thread.id_from_url(thread.shortlink)}')
         else:
@@ -130,7 +130,7 @@ async def match_thread(
                         f'Continuing while loop.'
                     )
                     logger.error(message)
-                    msg.send(f'{msg.user} {message}')
+                    msg.send(message, tag=True)
                 
             except Exception as e:
                 message = (
@@ -139,10 +139,10 @@ async def match_thread(
                     f'Continuing while loop.'
                 )
                 logger.error(message)
-                msg.send(f'{msg.user} {message}')
+                msg.send(message, tag=True)
             
             if match_obj.is_final:
-                msg.send(f'{msg.user} Match is finished, final update made')
+                msg.send('Match is finished, final update made', tag=True)
                 if post:
                     # post a post-match thread before exiting the loop
                     # TODO refactor this with the new client!

@@ -68,9 +68,7 @@ def time_dec(tag):
                 module_name = str(inspect.getmodule(func)).split('/')[-1].replace(".py'>",'')
                 message = f'{module_name}.{func.__name__} finished. Execution time: {exe_time} seconds.'
                 logging.info(message)
-                if tag:
-                    message = f'{msg.user}\n{message}'
-                msg.send(message)
+                msg.send(message, tag)
             return result 
         
         @functools.wraps(func)
@@ -87,9 +85,7 @@ def time_dec(tag):
                 module_name = str(inspect.getmodule(func)).split('/')[-1].replace(".py'>",'')
                 message = f'{module_name}.{func.__name__} finished. Execution time: {exe_time} seconds.'
                 logging.info(message)
-                if tag:
-                    message = f'{msg.user}\n{message}'
-                msg.send(message)
+                msg.send(message, tag)
             return result 
         
         if asyncio.iscoroutinefunction(func):
@@ -152,7 +148,7 @@ def file_changed(filename):
     if 'Changes not staged' in changes:
         message = f'{filename} changed.'
         logging.info(message)
-        msg.send(f'{msg.user}\n{message}')
+        msg.send(message, tag=True)
         return True
     else:
         message = f'No changes to {filename}.'

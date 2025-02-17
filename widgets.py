@@ -130,7 +130,7 @@ async def update_widget(widget_name, data, subreddit='stlouiscitysc'):
                     f'Error while updating {widget_name} widget.\n'
                     f'{str(e)}\n'
                 )
-                msg.send(f'{msg.user}\n{message}')
+                msg.send(message, tag=True)
     await r.close()
     return updated
 
@@ -154,7 +154,7 @@ def update_sidebar(text=None, subreddit='stlouiscitysc'):
     sidebar = r.subreddit(subreddit).wiki['config/sidebar']
     if not sidebar.may_revise:
         message = f'Error: authenticated user cannot edit {subreddit} sidebar.'
-        msg.send(f'{msg.user}\n{message}')
+        msg.send(message, tag=True)
         return None
     old_text = sidebar.content_md
     begin_split = '[comment]: # (start of bot content)'
