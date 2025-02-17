@@ -119,9 +119,6 @@ class AsyncController:
     
     async def daily_setup(self):
         """Check for upcoming matches and schedule threads"""
-        message = "Running daily setup..."
-        root.info(message)
-        msg.send(message)
         
         for team in TEAMS:
             try:
