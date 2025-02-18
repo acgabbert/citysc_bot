@@ -182,6 +182,19 @@ class AsyncController:
                 CronTrigger(hour=1, minute=30),
                 name='daily_setup'
             )
+
+            # Check if we should run now
+            current_time = datetime.now()
+            target_time = current_time.replace(hour=1, minute=30)
+            
+            # If it's after 1:30 AM today, run now
+            if current_time.hour > 1 or (current_time.hour == 1 and current_time.minute >= 30):
+                self.scheduler.add_job(
+                    self.daily_setup,
+                    'date',  # Run once
+                    run_date=datetime.now(),
+                    name='daily_setup_catchup'
+                )
     
     async def run(self):
         """Main run loop"""
