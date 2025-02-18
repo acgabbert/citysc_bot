@@ -12,9 +12,10 @@ logger = get_module_logger(__name__, log_file='match_markdown.log')
 
 def match_footer(match_obj: match.Match):
     retval = '\n\n---\n\n'
-    retval += '^^Last ^^updated: '
-    update = time.strftime('^^%b ^^%d, ^^%I:%M%p', time.localtime())
-    retval += update + '.' + f' ^^All ^^data ^^via ^^mlssoccer.com. ^^Opta ^^ID: ^^{str(match_obj.opta_id)}'
+    footer = 'Last updated: '
+    update = time.strftime('%b %d, %I:%M%p', time.localtime())
+    footer += update + f'. All data via mlssoccer.com. Opta ID: {str(match_obj.opta_id)}'
+    retval += f'^({footer})'
     return retval
 
 
