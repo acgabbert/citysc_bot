@@ -5,8 +5,9 @@ from discipline import DISC_URL, YELLOWS_TITLE
 from injuries import INJ_URL
 import match
 import util
+from log_config import get_module_logger, setup_root_logger
 
-logger = logging.getLogger(__name__)
+logger = get_module_logger(__name__, log_file='match_markdown.log')
 
 
 def match_footer(match_obj: match.Match):
@@ -169,7 +170,7 @@ def match_thread(match_obj: match.Match):
         comp = 'MLS Regular Season'
     date, time = match_obj.get_date_time()
     title = f'Match Thread: {home} vs. {away} ({comp}) [{date}, {time}]'
-    # TODO: if pens, add to title
+    
     markdown = match_header(match_obj)
     markdown += '### Lineups\n'
     markdown += match_obj.home.lineup_str()
@@ -249,6 +250,7 @@ def stats_table(match_obj: match.Match):
 
 @util.time_dec(False)
 def main():
+    setup_root_logger()
     opta_id = 2261385
     match_obj = match.Match(opta_id)
     match_obj = match.get_all_data(match_obj)

@@ -145,7 +145,6 @@ async def match_thread(
                 msg.send('Match is finished, final update made', tag=True)
                 if post:
                     # post a post-match thread before exiting the loop
-                    # TODO refactor this with the new client!
                     await post_match_thread(opta_id, sub, thread)
                 break
             await asyncio.sleep(60)
@@ -181,7 +180,7 @@ async def post_match_thread(
         if thread is not None:
             text = f'[Continue the discussion in the post-match thread.](https://www.reddit.com/r/{sub}/comments/{post_thread.id_from_url(post_thread.shortlink)})'
             await reddit.add_comment(thread, text)
-        msg.send(f'{msg.user} Post-match thread posted! https://www.reddit.com/r/{sub}/comments/{post_thread.id_from_url(post_thread.shortlink)}')
+        msg.send(f'Post-match thread posted! https://www.reddit.com/r/{sub}/comments/{post_thread.id_from_url(post_thread.shortlink)}', tag=True)
     
         if str(opta_id) not in data.keys():
             data[str(opta_id)] = {}
@@ -189,7 +188,6 @@ async def post_match_thread(
         data[str(opta_id)]['post'] = post_thread.id_from_url(post_thread.shortlink)
         util.write_json(data, threads_json)
 
-# TODO rewrite this to gracefully handle async
 @util.time_dec(False)
 async def main():
     handler = logging.StreamHandler(sys.stdout)

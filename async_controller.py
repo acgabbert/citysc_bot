@@ -138,6 +138,11 @@ class AsyncController:
                         message = f'No matches today for {team}.'
                         root.info(message)
                         msg.send(message)
+                    
+                else:
+                    message = f'No matches today for {team}.'
+                    root.info(message)
+                    msg.send(message)
             
             except Exception as e:
                 root.error(f"Error in daily setup for team {team}: {str(e)}")
