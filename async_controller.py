@@ -97,16 +97,14 @@ class AsyncController:
                 match_id, match_time = mls_schedule.check_pre_match_sched(data)
                 
                 if match_id is not None:
-                    match_datetime = datetime.fromtimestamp(match_time)
-                    match_datetime = match_datetime.replace(tzinfo=timezone.utc)
-                    match_datetime = match_datetime.astimezone(tz=None)
-                    msg.send(f'Match coming up: {match_id}, {match_datetime}')
-                    
+                    local_time = match_time.astimezone()
+                    msg.send(f'Match coming up: {match_id}, {local_time}')
+
                     # Check if match is within next 24 hours
                     today = time.time() + 86400
-                    if match_datetime.timestamp() < today and datetime.now().day == match_datetime.day:
+                    if match_time.timestamp() < today and datetime.now().date() == local_time.date():
                         # Schedule match thread for 30 mins before game
-                        thread_time = datetime.fromtimestamp(match_datetime.timestamp() - 1800)
+                        thread_time = datetime.fromtimestamp(match_time.timestamp() - 1800)
                         
                         self.scheduler.add_job(
                             self.create_match_thread,
