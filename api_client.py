@@ -46,6 +46,9 @@ class Competition(Enum):
     LEAGUES_CUP = 1045
     US_OPEN_CUP = 557
     CONCACAF_CL = 549
+    MLS_NEXT_PRO = 1164
+    FRIENDLY = 34
+    ALL_STAR_GAME = 355
 
 class MatchType(Enum):
     REGULAR = "Regular"
@@ -187,11 +190,11 @@ class MLSApiClient:
                     if hasattr(self.config, "log_responses") and self.config.log_responses:
                         try:
                             caller_name = inspect.stack()[2].function
-                            # Extract match_id from params if it exists
-                            match_id = params.get('match_game_id', '') if params else ''
-                            if match_id == '':
-                                match_id = path.split('/')[1]
-                            filename = f"assets/{caller_name.split('get_')[1]}_{match_id}.json"
+                            # Extract match_id or club opta ID from params if it exists
+                            id = params.get('match_game_id', params.get('clubOptaId', '')) if params else ''
+                            if id == '':
+                                id = path.split('/')[1]
+                            filename = f"assets/{caller_name.split('get_')[1]}_{id}.json"
                             util.write_json(response_data, filename)
                         except Exception as e:
                             logger.error(f"Failed to log response: {str(e)}")
@@ -436,6 +439,33 @@ class MLSApiClient:
             f"matches/{match_id}"
         )
         return MatchSchedule.model_validate(data)
+    
+    async def get_nextpro_schedule(
+        self,
+        club_opta_id: Optional[int] = None,
+        match_type: Optional[MatchType] = None,
+        date_from: Optional[str] = None,
+        date_to: Optional[str] = None
+    ) -> List[MatchSchedule]:
+        """Get schedule from MLS Next Pro API"""
+        params = {
+            "culture": "en-us"
+        }
+        if club_opta_id:
+            params["clubOptaId"] = club_opta_id
+        if match_type:
+            params["matchType"] = match_type.value
+        if date_from:
+            params["dateFrom"] = date_from
+        if date_to:
+            params["dateTo"] = date_to
+
+        data = await self._make_request(
+            ApiEndpoint.NEXT_PRO,
+            "matches",
+            params=params
+        )
+        return [MatchSchedule.model_validate(match) for match in data]
 
 
 # Example usage:

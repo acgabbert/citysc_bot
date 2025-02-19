@@ -9,6 +9,7 @@ from apscheduler.triggers.cron import CronTrigger
 from apscheduler.job import Job
 from datetime import datetime, timezone
 
+from api_client import MLSApiClient
 import discipline
 import discord as msg
 import injuries
@@ -85,11 +86,12 @@ class AsyncController:
         
         for team in TEAMS:
             try:
-                # Get schedule data
-                if team == 19202:  # CITY2
-                    data = mls_schedule.get_schedule(team=team, comp='MLSNP')
-                else:
-                    data = mls_schedule.get_schedule(team=team, comp=None)
+                async with MLSApiClient() as client:
+                    # Get schedule data
+                    if team == 19202:  # CITY2
+                        data = client.get_nextpro_schedule(team=team)
+                    else:
+                        data = client.get_schedule(team=team)
                 
                 # Check for upcoming matches
                 match_id, match_time = mls_schedule.check_pre_match_sched(data)
