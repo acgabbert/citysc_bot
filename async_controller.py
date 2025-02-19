@@ -96,13 +96,16 @@ class AsyncController:
                 
                 if match_id is not None:
                     match_datetime = datetime.fromtimestamp(match_time)
+                    match_datetime = datetime.fromtimestamp(match_datetime)
+                    match_datetime = match_datetime.replace(tzinfo=timezone.utc)
+                    match_datetime = match_datetime.astimezone(tz=None)
                     msg.send(f'Match coming up: {match_id}, {match_datetime}')
                     
                     # Check if match is within next 24 hours
                     today = time.time() + 86400
-                    if match_time < today and datetime.now().day == match_datetime.day:
+                    if match_datetime.timestamp() < today and datetime.now().day == match_datetime.day:
                         # Schedule match thread for 30 mins before game
-                        thread_time = datetime.fromtimestamp(match_time - 1800)
+                        thread_time = datetime.fromtimestamp(match_datetime.timestamp() - 1800)
                         
                         self.scheduler.add_job(
                             self.create_match_thread,
@@ -211,11 +214,14 @@ class AsyncController:
                 await asyncio.sleep(300)
                 
         except (KeyboardInterrupt, asyncio.CancelledError):
-            message = "Shutting down scheduler..."
+            message = "Received interrupt "
             root.info(message)
             msg.send(message)
             
         finally:
+            message = "Shutting down scheduler..."
+            root.info(message)
+            msg.send(message)
             self.scheduler.shutdown()
 
 async def main():
