@@ -4,11 +4,11 @@ import backoff
 import inspect
 import logging
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Dict, List, Optional, Any, Union
 from urllib.parse import urljoin
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, field_validator, model_validator
 
 import config
 import util
@@ -77,6 +77,31 @@ class MatchSchedule(BaseModel):
     appleSubscriptionTier: Optional[str]
     appleStreamURL: Optional[str]
     broadcasters: List[Dict[str, Any]]
+
+    @field_validator('matchDate')
+    @classmethod
+    def validate_match_date(cls, v: Any) -> datetime:
+        if isinstance(v, str):
+            try:
+                dt = datetime.fromisoformat(v.replace('Z', '+00:00'))
+                if dt.tzinfo is not None:
+                    dt = dt.astimezone(timezone.utc)
+                else:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                return dt
+            except Exception as e:
+                raise ValueError(f"Invalid date format: {v}") from e
+        elif isinstance(v, datetime):
+            if v.tzinfo is not None:
+                return v.astimezone(timezone.utc)
+            return v.replace(tzinfo=timezone.utc)
+        raise ValueError(f"Expected string or datetime, got {type(v)}")
+    
+    @model_validator(mode='after')
+    def validate_model(self) -> 'MatchSchedule':
+        if self.appleStreamURL and not self.appleStreamURL:
+            raise ValueError("appleStreamURL must be set if appleSubscriptionTier is set")
+        return self
 
 class MLSApiClient:
     def __init__(self, config: MLSApiConfig = MLSApiConfig()):

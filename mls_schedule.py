@@ -1,7 +1,9 @@
 import json
 from datetime import datetime
+from typing import List
 import time
 
+from api_client import MatchSchedule
 import discord as msg
 import mls_api as mls
 import util
@@ -63,29 +65,29 @@ def get_lite_schedule():
     return data
 
 
-def check_pre_match(data, date_from=None):
+def check_pre_match(data: List[MatchSchedule], date_from=None):
     """If there is a match between 24-48 hours from date_from, return its optaId and time."""
     if date_from is None:
         date_from = int(time.time()) + 86400
     # until +48h
     date_to = date_from + 86400
     for match in data:
-        match_time = util.iso_to_epoch(match['matchDate'][:-2])
+        match_time = match.matchDate.timestamp()
         if match_time > date_from and match_time < date_to:
-            return match['optaId'], match_time
+            return match.optaId, match.matchDate
     return None, None
 
 
-def check_pre_match_sched(data, date_from=None):
+def check_pre_match_sched(data: List[MatchSchedule], date_from=None):
     """If there is a match within 48 hours from date_from, return its optaId and time."""
     if date_from is None:
         date_from = int(time.time())
     # until +48h
     date_to = date_from + (86400 * 2)
     for match in data:
-        match_time = util.iso_to_epoch(match['matchDate'][:-2])
+        match_time = match.matchDate.timestamp()
         if match_time > date_from and match_time < date_to:
-            return match['optaId'], match_time
+            return match.optaId, match.matchDate
     return None, None
 
 

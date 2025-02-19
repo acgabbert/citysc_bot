@@ -89,9 +89,9 @@ class AsyncController:
                 async with MLSApiClient() as client:
                     # Get schedule data
                     if team == 19202:  # CITY2
-                        data = client.get_nextpro_schedule(team=team)
+                        data = await client.get_nextpro_schedule(team=team)
                     else:
-                        data = client.get_schedule(team=team)
+                        data = await client.get_schedule(team=team)
                 
                 # Check for upcoming matches
                 match_id, match_time = mls_schedule.check_pre_match_sched(data)
