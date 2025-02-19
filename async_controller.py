@@ -110,7 +110,7 @@ class AsyncController:
                             self.create_match_thread,
                             'date',
                             run_date=thread_time,
-                            args=[match_id, team != 19202],  # Only post if not CITY2
+                            args=[match_id, team != 19202],  # post-match thread only if not CITY2
                             name=f'match_thread_{match_id}',
                             replace_existing=True
                         )

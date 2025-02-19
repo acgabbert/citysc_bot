@@ -33,7 +33,7 @@ RUN mkdir -p assets markdown log png && \
 USER 1000
 
 # Copy requirements first to leverage Docker cache
-COPY --chown=botuser:botuser requirements.txt .
+COPY --chown=1000:1000 requirements.txt .
 RUN pip install --user --no-cache-dir -r requirements.txt
 
 # Install Playwright and browser as botuser
@@ -42,9 +42,10 @@ ENV PATH="/home/botuser/.local/bin:${PATH}"
 RUN playwright install chromium
 
 # Copy the source code
-COPY --chown=botuser:botuser *.py ./
+COPY --chown=1000:1000 *.py ./
 RUN rm -f config*.py
-COPY --chown=botuser:botuser *.sh ./
+COPY --chown=1000:1000 *.sh ./
+COPY --chown=1000:1000 *.json ./
 
 # Add the app directory to PYTHONPATH
 ENV PYTHONPATH=/app
