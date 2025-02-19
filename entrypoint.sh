@@ -9,8 +9,12 @@ fi
 # Check for required directories in /app
 for dir in assets markdown log png; do
     if [ ! -d "/app/$dir" ]; then
-        echo "Warning: /app/$dir directory not found"
+        echo "Creating /app/$dir directory"
+        mkdir -p "/app/$dir"
     fi
+    # Ensure proper ownership and permissions using UID
+    chown -R 1000:1000 "/app/$dir"
+    chmod 755 "/app/$dir"
 done
 
 echo "Starting main application..."

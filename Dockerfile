@@ -18,15 +18,19 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Create a non-root user
-RUN useradd -m botuser && chown -R botuser:botuser /app
+# Create a non-root user with UID 1000
+RUN useradd -u 1000 -m botuser 
 
 # Create required directories with proper permissions
-RUN mkdir assets markdown log png && \
-    chown -R botuser:botuser /app
+RUN mkdir -p assets markdown log png && \
+    chown -R 1000:1000 /app && \
+    chmod 755 /app/assets && \
+    chmod 755 /app/markdown && \
+    chmod 755 /app/log && \
+    chmod 755 /app/png
 
-# Switch to botuser for Python package installation
-USER botuser
+# Switch to UID 1000 for subsequent commands
+USER 1000
 
 # Copy requirements first to leverage Docker cache
 COPY --chown=botuser:botuser requirements.txt .
