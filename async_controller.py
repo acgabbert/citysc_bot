@@ -96,7 +96,6 @@ class AsyncController:
                 
                 if match_id is not None:
                     match_datetime = datetime.fromtimestamp(match_time)
-                    match_datetime = datetime.fromtimestamp(match_datetime)
                     match_datetime = match_datetime.replace(tzinfo=timezone.utc)
                     match_datetime = match_datetime.astimezone(tz=None)
                     msg.send(f'Match coming up: {match_id}, {match_datetime}')
