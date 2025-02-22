@@ -1,14 +1,168 @@
 {
-    "updated": "12/07/2024, 02:42",
+    "updated": "02/22/2025, 00:00",
     "injuries": {
+        "11091": [
+            "OUT: Pedro Amador (hamstring)",
+            "OUT: Brooks Lennon (shoulder)",
+            "OUT: Adyn Torres (knee)",
+            "QUESTIONABLE: Derrick Williams (quad)"
+        ],
+        "15296": [
+            "OUT: Jimmy Farkarlun (leg)"
+        ],
+        "16629": [
+            "OUT: Brandon Cambridge (thigh)",
+            "OUT: Jahlane Forbes (thigh)",
+            "QUESTIONABLE: Patrick Agyemang (ankle)"
+        ],
+        "1207": [
+            "OUT: Leonardo Barroso (lower body)",
+            "OUT: Dylan Borso (lower body)",
+            "OUT: Chase Gasper (lower body)",
+            "OUT: Maren Haile-Selassie (lower body)",
+            "OUT: Romingue Kouamé (lower body)",
+            "OUT: Chris Mueller (not due to injury)",
+            "OUT: David Poreba (lower body)",
+            "QUESTIONABLE: Mauricio Pineda (lower body)"
+        ],
+        "11504": [
+            "OUT: Nick Hagglund (ankle)",
+            "OUT: Alec Kann (hip)",
+            "OUT: Matt Miazga (knee)",
+            "OUT: Luca Orellano (leg)",
+            "OUT: Sergio Santos (leg)",
+            "OUT: Gerardo Valenzuela (leg)"
+        ],
+        "436": [
+            "OUT: Ted Ku-DiPietro (shoulder)",
+            "OUT: Andreas Maxsø (lower body)",
+            "OUT: Connor Ronan (lower body)",
+            "OUT: Jackson Travis (upper body)",
+            "OUT: Sam Vines (lower body)",
+            "OUT: Darren Yapi (shoulder)",
+            "QUESTIONABLE: Reggie Canon (lower body)"
+        ],
+        "454": [
+            "OUT: Rudy Camacho (thigh)",
+            "OUT: Taha Habroune (thigh)",
+            "OUT: Nicholas Hagen (hand)",
+            "OUT: Lassi Lappalainen (thigh)"
+        ],
+        "1326": [
+            "OUT: Conner Antey (knee)",
+            "OUT: Jackson Hopkins (ankle)",
+            "OUT: Hakim Karamoko (abdomen)",
+            "OUT: Joao Peglow (thigh)",
+            "OUT: Jared Stroud (ankle)",
+            "OUT: Rida Zouhir (not due to injury)"
+        ],
+        "1903": [
+            "OUT: Geovane Jesus (knee)",
+            "OUT: Paxton Pomykal (knee)",
+            "OUT: Show (illness)"
+        ],
+        "1897": [
+            "OUT: Lawrence Ennali (knee)",
+            "OUT: Nelson Quinones (knee)",
+            "QUESTIONABLE: Franco Escobar (lower body)"
+        ],
         "1230": [
-            "OUT: Martin Cáceres (Achilles)",
-            "OUT: Riqui Puig (ACL)"
+            "Updates available on Saturday"
+        ],
+        "11690": [
+            "OUT: Odin Holm (ankle)",
+            "OUT: Lorenzo Dellavalle (thigh)",
+            "OUT: Maxime Chanot (head)"
+        ],
+        "14880": [
+            "QUESTIONABLE: Yannick Bright (thigh)",
+            "QUESTIONABLE: Drake Callender (adductor)",
+            "QUESTIONABLE: David Martínez (ankle)"
+        ],
+        "6977": [
+            "OUT: Kipp Keller (thigh)",
+            "OUT: DJ Taylor (thigh)"
+        ],
+        "1616": [
+            "OUT: Jalen Neal (knee)",
+            "OUT: Hennadii Synchuk (not due to injury)",
+            "OUT: Giacomo Vrioni (groin)",
+            "QUESTIONABLE: Jules-Anthony Vilsaint (knee)"
+        ],
+        "15154": [
+            "OUT: Bryan Acosta (thigh)",
+            "OUT: Tyler Boyd (knee)",
+            "OUT: Gaston Brugman (thigh)",
+            "OUT: Maximus Ekk (knee)",
+            "OUT: Julian Gaines (thigh)",
+            "QUESTIONABLE: Jacob Shaffelburg (thigh)",
+            "QUESTIONABLE: Patrick Yazbek (thigh)"
+        ],
+        "928": [
+            "OUT: Tomás Chancalay (knee)",
+            "OUT: Peyton Miller (groin)",
+            "OUT: Matt Polster (thigh)"
+        ],
+        "9668": [
+            "OUT: Tayvon Gray (leg)",
+            "OUT: Malachi Jones (leg)",
+            "OUT: Thiago Martins (leg)"
         ],
         "399": [
+            "OUT: Wiktor Bogacz (back)",
             "OUT: Kyle Duncan (knee)",
+            "OUT: Adri Mehmeti (thigh)",
             "OUT: Roald Mitchell (knee)",
-            "QUESTIONABLE: Felipe Carballo (foot)"
+            "OUT: Marcelo Morales (knee)",
+            "OUT: Serge Ngoma (knee)",
+            "QUESTIONABLE: Ronald Donkor (shin)"
+        ],
+        "6900": [
+            "OUT: Favian Loyola (thigh)",
+            "OUT: Duncan McGuire (shoulder)",
+            "OUT: Yutaro Tsukada (knee)"
+        ],
+        "5513": [
+            "OUT: Markus Anderson (ankle)",
+            "OUT: Nathan Harriel (quad)",
+            "OUT: Isaiah LeFlore (leg)"
+        ],
+        "1581": [
+            "Updates available on Saturday"
+        ],
+        "1899": [
+            "OUT: Matthew Bell (hamstring)",
+            "OUT: Zac MacMath (back)",
+            "QUESTIONABLE: Javain Brown (knee)",
+            "QUESTIONABLE: Justen Glad (hamstring)",
+            "QUESTIONABLE: Alex Katranis (head)",
+            "QUESTIONABLE: Diego Luna (nose)",
+            "QUESTIONABLE: Ariath Piol (hamstring)",
+            "QUESTIONABLE: Philip Quinton (hamstring)"
+        ],
+        "21280": [
+            "Updates available on Saturday"
+        ],
+        "1131": [
+            "OUT: Benji Kikanovic (lower body)"
+        ],
+        "3500": [
+            "OUT: Reed Baker-Whiting (hamstring)"
+        ],
+        "17012": [
+            "OUT: Jake Girdwood-Reich (ankle)",
+            "OUT: Jay Reid (foot)",
+            "QUESTIONABLE: Chris Durkin (knee)"
+        ],
+        "421": [
+            "OUT: Khiry Shelton (hamstring)",
+            "QUESTIONABLE: Jansen Miller (back)"
+        ],
+        "2077": [
+            "None"
+        ],
+        "1708": [
+            "Updates available on Saturday"
         ]
     }
 }

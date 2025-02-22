@@ -83,6 +83,8 @@ class Match(mls.MlsObject):
 
         match.update_from_stats(data.get("stats"))
         match.update_from_data(data.get("data"))
+        match.update_injuries()
+        match.update_discipline()
 
         return match
     
@@ -284,6 +286,36 @@ class Match(mls.MlsObject):
         vid_url = 'https://mlssoccer.com/video/'
         for vid in data:
             self.videos.append((vid['title'],f'{vid_url}{vid["slug"]}'))
+    
+    def update_injuries(self) -> None:
+        try:
+            inj = util.read_json(injuries.INJ_FILE)
+            date_format = '%m/%d/%Y, %H:%M'
+            last_updated = datetime.strptime(inj.get('updated', ""), date_format)
+            delta = datetime.now() - last_updated
+            if delta.days > 2:
+                return
+            inj = inj.get('injuries')
+            self.home.injuries = inj.get(str(self.home.opta_id))
+            self.away.injuries = inj.get(str(self.away.opta_id))
+        except Exception as e:
+            message = f'Failed to find injuries for {self.home.short_name} - {self.away.short_name}'
+            msg.send(message)
+            logger.error(message)
+    
+    def update_discipline(self) -> None:
+        try:
+            disc = util.read_json(discipline.DISC_FILE)
+            date_format = '%m/%d/%Y, %H:%M'
+            last_updated = datetime.strptime(disc.get('updated', ""), date_format)
+            delta = datetime.now() - last_updated
+            disc = disc.get('discipline')
+            self.home.discipline = disc.get(str(self.home.opta_id))
+            self.away.discipline = disc.get(str(self.away.opta_id))
+        except Exception as e:
+            message = f'Failed to find discipline for {self.home.short_name} - {self.away.short_name}'
+            msg.send(message)
+            logger.error(message)
 
     @staticmethod
     def _process_competition_name(data: Dict[str, Any]) -> str:
@@ -525,12 +557,10 @@ async def get_prematch_data(match_id: int) -> Dict[str, Any]:
         }
         results = await asyncio.gather(*tasks.values())
         return dict(zip(tasks.keys(), results))
-    """
     logger.info(f'Getting pre-match data for {match_obj.opta_id}')
     match_obj = get_injuries(match_obj)
     match_obj = get_discipline(match_obj)
     return match_obj
-    """
 
 async def get_full_match_data(opta_id: int) -> Dict[str, Any]:
     async with MLSApiClient() as client:
