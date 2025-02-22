@@ -432,6 +432,7 @@ class MLSApiClient:
         match_date: datetime
     ) -> Dict[str, Any]:
         """Get recent form for the teams participating in a match"""
+        print(f"received {club_id}, {second_club_id}, {match_date}")
         return await self._make_request(
             ApiEndpoint.SPORT,
             f"previousMatches/{club_id}",

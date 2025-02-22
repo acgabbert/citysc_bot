@@ -2,7 +2,7 @@ import asyncio
 import time
 import logging
 from typing import Dict, List, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import discord as msg
 import mls_api as mls
@@ -79,10 +79,11 @@ class Match(mls.MlsObject):
     async def create_prematch(cls, opta_id: int) -> "Match":
         """Factory method to create and populate a Match instance"""
         match = cls(opta_id)
-        data = await get_previous_match_data(opta_id)
+        data = await get_prematch_data(opta_id)
 
         match.update_from_stats(data.get("stats"))
-        match.update_from_data(data.get("data"))
+        match.update_from_schedule_info(data.get("info"))
+        match.update_from_recent_form(data.get("recent_form"))
         match.update_injuries()
         match.update_discipline()
 
@@ -317,6 +318,10 @@ class Match(mls.MlsObject):
             msg.send(message)
             logger.error(message)
 
+    def update_from_recent_form(self, data: List[Dict[str, Any]]) -> None:
+        self.home.recent_form = data.get("firstClubFormGuide", "")
+        self.away.recent_form = data.get("secondClubFormGuide", "")
+
     @staticmethod
     def _process_competition_name(data: Dict[str, Any]) -> str:
         """Process competition name with business logic"""
@@ -547,8 +552,34 @@ def get_discipline(match_obj: Match) -> Match:
 async def get_prematch_data(match_id: int) -> Dict[str, Any]:
     """Get data for a pre-match thread (no stats, lineups, etc)"""
     async with MLSApiClient() as client:
+        # first get match info that other requests may depend on
+        match_info = await client.get_match_info(match_id)
+
+        # Extract data needed for recent form
+        home_club = match_info.get("home", {}).get("optaId")
+        away_club = match_info.get("away", {}).get("optaId")
+        match_date = match_info.get("matchDate", "")
+
+        if isinstance(match_date, str):
+            try:
+                match_date = datetime.fromisoformat(match_date.replace('Z', '+00:00'))
+                if match_date.tzinfo is not None:
+                    match_date = match_date.astimezone(timezone.utc)
+                else:
+                    match_date = match_date.replace(tzinfo=timezone.utc)
+            except Exception as e:
+                logger.error(f"Invalid date format: {match_date}")
+
+        if not isinstance(match_date, datetime):
+            match_date = datetime.now()
+        
+        print(home_club, away_club, match_date.isoformat())
         tasks = {
-            'recent_form': client.get_recent_form(match_id),
+            'recent_form': client.get_recent_form(
+                club_id=home_club,
+                second_club_id=away_club,
+                match_date=match_date
+            ),
             'stats': client.get_match_stats(match_id),
             'preview': client.get_preview(match_id),
             'lineups': client.get_lineups(match_id),
@@ -556,11 +587,16 @@ async def get_prematch_data(match_id: int) -> Dict[str, Any]:
             'match_info': client.get_match_info(match_id)
         }
         results = await asyncio.gather(*tasks.values())
-        return dict(zip(tasks.keys(), results))
-    logger.info(f'Getting pre-match data for {match_obj.opta_id}')
-    match_obj = get_injuries(match_obj)
-    match_obj = get_discipline(match_obj)
-    return match_obj
+
+        results_dict = {
+            'info': match_info,
+            **dict(zip(
+                [k for k in tasks.keys()],
+                results
+            ))
+        }
+
+        return results_dict
 
 async def get_full_match_data(opta_id: int) -> Dict[str, Any]:
     async with MLSApiClient() as client:
