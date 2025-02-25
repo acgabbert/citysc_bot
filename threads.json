@@ -74,9 +74,9 @@
     },
     "2360912": {
         "slug": "stlvsoma-04-25-2023",
-        "stream-link": "[YouTube](https://www.youtube.com/watch?v=qd8IDQeuv1k)",
         "pre": "12ydj5k",
-        "match": "12yzv0n"
+        "match": "12yzv0n",
+        "stream-link": "[YouTube](https://www.youtube.com/watch?v=qd8IDQeuv1k)"
     },
     "2341773": {
         "slug": "stlvspor-04-29-2023",
@@ -91,8 +91,6 @@
     "2341785": {
         "slug": "dalvsstl-05-06-2023",
         "pre": "1437xtm",
-        "match-first": "13a6lhs",
-        "post-first": "13abnyi",
         "match": "143tfsw",
         "post": "143v6bl"
     },
@@ -102,10 +100,10 @@
     },
     "2362852": {
         "slug": "chivsstl-05-09-2023",
-        "stream-link": "[YouTube](https://www.youtube.com/live/b8h64tmSMvg)",
         "pre": "13ck5p6",
         "match": "13d9wsq",
-        "post": "13dd3xy"
+        "post": "13dd3xy",
+        "stream-link": "[YouTube](https://www.youtube.com/live/b8h64tmSMvg)"
     },
     "2358471": {
         "slug": "lafcvsstl-05-10-2023",
@@ -113,10 +111,10 @@
     },
     "2341799": {
         "slug": "chivsstl-05-13-2023",
-        "stream-link": "[Apple TV - Free](https://tv.apple.com/us/sporting-event/chicago-fire-fc-vs-st-louis-city-sc/umc.cse.557r7grzjvhhnawbxlmct3rbg)",
         "pre": "13gc9gt",
         "match": "13gm0qk",
-        "post": "13gptkd"
+        "post": "13gptkd",
+        "stream-link": "[Apple TV - Free](https://tv.apple.com/us/sporting-event/chicago-fire-fc-vs-st-louis-city-sc/umc.cse.557r7grzjvhhnawbxlmct3rbg)"
     },
     "2341829": {
         "slug": "stlvsskc-05-20-2023",
@@ -360,10 +358,10 @@
     },
     "2416623": {
         "slug": "stlvshou-02-20-2024",
-        "stream-link": "FS2",
         "pre": "1avfl7q",
         "match": "1avxwww",
-        "post": "1aw19tl"
+        "post": "1aw19tl",
+        "stream-link": "FS2"
     },
     "2414857": {
         "slug": "stlvsrsl-02-24-2024",
@@ -373,10 +371,10 @@
     },
     "2416622": {
         "slug": "houvsstl-02-27-2024",
-        "stream-link": "[FS2](https://www.foxsports.com/live/fs2)",
         "pre": "1b18abj",
         "match": "1b1vazp",
-        "post": "1b1y602"
+        "post": "1b1y602",
+        "stream-link": "[FS2](https://www.foxsports.com/live/fs2)"
     },
     "2414870": {
         "slug": "stlvsnyc-03-02-2024",

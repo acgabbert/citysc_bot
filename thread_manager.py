@@ -26,14 +26,15 @@ class MatchThreads():
 
     def to_dict(self) -> Dict:
         result = {"slug": self.slug}
+        if self.pre:
+            result["pre"] = self.pre
         if self.match:
             result["match"] = self.match
-        if self.pre:
-            result["match"] = self.pre
         if self.post:
-            result["match"] = self.post
+            result["post"] = self.post
         if self.stream_link:
             result["stream-link"] = self.stream_link
+        return result
     
 class ThreadManager:
     """Manages match thread data persistence"""
