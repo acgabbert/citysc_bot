@@ -1,14 +1,17 @@
 import argparse
 import asyncio
+import json
 import logging
 import asyncpraw, asyncpraw.models, asyncprawcore.exceptions
 import sys
 import time
+from dataclasses import dataclass, field
 from typing import Optional, Union, Dict, Any
 
 import config
 import match
 import match_markdown as md
+from thread_manager import MatchThreads, ThreadManager
 import util
 import discord as msg
 from reddit_client import RedditClient
@@ -24,7 +27,7 @@ parser.add_argument('-s', '--sub', help='Subreddit')
 
 test_sub = config.TEST_SUB
 prod_sub = config.SUB
-threads_json = config.THREADS_JSON
+file_manager = ThreadManager(config.THREADS_JSON)
 
 async def pre_match_thread(opta_id: Union[str, int], sub: str = prod_sub):
     """Post a pre-match/matchday thread.
@@ -47,15 +50,14 @@ async def pre_match_thread(opta_id: Union[str, int], sub: str = prod_sub):
         msg.send(f'Pre-match thread posted! https://www.reddit.com/r/{sub}/comments/{thread.id_from_url(thread.shortlink)}', tag=True)
     
         # keep track of threads
-        data: Dict[str, Any] = util.read_json(threads_json)
-        if str(opta_id) not in data.keys():
-            # add it as an empty dict
-            data[str(opta_id)] = {}
-            data[str(opta_id)]['slug'] = match_obj.slug
-        data[str(opta_id)]['pre'] = thread.id_from_url(thread.shortlink)
-        util.write_json(data, threads_json)
+        threads = file_manager.get_threads(str(opta_id))
+        if not threads:
+            threads = MatchThreads(slug=match_obj.slug)
+        
+        threads.pre = thread.id_from_url(thread.shortlink)
+        file_manager.add_threads(str(opta_id), threads)
 
-    return thread
+        return thread
 
 
 async def match_thread(
@@ -78,17 +80,16 @@ async def match_thread(
     match_obj: match.Match = await match.Match.create(opta_id)
 
     # get reddit ids of any threads that may already exist for this match
-    data: Dict[str, Any] = util.read_json(threads_json)
-    if str(opta_id) not in data.keys():
-        # add it as an empty dict
-        data[str(opta_id)] = {}
-        data[str(opta_id)]['slug'] = match_obj.slug
-    else:
-        gm = data[str(opta_id)]
-        if 'pre' in gm.keys():
-            pre_thread = gm['pre']
-        if 'match' in gm.keys():
-            thread = gm['match']
+    threads = file_manager.get_threads(str(opta_id))
+    if threads is None:
+        threads = MatchThreads(slug=match_obj.slug)
+    
+    if pre_thread is None and threads.pre:
+        pre_thread = threads.pre
+    if thread is None and threads.match:
+        thread = threads.match
+    if threads.post:
+        post_thread = threads.post
     
     async with RedditClient() as reddit:
         if thread is None:
@@ -99,12 +100,15 @@ async def match_thread(
                 sub, title, markdown,
                 mod=True, new=True, unsticky=pre_thread
             )
-            data[str(opta_id)]['match'] = thread.id_from_url(thread.shortlink)
-            util.write_json(data, threads_json)
+
+            threads.match = thread.id_from_url(thread.shortlink)
+            file_manager.add_threads(str(opta_id), threads)
+            
             if pre_thread is not None:
                 text = f'[Continue the discussion in the match thread.](https://www.reddit.com/r/{sub}/comments/{thread.id_from_url(thread.shortlink)})'
                 await reddit.add_comment(pre_thread, text)
             msg.send(f'Match thread posted! https://www.reddit.com/r/{sub}/comments/{thread.id_from_url(thread.shortlink)}', tag=True)
+            
             if not post:
                 msg.send(f'No post-match thread for {thread.id_from_url(thread.shortlink)}')
         else:
@@ -143,9 +147,15 @@ async def match_thread(
             
             if match_obj.is_final:
                 msg.send('Match is finished, final update made', tag=True)
-                if post:
+                if post and not post_thread:
                     # post a post-match thread before exiting the loop
                     await post_match_thread(opta_id, sub, thread)
+                elif not post:
+                    message = f'No post-match thread for {opta_id}'
+                    msg.send(message)
+                elif post_thread:
+                    message = f'Found post-match thread for {opta_id}. Skipping post-match thread.'
+                    msg.send(message, tag=True)
                 break
             await asyncio.sleep(60)
 
@@ -163,11 +173,9 @@ async def post_match_thread(
         thread: Match thread to unsticky
     """
     # get reddit ids of any threads that may already exist for this match
-    data: Dict[str, Any] = util.read_json(threads_json)
-    if str(opta_id) in data.keys():
-        gm = data[str(opta_id)]
-        if 'match' in gm.keys():
-            thread = gm['match']
+    threads = file_manager.get_threads(str(opta_id))
+    if thread is None and threads and threads.match:
+        thread = threads.match
 
     if '/r/' in sub:
         sub = sub.split('/r/')[1]
@@ -175,18 +183,21 @@ async def post_match_thread(
     match_obj: match.Match = await match.Match.create(opta_id)
     title, markdown = md.post_match_thread(match_obj)
     async with RedditClient() as reddit:
-        post_thread: asyncpraw.models.Submission = await reddit.submit_thread(sub, title, markdown, mod=True, unsticky=thread)
+        post_thread: asyncpraw.models.Submission = await reddit.submit_thread(
+            sub, title, markdown,
+            mod=True, unsticky=thread
+        )
 
         if thread is not None:
             text = f'[Continue the discussion in the post-match thread.](https://www.reddit.com/r/{sub}/comments/{post_thread.id_from_url(post_thread.shortlink)})'
             await reddit.add_comment(thread, text)
+        
         msg.send(f'Post-match thread posted! https://www.reddit.com/r/{sub}/comments/{post_thread.id_from_url(post_thread.shortlink)}', tag=True)
-    
-        if str(opta_id) not in data.keys():
-            data[str(opta_id)] = {}
-            data[str(opta_id)]['slug'] = match_obj.slug
-        data[str(opta_id)]['post'] = post_thread.id_from_url(post_thread.shortlink)
-        util.write_json(data, threads_json)
+
+        if threads is None:
+            threads = MatchThreads(slug=match_obj.slug)
+        threads.post = post_thread.id_from_url(post_thread.shortlink)
+        file_manager.add_threads(str(opta_id), threads)
 
 @util.time_dec(False)
 async def main():

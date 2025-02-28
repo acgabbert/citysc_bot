@@ -16,8 +16,9 @@ import injuries
 import match_thread as thread
 import mls_schedule
 import mls_playwright
+from thread_manager import ThreadManager
 import widgets
-from config import FEATURE_FLAGS, SUB, TEAMS
+from config import FEATURE_FLAGS, SUB, TEAMS, THREADS_JSON
 
 # Configure logging
 fh = logging.handlers.RotatingFileHandler('log/debug.log', maxBytes=1000000, backupCount=10)
@@ -40,6 +41,7 @@ root.addHandler(er)
 
 parser = argparse.ArgumentParser(prog='async_controller.py', usage='%(prog)s [options]', description='')
 parser.add_argument('-s', '--sub', help=f'Subreddit; default = {SUB}')
+file_manager = ThreadManager(THREADS_JSON)
 
 class AsyncController:
     """Main controller class for scheduling and managing async tasks"""
@@ -94,13 +96,15 @@ class AsyncController:
                         data = await client.get_schedule(club_opta_id=team)
                 
                 # Check for upcoming matches
-                match_id, match_time = mls_schedule.check_pre_match_sched(data)
+                # use a starting time of 3 hours ago to check for ongoing matches as well
+                match_id, match_time = mls_schedule.check_pre_match_sched(data, date_from=int(time.time()) - 10800)
                 
                 if match_id is not None:
                     local_time = match_time.astimezone()
                     msg.send(f'Match coming up: {match_id}, {local_time}')
 
                     # Check if match is within next 24 hours
+                    now = time.time()
                     today = time.time() + 86400
                     if match_time.timestamp() < today and datetime.now().date() == local_time.date():
                         # Schedule match thread for 30 mins before game
@@ -119,8 +123,9 @@ class AsyncController:
                         root.info(message)
                         msg.send(message)
                         
+                        current_hour = datetime.now().hour
                         # Schedule pre-match thread if not CITY2
-                        if datetime.now().hour < 4 and team != 19202:
+                        if current_hour < 4 and team != 19202:
                             pre_match_time = datetime.now().replace(hour=4, minute=0)
                             
                             self.scheduler.add_job(
@@ -135,7 +140,34 @@ class AsyncController:
                             message = f'Scheduled pre-match thread for {pre_match_time.strftime("%H:%M")}. Team {team}, Opta ID {match_id}'
                             root.info(message)
                             msg.send(message)
+
+                        # catch up if no pre-match thread posted yet
+                        if current_hour >= 4 and current_hour < 9 and team != 19202:
+                            threads = file_manager.get_threads(str(match_id))
+                            if threads is None or not threads.pre:
+                                # immediately create match_thread
+                                message = f"No pre-match found, creating catch-up thred for {match_id}"
+                                root.info(message)
+                                msg.send(message, True)
+                                try:
+                                    await thread.pre_match_thread(match_id, self.subreddit)
+                                except Exception as e:
+                                    error_msg = f"Error creating pre-match thread: {str(e)}"
+                                    root.error(error_msg)
+                                    msg.send(error_msg, tag=True)
                     
+                    # If match has started but not likely finished (within last 3 hours)
+                    elif match_time.timestamp() > now + 1800 and now - match_time.timestamp() < 10800: 
+                        threads = file_manager.get_threads(str(match_id))
+                        if threads and threads.match and not threads.post:
+                            # Resume match thread updates
+                            try:
+                                await thread.match_thread(match_id, self.subreddit)
+                            except Exception as e:
+                                error_msg = f"Error catching up on match thread: {str(e)}"
+                                root.error(error_msg)
+                                msg.send(error_msg, tag=True)
+
                     else:
                         message = f'No matches today for {team}.'
                         root.info(message)
@@ -147,7 +179,7 @@ class AsyncController:
                     msg.send(message)
             
             except Exception as e:
-                root.error(f"Error in daily setup for team {team}: {str(e)}")
+                root.exception(f"Error in daily setup for team {team}: {str(e)}")
                 msg.send(f"Error in daily setup for team {team}: {str(e)}")
     
     def setup_jobs(self):
