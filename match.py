@@ -81,6 +81,7 @@ class Match(mls.MlsObject):
         match = cls(opta_id)
         data = await get_prematch_data(opta_id)
 
+        match.update_from_data(data.get("data"))
         match.update_from_stats(data.get("stats"))
         match.update_from_schedule_info(data.get("info"))
         match.update_from_recent_form(data.get("recent_form"))
@@ -580,11 +581,11 @@ async def get_prematch_data(match_id: int) -> Dict[str, Any]:
                 second_club_id=away_club,
                 match_date=match_date
             ),
+            'data': client.get_match_data(match_id),
             'stats': client.get_match_stats(match_id),
             'preview': client.get_preview(match_id),
             'lineups': client.get_lineups(match_id),
-            'managers': client.get_managers(match_id),
-            'match_info': client.get_match_info(match_id)
+            'managers': client.get_managers(match_id)
         }
         results = await asyncio.gather(*tasks.values())
 

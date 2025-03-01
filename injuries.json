@@ -1,19 +1,18 @@
 {
-    "updated": "02/22/2025, 00:00",
+    "updated": "02/28/2025, 00:00",
     "injuries": {
         "11091": [
             "OUT: Pedro Amador (hamstring)",
             "OUT: Brooks Lennon (shoulder)",
-            "OUT: Adyn Torres (knee)",
-            "QUESTIONABLE: Derrick Williams (quad)"
+            "OUT: Ronald Hernández (quadriceps)"
         ],
         "15296": [
-            "OUT: Jimmy Farkarlun (leg)"
+            "OUT: None"
         ],
         "16629": [
+            "OUT: Nimfasha Berchimas (foot)",
             "OUT: Brandon Cambridge (thigh)",
-            "OUT: Jahlane Forbes (thigh)",
-            "QUESTIONABLE: Patrick Agyemang (ankle)"
+            "OUT: Jahlane Forbes (thigh)"
         ],
         "1207": [
             "OUT: Leonardo Barroso (lower body)",
@@ -22,126 +21,120 @@
             "OUT: Maren Haile-Selassie (lower body)",
             "OUT: Romingue Kouamé (lower body)",
             "OUT: Chris Mueller (not due to injury)",
-            "OUT: David Poreba (lower body)",
-            "QUESTIONABLE: Mauricio Pineda (lower body)"
+            "OUT: David Poreba (lower body)"
         ],
         "11504": [
-            "OUT: Nick Hagglund (ankle)",
-            "OUT: Alec Kann (hip)",
             "OUT: Matt Miazga (knee)",
-            "OUT: Luca Orellano (leg)",
-            "OUT: Sergio Santos (leg)",
-            "OUT: Gerardo Valenzuela (leg)"
+            "OUT: Gerardo Valenzuela (leg)",
+            "QUESTIONABLE: Nick Hagglund (ankle)",
+            "QUESTIONABLE: Alec Kann (hip)",
+            "QUESTIONABLE: Luca Orellano (leg)",
+            "QUESTIONABLE: Sergio Santos (leg)"
         ],
         "436": [
             "OUT: Ted Ku-DiPietro (shoulder)",
-            "OUT: Andreas Maxsø (lower body)",
-            "OUT: Connor Ronan (lower body)",
-            "OUT: Jackson Travis (upper body)",
-            "OUT: Sam Vines (lower body)",
-            "OUT: Darren Yapi (shoulder)",
-            "QUESTIONABLE: Reggie Canon (lower body)"
+            "OUT: Jackson Travis (hand)",
+            "OUT: Sam Vines (thigh)",
+            "QUESTIONABLE: Darren Yapi (shoulder)",
+            "QUESTIONABLE: Andreas Maxsø (knee)",
+            "QUESTIONABLE: Connor Ronan (thigh)"
         ],
         "454": [
             "OUT: Rudy Camacho (thigh)",
-            "OUT: Taha Habroune (thigh)",
             "OUT: Nicholas Hagen (hand)",
-            "OUT: Lassi Lappalainen (thigh)"
+            "QUESTIONABLE: Lassi Lappalainen (thigh)",
+            "QUESTIONABLE: Taha Habroune (thigh)"
         ],
         "1326": [
             "OUT: Conner Antey (knee)",
             "OUT: Jackson Hopkins (ankle)",
             "OUT: Hakim Karamoko (abdomen)",
-            "OUT: Joao Peglow (thigh)",
-            "OUT: Jared Stroud (ankle)",
-            "OUT: Rida Zouhir (not due to injury)"
+            "OUT: Randall Leal (thigh)",
+            "QUESTIONABLE: João Peglow (thigh)"
         ],
         "1903": [
-            "OUT: Geovane Jesus (knee)",
+            "OUT: Léo Chú (illness)",
             "OUT: Paxton Pomykal (knee)",
             "OUT: Show (illness)"
         ],
         "1897": [
-            "OUT: Lawrence Ennali (knee)",
-            "OUT: Nelson Quinones (knee)",
-            "QUESTIONABLE: Franco Escobar (lower body)"
+            "Report will be available Saturday"
         ],
         "1230": [
-            "Updates available on Saturday"
+            "Report will be available Saturday"
         ],
         "11690": [
             "OUT: Odin Holm (ankle)",
             "OUT: Lorenzo Dellavalle (thigh)",
-            "OUT: Maxime Chanot (head)"
+            "OUT: Maxime Chanot (head)",
+            "QUESTIONABLE: Aaron Long (leg)"
         ],
         "14880": [
-            "QUESTIONABLE: Yannick Bright (thigh)",
-            "QUESTIONABLE: Drake Callender (adductor)",
-            "QUESTIONABLE: David Martínez (ankle)"
+            "Report will be available Saturday"
         ],
         "6977": [
-            "OUT: Kipp Keller (thigh)",
-            "OUT: DJ Taylor (thigh)"
+            "OUT: Kipp Keller (leg)",
+            "OUT: DJ Taylor (leg)",
+            "OUT: Joseph Rosales (leg)",
+            "QUESTIONABLE: Loïc Mesanvi (ankle)"
         ],
         "1616": [
             "OUT: Jalen Neal (knee)",
             "OUT: Hennadii Synchuk (not due to injury)",
             "OUT: Giacomo Vrioni (groin)",
-            "QUESTIONABLE: Jules-Anthony Vilsaint (knee)"
+            "QUESTIONABLE: George Campbell (lower body)",
+            "QUESTIONABLE: Samuel Piette (lower body)"
         ],
         "15154": [
             "OUT: Bryan Acosta (thigh)",
             "OUT: Tyler Boyd (knee)",
-            "OUT: Gaston Brugman (thigh)",
             "OUT: Maximus Ekk (knee)",
             "OUT: Julian Gaines (thigh)",
             "QUESTIONABLE: Jacob Shaffelburg (thigh)",
-            "QUESTIONABLE: Patrick Yazbek (thigh)"
+            "QUESTIONABLE: Gaston Brugman (thigh)"
         ],
         "928": [
             "OUT: Tomás Chancalay (knee)",
-            "OUT: Peyton Miller (groin)",
-            "OUT: Matt Polster (thigh)"
+            "QUESTIONABLE: Peyton Miller (groin)",
+            "QUESTIONABLE: Matt Polster (thigh)"
         ],
         "9668": [
-            "OUT: Tayvon Gray (leg)",
-            "OUT: Malachi Jones (leg)",
-            "OUT: Thiago Martins (leg)"
+            "OUT: Malachi Jones (leg)"
         ],
         "399": [
             "OUT: Wiktor Bogacz (back)",
+            "OUT: Ronald Donkor (shin)",
             "OUT: Kyle Duncan (knee)",
             "OUT: Adri Mehmeti (thigh)",
             "OUT: Roald Mitchell (knee)",
             "OUT: Marcelo Morales (knee)",
-            "OUT: Serge Ngoma (knee)",
-            "QUESTIONABLE: Ronald Donkor (shin)"
+            "OUT: Serge Ngoma (knee)"
         ],
         "6900": [
             "OUT: Favian Loyola (thigh)",
             "OUT: Duncan McGuire (shoulder)",
-            "OUT: Yutaro Tsukada (knee)"
+            "QUESTIONABLE: Robin Jansson (thigh)"
         ],
         "5513": [
-            "OUT: Markus Anderson (ankle)",
-            "OUT: Nathan Harriel (quad)",
-            "OUT: Isaiah LeFlore (leg)"
+            "OUT: Markus Anderson (ankle)"
         ],
         "1581": [
-            "Updates available on Saturday"
+            "OUT: Miguel Arajuo (not due to injury)",
+            "OUT: Max Crepeau (lower body)",
+            "OUT: Santiago Moreno (ankle)",
+            "OUT: Juan Mosquera (lower body)",
+            "OUT: Jonathan Rodriguez (knee)",
+            "OUT: Dario Zuparic (knee)"
         ],
         "1899": [
             "OUT: Matthew Bell (hamstring)",
-            "OUT: Zac MacMath (back)",
-            "QUESTIONABLE: Javain Brown (knee)",
-            "QUESTIONABLE: Justen Glad (hamstring)",
-            "QUESTIONABLE: Alex Katranis (head)",
-            "QUESTIONABLE: Diego Luna (nose)",
-            "QUESTIONABLE: Ariath Piol (hamstring)",
-            "QUESTIONABLE: Philip Quinton (hamstring)"
+            "OUT: Zac MacMath (shoulder)",
+            "QUESTIONABLE: Alex Katranis (arm)",
+            "QUESTIONABLE: Ariath Piol (hamstring)"
         ],
         "21280": [
-            "Updates available on Saturday"
+            "OUT: Manu Duah (lower body)",
+            "OUT: Andrés Reyes (lower body)"
         ],
         "1131": [
             "OUT: Benji Kikanovic (lower body)"
@@ -150,19 +143,22 @@
             "OUT: Reed Baker-Whiting (hamstring)"
         ],
         "17012": [
+            "OUT: Rasmus Alm (hip)",
             "OUT: Jake Girdwood-Reich (ankle)",
+            "OUT: Joakim Nilsson (knee)",
             "OUT: Jay Reid (foot)",
-            "QUESTIONABLE: Chris Durkin (knee)"
+            "QUESTIONABLE: Timo Baumgartl (illness)"
         ],
         "421": [
-            "OUT: Khiry Shelton (hamstring)",
-            "QUESTIONABLE: Jansen Miller (back)"
+            "OUT: Jansen Miller (back)",
+            "QUESTIONABLE: Khiry Shelton (hamstring)"
         ],
         "2077": [
-            "None"
+            "QUESTIONABLE: Derrick Etienne (lower body)",
+            "QUESTIONABLE: Raoul Petretta (lower body)"
         ],
         "1708": [
-            "Updates available on Saturday"
+            "Report will be available Saturday"
         ]
     }
 }
