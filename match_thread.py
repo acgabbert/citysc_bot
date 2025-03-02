@@ -84,6 +84,8 @@ async def match_thread(
     if threads is None:
         threads = MatchThreads(slug=match_obj.slug)
     
+    post_thread = None
+    
     if pre_thread is None and threads.pre:
         pre_thread = threads.pre
     if thread is None and threads.match:
