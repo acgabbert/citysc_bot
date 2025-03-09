@@ -146,7 +146,7 @@ class AsyncController:
                             threads = file_manager.get_threads(str(match_id))
                             if threads is None or not threads.pre:
                                 # immediately create match_thread
-                                message = f"No pre-match found, creating catch-up thred for {match_id}"
+                                message = f"No pre-match found, creating catch-up thread for {match_id}"
                                 root.info(message)
                                 msg.send(message, True)
                                 try:
