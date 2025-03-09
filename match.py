@@ -61,6 +61,8 @@ class Match(mls.MlsObject):
         """Factory method to create and populate a Match instance"""
         match = cls(opta_id)
         data = await get_full_match_data(opta_id)
+        match.update_injuries()
+        match.update_discipline()
 
         match.update_from_data(data.get("data"))
         match.update_from_stats(data.get("stats"))
@@ -295,7 +297,7 @@ class Match(mls.MlsObject):
             date_format = '%m/%d/%Y, %H:%M'
             last_updated = datetime.strptime(inj.get('updated', ""), date_format)
             delta = datetime.now() - last_updated
-            if delta.days > 2:
+            if delta.days > 3:
                 return
             inj = inj.get('injuries')
             self.home.injuries = inj.get(str(self.home.opta_id))
@@ -308,9 +310,6 @@ class Match(mls.MlsObject):
     def update_discipline(self) -> None:
         try:
             disc = util.read_json(discipline.DISC_FILE)
-            date_format = '%m/%d/%Y, %H:%M'
-            last_updated = datetime.strptime(disc.get('updated', ""), date_format)
-            delta = datetime.now() - last_updated
             disc = disc.get('discipline')
             self.home.discipline = disc.get(str(self.home.opta_id))
             self.away.discipline = disc.get(str(self.away.opta_id))

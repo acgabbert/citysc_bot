@@ -39,8 +39,10 @@ async def pre_match_thread(opta_id: Union[str, int], sub: str = prod_sub):
     Returns:
         The created pre-match thread
     """
+    if '/r/' in sub:
+        sub = sub.split('/r/')[1]
     # get a match object
-    match_obj: match.Match = await match.Match.create(opta_id)
+    match_obj: match.Match = await match.Match.create_prematch(opta_id)
 
     # get post details for the match object
     title, markdown = md.pre_match_thread(match_obj)
