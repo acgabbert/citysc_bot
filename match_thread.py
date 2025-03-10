@@ -187,20 +187,20 @@ async def post_match_thread(
     match_obj: match.Match = await match.Match.create(opta_id)
     title, markdown = md.post_match_thread(match_obj)
     async with RedditClient() as reddit:
-        post_thread: asyncpraw.models.Submission = await reddit.submit_thread(
+        post_thread_obj: asyncpraw.models.Submission = await reddit.submit_thread(
             sub, title, markdown,
             mod=True, unsticky=thread
         )
 
         if thread is not None:
-            text = f'[Continue the discussion in the post-match thread.](https://www.reddit.com/r/{sub}/comments/{post_thread.id_from_url(post_thread.shortlink)})'
+            text = f'[Continue the discussion in the post-match thread.](https://www.reddit.com/r/{sub}/comments/{post_thread_obj.id_from_url(post_thread_obj.shortlink)})'
             await reddit.add_comment(thread, text)
         
-        msg.send(f'Post-match thread posted! https://www.reddit.com/r/{sub}/comments/{post_thread.id_from_url(post_thread.shortlink)}', tag=True)
+        msg.send(f'Post-match thread posted! https://www.reddit.com/r/{sub}/comments/{post_thread_obj.id_from_url(post_thread_obj.shortlink)}', tag=True)
 
         if threads is None:
             threads = MatchThreads(slug=match_obj.slug)
-        threads.post = post_thread.id_from_url(post_thread.shortlink)
+        threads.post = post_thread_obj.id_from_url(post_thread_obj.shortlink)
         file_manager.add_threads(str(opta_id), threads)
 
 @util.time_dec(False)
