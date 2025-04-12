@@ -11,7 +11,8 @@ from urllib.parse import urljoin
 from pydantic import BaseModel, ValidationError, field_validator, model_validator
 
 import config
-from models.match import MatchResponse
+from models.match import Match_Base, Match_Sport
+from models.match_stats import MatchStats
 from models.schedule import MatchSchedule
 import util
 
@@ -39,6 +40,7 @@ class MLSApiRateLimitError(MLSApiError):
 
 class ApiEndpoint(Enum):
     STATS = "stats"
+    MATCHES = "matches"
     STATS_DEPRECATED = "stats"
     SPORT = "sport"
     VIDEO = "video"
@@ -61,7 +63,8 @@ class MatchType(Enum):
 class MLSApiConfig:
     """Configuration for the MLS API client"""
     stats_base_url: str = "https://stats-api.mlssoccer.com/"
-    stats_base_url_deprecated: str = "https://stats-api.mlssoccer.com/v1/"
+    stats_base_url_deprecated: str = f"{stats_base_url}v1/"
+    matches_base_url: str = "https://stats-api.mlssoccer.com/matches/"
     sport_base_url: str = "https://sportapi.mlssoccer.com/api/"
     video_base_url: str = "https://dapi.mlssoccer.com/v2/"
     nextpro_base_url: str = "https://sportapi.mlsnextpro.com/api/matches"
@@ -112,6 +115,7 @@ class MLSApiClient:
         self.config = config
         self._sessions: Dict[ApiEndpoint, Optional[aiohttp.ClientSession]] = {
             ApiEndpoint.STATS: None,
+            ApiEndpoint.MATCHES: None,
             ApiEndpoint.STATS_DEPRECATED: None,
             ApiEndpoint.SPORT: None,
             ApiEndpoint.VIDEO: None,
@@ -119,6 +123,7 @@ class MLSApiClient:
         }
         self._rate_limiters: Dict[ApiEndpoint, asyncio.Semaphore] = {
             ApiEndpoint.STATS: asyncio.Semaphore(self.config.rate_limit_calls),
+            ApiEndpoint.MATCHES: asyncio.Semaphore(self.config.rate_limit_calls),
             ApiEndpoint.STATS_DEPRECATED: asyncio.Semaphore(self.config.rate_limit_calls),
             ApiEndpoint.SPORT: asyncio.Semaphore(self.config.rate_limit_calls),
             ApiEndpoint.VIDEO: asyncio.Semaphore(self.config.rate_limit_calls),
@@ -126,6 +131,7 @@ class MLSApiClient:
         }
         self._last_requests: Dict[ApiEndpoint, List[float]] = {
             ApiEndpoint.STATS: [],
+            ApiEndpoint.MATCHES: [],
             ApiEndpoint.STATS_DEPRECATED: [],
             ApiEndpoint.SPORT: [],
             ApiEndpoint.VIDEO: [],
@@ -135,6 +141,9 @@ class MLSApiClient:
     async def __aenter__(self):
         # Initialize sessions for both APIs
         self._sessions[ApiEndpoint.STATS] = aiohttp.ClientSession(
+            headers={"User-Agent": self.config.user_agent}
+        )
+        self._sessions[ApiEndpoint.MATCHES] = aiohttp.ClientSession(
             headers={"User-Agent": self.config.user_agent}
         )
         self._sessions[ApiEndpoint.STATS_DEPRECATED] = aiohttp.ClientSession(
@@ -162,6 +171,8 @@ class MLSApiClient:
             return self.config.stats_base_url
         if endpoint == ApiEndpoint.STATS_DEPRECATED:
             return self.config.stats_base_url_deprecated
+        if endpoint == ApiEndpoint.MATCHES:
+            return self.config.matches_base_url
         if endpoint == ApiEndpoint.VIDEO:
             return self.config.video_base_url
         if endpoint == ApiEndpoint.NEXT_PRO:
@@ -187,7 +198,10 @@ class MLSApiClient:
             which may be either a dictionary or a list of dictionaries
         """
         base_url = self._get_base_url(endpoint)
+        print(base_url)
+        print(path)
         url = urljoin(base_url, path)
+        print(url)
         session = self._sessions[endpoint]
         rate_limiter = self._rate_limiters[endpoint]
         
@@ -420,7 +434,7 @@ class MLSApiClient:
             f"/matches/{match_id}"
         )
     
-    async def get_matches_by_id(self, ids: List[str]) -> List[MatchResponse]:
+    async def get_matches_by_id(self, ids: List[str]) -> List[Match_Sport]:
         """Get match info from the sport API by Sportec ID"""
         joined_ids = ",".join(ids)
         data = await self._make_request(
@@ -428,7 +442,7 @@ class MLSApiClient:
             f"matches/bySportecIds/{joined_ids}"
         )
         try:
-            return [MatchResponse(**match) for match in data]
+            return [Match_Sport(**match) for match in data]
         except ValidationError as e:
             for error in e.errors():
                 if error['type'] == 'missing':
@@ -517,6 +531,36 @@ class MLSApiClient:
         try:
             return [MatchSchedule(**match) for match in data]
         except ValidationError as e:
+            for error in e.errors():
+                if error['type'] == 'missing':
+                    print(error['loc'][0])
+    
+    async def get_match(self, match_id: str, **kwargs) -> Match_Base:
+        """Get match by Sportec ID"""
+        data = await self._make_request(
+            ApiEndpoint.MATCHES,
+            match_id
+        )
+        try:
+            return Match_Base(**data)
+        except ValidationError as e:
+            for error in e.errors():
+                if error['type'] == 'missing':
+                    print(error['loc'][0])
+    
+    async def get_match_stats(self, match_id: str, **kwargs) -> MatchStats:
+        data = await self._make_request(
+            ApiEndpoint.STATS,
+            f"/statistics/clubs/matches/{match_id}"
+        )
+        try:
+            data = data.get("match_statistics_list")[0].get("match_statistics")
+            print(data)
+            data = MatchStats(**data)
+            print(data)
+            return data
+        except ValidationError as e:
+            print('error: ', e)
             for error in e.errors():
                 if error['type'] == 'missing':
                     print(error['loc'][0])
