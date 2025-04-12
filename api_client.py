@@ -61,7 +61,7 @@ class MLSApiConfig:
     """Configuration for the MLS API client"""
     stats_base_url: str = "https://stats-api.mlssoccer.com"
     stats_base_url_deprecated: str = "https://stats-api.mlssoccer.com/v1/"
-    sport_base_url: str = "https://sportapi.mlssoccer.com/api/"
+    sport_base_url: str = "https://sportapi.mlssoccer.com/api"
     video_base_url: str = "https://dapi.mlssoccer.com/v2/"
     nextpro_base_url: str = "https://sportapi.mlsnextpro.com/api/matches"
     user_agent: str = config.USER_AGENT_STR
@@ -407,7 +407,7 @@ class MLSApiClient:
 
         data = await self._make_request(
             ApiEndpoint.SPORT,
-            "matches",
+            "/matches",
             params=params
         )
         return [MatchScheduleDeprecated.model_validate(match) for match in data]
@@ -416,7 +416,7 @@ class MLSApiClient:
         """Get match info from sport API"""
         return await self._make_request(
             ApiEndpoint.SPORT,
-            f"matches/{match_id}"
+            f"/matches/{match_id}"
         )
 
     async def get_standings(
@@ -428,7 +428,7 @@ class MLSApiClient:
         """Get standings from sport API"""
         return await self._make_request(
             ApiEndpoint.SPORT,
-            "standings/live",
+            "/standings/live",
             params={
                 "isLive": str(is_live).lower(),
                 "seasonId": season_id,
@@ -446,7 +446,7 @@ class MLSApiClient:
         print(f"received {club_id}, {second_club_id}, {match_date}")
         return await self._make_request(
             ApiEndpoint.SPORT,
-            f"previousMatches/{club_id}",
+            f"/previousMatches/{club_id}",
             params={
                 "culture": "en-us",
                 "secondClub": second_club_id,
@@ -461,7 +461,7 @@ class MLSApiClient:
         """Get standings from sport API"""
         return await self._make_request(
             ApiEndpoint.SPORT,
-            "content/en-us/brightcovevideos",
+            "/content/en-us/brightcovevideos",
             params={
                 'fields.optaMatchId': match_id
             },
