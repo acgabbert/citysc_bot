@@ -657,7 +657,7 @@ async def get_previous_match(match_obj: Match) -> Match:
     date_from = f'{date_from.year}-{date_from.month}-{date_from.day}'
     date_to = f'{date.year}-{date.month}-{date.day}'
     async with MLSApiClient() as client:
-        sched = await client.get_schedule(team=match_obj.home.opta_id, comp=match_obj.comp_id, date_from=date_from, date_to=date_to)
+        sched = await client.get_schedule_deprecated(team=match_obj.home.opta_id, comp=match_obj.comp_id, date_from=date_from, date_to=date_to)
     
     prev_match = Match(-1)
     for m in sched:

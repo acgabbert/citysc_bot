@@ -11,6 +11,7 @@ from urllib.parse import urljoin
 from pydantic import BaseModel, field_validator, model_validator
 
 import config
+from models.schedule import MatchSchedule
 import util
 
 logger = logging.getLogger(__name__)
@@ -37,6 +38,7 @@ class MLSApiRateLimitError(MLSApiError):
 
 class ApiEndpoint(Enum):
     STATS = "stats"
+    STATS_DEPRECATED = "stats"
     SPORT = "sport"
     VIDEO = "video"
     NEXT_PRO = "nextpro"
@@ -57,7 +59,8 @@ class MatchType(Enum):
 @dataclass
 class MLSApiConfig:
     """Configuration for the MLS API client"""
-    stats_base_url: str = "https://stats-api.mlssoccer.com/v1/"
+    stats_base_url: str = "https://stats-api.mlssoccer.com"
+    stats_base_url_deprecated: str = "https://stats-api.mlssoccer.com/v1/"
     sport_base_url: str = "https://sportapi.mlssoccer.com/api/"
     video_base_url: str = "https://dapi.mlssoccer.com/v2/"
     nextpro_base_url: str = "https://sportapi.mlsnextpro.com/api/matches"
@@ -68,7 +71,7 @@ class MLSApiConfig:
     rate_limit_period: int = 1  # seconds
     log_responses: bool = True
 
-class MatchSchedule(BaseModel):
+class MatchScheduleDeprecated(BaseModel):
     """Model for schedule response from sport API"""
     optaId: int
     matchDate: datetime
@@ -98,7 +101,7 @@ class MatchSchedule(BaseModel):
         raise ValueError(f"Expected string or datetime, got {type(v)}")
     
     @model_validator(mode='after')
-    def validate_model(self) -> 'MatchSchedule':
+    def validate_model(self) -> 'MatchScheduleDeprecated':
         if self.appleStreamURL and not self.appleStreamURL:
             raise ValueError("appleStreamURL must be set if appleSubscriptionTier is set")
         return self
@@ -108,18 +111,21 @@ class MLSApiClient:
         self.config = config
         self._sessions: Dict[ApiEndpoint, Optional[aiohttp.ClientSession]] = {
             ApiEndpoint.STATS: None,
+            ApiEndpoint.STATS_DEPRECATED: None,
             ApiEndpoint.SPORT: None,
             ApiEndpoint.VIDEO: None,
             ApiEndpoint.NEXT_PRO: None
         }
         self._rate_limiters: Dict[ApiEndpoint, asyncio.Semaphore] = {
             ApiEndpoint.STATS: asyncio.Semaphore(self.config.rate_limit_calls),
+            ApiEndpoint.STATS_DEPRECATED: asyncio.Semaphore(self.config.rate_limit_calls),
             ApiEndpoint.SPORT: asyncio.Semaphore(self.config.rate_limit_calls),
             ApiEndpoint.VIDEO: asyncio.Semaphore(self.config.rate_limit_calls),
             ApiEndpoint.NEXT_PRO: asyncio.Semaphore(self.config.rate_limit_calls)
         }
         self._last_requests: Dict[ApiEndpoint, List[float]] = {
             ApiEndpoint.STATS: [],
+            ApiEndpoint.STATS_DEPRECATED: [],
             ApiEndpoint.SPORT: [],
             ApiEndpoint.VIDEO: [],
             ApiEndpoint.NEXT_PRO: []
@@ -128,6 +134,9 @@ class MLSApiClient:
     async def __aenter__(self):
         # Initialize sessions for both APIs
         self._sessions[ApiEndpoint.STATS] = aiohttp.ClientSession(
+            headers={"User-Agent": self.config.user_agent}
+        )
+        self._sessions[ApiEndpoint.STATS_DEPRECATED] = aiohttp.ClientSession(
             headers={"User-Agent": self.config.user_agent}
         )
         self._sessions[ApiEndpoint.SPORT] = aiohttp.ClientSession(
@@ -150,6 +159,8 @@ class MLSApiClient:
     def _get_base_url(self, endpoint: ApiEndpoint) -> str:
         if endpoint == ApiEndpoint.STATS:
             return self.config.stats_base_url
+        if endpoint == ApiEndpoint.STATS_DEPRECATED:
+            return self.config.stats_base_url_deprecated
         if endpoint == ApiEndpoint.VIDEO:
             return self.config.video_base_url
         if endpoint == ApiEndpoint.NEXT_PRO:
@@ -235,7 +246,7 @@ class MLSApiClient:
     async def get_match_stats(self, match_id: int) -> List[Dict[str, Any]]:
         """Get match statistics from stats API"""
         response = await self._make_request(
-            ApiEndpoint.STATS,
+            ApiEndpoint.STATS_DEPRECATED,
             "clubs/matches",
             params={
                 "match_game_id": match_id,
@@ -255,7 +266,7 @@ class MLSApiClient:
     async def get_match_data(self, match_id: int) -> Dict[str, Any]:
         """Get match data from stats API"""
         response = await self._make_request(
-            ApiEndpoint.STATS,
+            ApiEndpoint.STATS_DEPRECATED,
             "matches",
             params={
                 "match_game_id": match_id,
@@ -277,7 +288,7 @@ class MLSApiClient:
     async def get_match_commentary(self, match_id: int) -> List[Dict[str, Any]]:
         """Get match commentary from stats API"""
         return await self._make_request(
-            ApiEndpoint.STATS,
+            ApiEndpoint.STATS_DEPRECATED,
             "commentaries",
             params={
                 "match_game_id": match_id,
@@ -288,7 +299,7 @@ class MLSApiClient:
     async def get_preview(self, match_id: int) -> List[Dict[str, Any]]:
         """Get the preview (match facts) for a match."""
         return await self._make_request(
-            ApiEndpoint.STATS,
+            ApiEndpoint.STATS_DEPRECATED,
             "matchfacts",
             params={
                 "match_game_id": match_id,
@@ -299,7 +310,7 @@ class MLSApiClient:
     async def get_feed(self, match_id: int) -> List[Dict[str, Any]]:
         """Get the full feed from a match."""
         return await self._make_request(
-            ApiEndpoint.STATS,
+            ApiEndpoint.STATS_DEPRECATED,
             "commentaries",
             params={
                 "match_game_id": match_id,
@@ -322,7 +333,7 @@ class MLSApiClient:
     async def get_summary(self, match_id: int) -> List[Dict[str, Any]]:
         """Get the summary feed from a match."""
         return await self._make_request(
-            ApiEndpoint.STATS,
+            ApiEndpoint.STATS_DEPRECATED,
             "commentaries",
             params={
                 "match_game_id": match_id,
@@ -340,7 +351,7 @@ class MLSApiClient:
     async def get_lineups(self, match_id: int) -> List[Dict[str, Any]]:
         """Get the lineups from a match."""
         return await self._make_request(
-            ApiEndpoint.STATS,
+            ApiEndpoint.STATS_DEPRECATED,
             "players/matches",
             params={
                 "match_game_id": match_id,
@@ -351,7 +362,7 @@ class MLSApiClient:
     async def get_subs(self, match_id: int) -> List[Dict[str, Any]]:
         """Get the subs from a match."""
         return await self._make_request(
-            ApiEndpoint.STATS,
+            ApiEndpoint.STATS_DEPRECATED,
             "substitutions",
             params={
                 "match_game_id": match_id,
@@ -362,7 +373,7 @@ class MLSApiClient:
     async def get_managers(self, match_id: int) -> List[Dict[str, Any]]:
         """Get managers for a match."""
         return await self._make_request(
-            ApiEndpoint.STATS,
+            ApiEndpoint.STATS_DEPRECATED,
             "managers/matches",
             params={
                 "match_game_id": match_id,
@@ -371,14 +382,14 @@ class MLSApiClient:
         )
 
     # Sport API endpoints
-    async def get_schedule(
+    async def get_schedule_deprecated(
         self,
         club_opta_id: Optional[int] = None,
         competition: Optional[Competition] = None,
         match_type: Optional[MatchType] = None,
         date_from: Optional[str] = None,
         date_to: Optional[str] = None
-    ) -> List[MatchSchedule]:
+    ) -> List[MatchScheduleDeprecated]:
         """Get schedule from sport API"""
         params = {
             "culture": "en-us"
@@ -399,7 +410,7 @@ class MLSApiClient:
             "matches",
             params=params
         )
-        return [MatchSchedule.model_validate(match) for match in data]
+        return [MatchScheduleDeprecated.model_validate(match) for match in data]
 
     async def get_match_info(self, match_id: int) -> Dict[str, Any]:
         """Get match info from sport API"""
@@ -457,6 +468,39 @@ class MLSApiClient:
             allow_404=True
         )
     
+    async def get_competitions(self) -> Dict[str, Any]:
+        """Get current competitions"""
+        return await self._make_request(
+            ApiEndpoint.STATS,
+            "/competitions"
+        )
+    
+    async def get_seasons(self, competition_id: str) -> Dict[str, Any]:
+        """Get MLS seasons"""
+        return await self._make_request(
+            ApiEndpoint.STATS,
+            f"/competitions/{competition_id}/seasons"
+        )
+    
+    async def get_schedule(self, season: str, **kwargs) -> Dict[str, Any]:
+        """Get schedule"""
+        params = {
+            "per_page": 100,
+            "sort": "planned_kickoff_time:asc,home_team_name:asc"
+        }
+        if kwargs.get("match_date_gte"):
+            params["match_date[gte]"] = kwargs["match_date_gte"]
+        if kwargs.get("match_date_lte"):
+            params["match_date[lte]"] = kwargs["match_date_lte"]
+        
+        data = await self._make_request(
+            ApiEndpoint.STATS,
+            f"/matches/seasons/{season}",
+            params=params
+        )
+        data = data.get("schedule", None)
+        return [MatchSchedule.model_validate(match) for match in data]
+    
     # MLS Next Pro API endpoints
     async def get_nextpro_match_info(self, match_id: int) -> Dict[str, Any]:
         """Get match info for an MLS Next Pro match"""
@@ -464,7 +508,7 @@ class MLSApiClient:
             ApiEndpoint.NEXT_PRO,
             f"matches/{match_id}"
         )
-        return MatchSchedule.model_validate(data)
+        return MatchScheduleDeprecated.model_validate(data)
     
     async def get_nextpro_schedule(
         self,
@@ -472,7 +516,7 @@ class MLSApiClient:
         match_type: Optional[MatchType] = None,
         date_from: Optional[str] = None,
         date_to: Optional[str] = None
-    ) -> List[MatchSchedule]:
+    ) -> List[MatchScheduleDeprecated]:
         """Get schedule from MLS Next Pro API"""
         params = {
             "culture": "en-us"
@@ -491,7 +535,7 @@ class MLSApiClient:
             "matches",
             params=params
         )
-        return [MatchSchedule.model_validate(match) for match in data]
+        return [MatchScheduleDeprecated.model_validate(match) for match in data]
 
 
 # Example usage:
@@ -504,7 +548,7 @@ async def main():
             match_info = await client.get_match_info(match_id)
             
             # Get schedule for a team
-            schedule = await client.get_schedule(
+            schedule = await client.get_schedule_deprecated(
                 club_opta_id=17012,  # St. Louis City SC
                 competition=Competition.MLS,
                 match_type=MatchType.REGULAR,

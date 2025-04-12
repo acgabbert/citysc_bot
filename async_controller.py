@@ -93,7 +93,7 @@ class AsyncController:
                     if team == 19202:  # CITY2
                         data = await client.get_nextpro_schedule(club_opta_id=team)
                     else:
-                        data = await client.get_schedule(club_opta_id=team)
+                        data = await client.get_schedule_deprecated(club_opta_id=team)
                 
                 # Check for upcoming matches
                 # use a starting time of 3 hours ago to check for ongoing matches as well
