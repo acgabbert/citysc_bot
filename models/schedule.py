@@ -59,3 +59,33 @@ class MatchSchedule(BaseModel):
             return v.replace(tzinfo=timezone.utc)
         raise ValueError(f"Expected string or datetime, got {type(v)}")
 
+
+class Season(BaseModel):
+    """Model for season object from Sport API match call"""
+    model_config = ConfigDict(extra="ignore", strict=False)
+    
+    slug: str
+    optaId: int
+    sportecId: str
+    competitionOptaId: str
+    name: str
+
+class Competition(BaseModel):
+    """Model for competition object from Sport API match call"""
+    model_config = ConfigDict(extra="ignore", strict=False)
+    
+    optaId: int
+    sportecId: str
+    name: str
+    slug: Optional[str] = None
+    shortName: Optional[str] = None
+    matchType: Optional[str] = None
+
+class Broadcaster(BaseModel):
+    """Model for broadcaster object from Sport API match call"""
+    model_config = ConfigDict(extra="ignore", strict=False)
+    
+    broadcasterTypeLabel: str
+    broadcasterName: str
+    broadcasterStreamingURL: Optional[str] = None
+    broadcasterType: str

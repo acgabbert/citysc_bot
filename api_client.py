@@ -11,6 +11,7 @@ from urllib.parse import urljoin
 from pydantic import BaseModel, ValidationError, field_validator, model_validator
 
 import config
+from models.match import MatchResponse
 from models.schedule import MatchSchedule
 import util
 
@@ -59,9 +60,9 @@ class MatchType(Enum):
 @dataclass
 class MLSApiConfig:
     """Configuration for the MLS API client"""
-    stats_base_url: str = "https://stats-api.mlssoccer.com"
+    stats_base_url: str = "https://stats-api.mlssoccer.com/"
     stats_base_url_deprecated: str = "https://stats-api.mlssoccer.com/v1/"
-    sport_base_url: str = "https://sportapi.mlssoccer.com/api"
+    sport_base_url: str = "https://sportapi.mlssoccer.com/api/"
     video_base_url: str = "https://dapi.mlssoccer.com/v2/"
     nextpro_base_url: str = "https://sportapi.mlsnextpro.com/api/matches"
     user_agent: str = config.USER_AGENT_STR
@@ -418,6 +419,20 @@ class MLSApiClient:
             ApiEndpoint.SPORT,
             f"/matches/{match_id}"
         )
+    
+    async def get_matches_by_id(self, ids: List[str]) -> List[MatchResponse]:
+        """Get match info from the sport API by Sportec ID"""
+        joined_ids = ",".join(ids)
+        data = await self._make_request(
+            ApiEndpoint.SPORT,
+            f"matches/bySportecIds/{joined_ids}"
+        )
+        try:
+            return [MatchResponse(**match) for match in data]
+        except ValidationError as e:
+            for error in e.errors():
+                if error['type'] == 'missing':
+                    print(error['loc'][0])
 
     async def get_standings(
         self,
