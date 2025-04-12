@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Dict, List, Optional, Any, Union
 from urllib.parse import urljoin
-from pydantic import BaseModel, field_validator, model_validator
+from pydantic import BaseModel, ValidationError, field_validator, model_validator
 
 import config
 from models.schedule import MatchSchedule
@@ -499,7 +499,12 @@ class MLSApiClient:
             params=params
         )
         data = data.get("schedule", None)
-        return [MatchSchedule.model_validate(match) for match in data]
+        try:
+            return [MatchSchedule(**match) for match in data]
+        except ValidationError as e:
+            for error in e.errors():
+                if error['type'] == 'missing':
+                    print(error['loc'][0])
     
     # MLS Next Pro API endpoints
     async def get_nextpro_match_info(self, match_id: int) -> Dict[str, Any]:

@@ -1,44 +1,46 @@
 from datetime import datetime, timezone
 from typing import Any, Optional
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
 
 
 class MatchSchedule(BaseModel):
     """Model for schedule response from Stats API"""
+    model_config = ConfigDict(extra="ignore", strict=False)
+    
     competition_id: str
     competition_name: str
     competition_type: str
-    end_date: Optional[datetime]
+    end_date: Optional[datetime] = None
     away_team_id: str
     away_team_name: str
-    away_team_short_name: Optional[str]
-    away_team_three_letter_code: Optional[str]
+    away_team_short_name: Optional[str] = None
+    away_team_three_letter_code: Optional[str] = None
     home_team_id: str
     home_team_name: str
-    home_team_short_name: Optional[str]
-    home_team_three_letter_code: Optional[str]
-    match_scheduled: Optional[bool]
-    match_day: Optional[int]
-    match_day_id: Optional[str]
+    home_team_short_name: Optional[str] = None
+    home_team_three_letter_code: Optional[str] = None
+    match_scheduled: Optional[bool] = None
+    match_day: Optional[int] = None
+    match_day_id: Optional[str] = None
     match_id: str
-    planned_kickoff_time: Optional[datetime]
-    season: Optional[int]
-    season_id: Optional[str]
-    stadium_id: Optional[str]
-    stadium_name: Optional[str]
-    neutral_venue: Optional[bool]
-    start_date: Optional[datetime]
-    group: Optional[str]
-    match_date_time_status: Optional[str]
-    result: Optional[str]
-    away_team_goals: Optional[int]
-    home_team_goals: Optional[int]
+    planned_kickoff_time: Optional[datetime] = None
+    season: Optional[int] = None
+    season_id: Optional[str] = None
+    stadium_id: Optional[str] = None
+    stadium_name: Optional[str] = None
+    neutral_venue: Optional[bool] = None
+    start_date: Optional[datetime] = None
+    group: Optional[str] = None
+    match_date_time_status: Optional[str] = None
+    result: Optional[str] = None
+    away_team_goals: Optional[int] = None
+    home_team_goals: Optional[int] = None
     match_status: str
-    minute_of_play: Optional[str]
-    stadium_city: Optional[str]
-    stadium_country: Optional[str]
+    minute_of_play: Optional[str] = None
+    stadium_city: Optional[str] = None
+    stadium_country: Optional[str] = None
 
-    @field_validator('start_date')
+    @field_validator('start_date', 'end_date')
     @classmethod
     def validate_match_date(cls, v: Any) -> datetime:
         if isinstance(v, str):
