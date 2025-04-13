@@ -5,7 +5,8 @@ from models.club import Club_Sport, ClubMatch_Base
 from models.event import MlsEvent
 from models.match_stats import MatchStats
 from models.person import BasePerson, NonPlayer
-from models.schedule import Competition, Season
+from models.schedule import Broadcaster, Competition, MatchSchedule, Season
+from models.venue import MatchVenue
 
 
 class Match_Sport(BaseModel):
@@ -17,8 +18,10 @@ class Match_Sport(BaseModel):
     leagueMatchTitle: Optional[str] = None
     home: Club_Sport
     away: Club_Sport
+    venue: MatchVenue
     season: Season
     competition: Competition
+    broadcasters: Optional[List[Broadcaster]]
     appleStreamURL: Optional[str] = None
     appleSubscriptionTier: Optional[str] = None
     roundName: Optional[str] = None
@@ -80,7 +83,9 @@ class Match_Base(BaseModel):
 
 
 class ComprehensiveMatchData(BaseModel):
+    match_info: Optional[Match_Sport] = None
     match_base: Optional[Match_Base] = None
     match_stats: Optional[MatchStats] = None
     match_events: Optional[List[MlsEvent]] = None
+    match_schedule: Optional[MatchSchedule] = None
     errors: List[str] = [] # To track specific fetch errors

@@ -6,6 +6,7 @@ import time
 from api_client import MatchScheduleDeprecated
 import discord as msg
 import mls_api as mls
+from models.schedule import MatchSchedule
 import util
 
 BASE_URL = 'https://sportapi.mlssoccer.com/api/matches'
@@ -78,16 +79,16 @@ def check_pre_match(data: List[MatchScheduleDeprecated], date_from=None):
     return None, None
 
 
-def check_pre_match_sched(data: List[MatchScheduleDeprecated], date_from=None):
-    """If there is a match within 48 hours from date_from, return its optaId and time."""
+def check_pre_match_sched(data: List[MatchSchedule], date_from=None):
+    """If there is a match within 48 hours from date_from, return its sportec ID and time."""
     if date_from is None:
         date_from = int(time.time())
     # until +48h
     date_to = date_from + (86400 * 2)
     for match in data:
-        match_time = match.matchDate.timestamp()
+        match_time = match.planned_kickoff_time.timestamp()
         if match_time > date_from and match_time < date_to:
-            return match.optaId, match.matchDate
+            return match.match_id, match.planned_kickoff_time
     return None, None
 
 

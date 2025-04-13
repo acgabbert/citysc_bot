@@ -41,6 +41,9 @@ class CardEvent(BaseEventData):
 
     event: CardEventDetails
 
+    def __str__(self) -> str:
+        return f"{self.event.minute_of_play}': {self.event.player_first_name} {self.event.player_last_name} receives a {self.event.card_color} card."
+
 class CornerEvent(BaseEventData):
     """Corner event"""
 
@@ -51,6 +54,14 @@ class CornerEvent(BaseEventData):
         side: Optional[str] = None
 
     event: CornerEventDetails
+    
+    def __str__(self) -> str:
+        minute = self.event.minute_of_play or '?'
+        first_name = self.event.player_first_name or ''
+        last_name = self.event.player_last_name or 'Unknown player'
+        side = f" from the {self.event.side} side" if self.event.side else ""
+
+        return f"{minute}': {first_name} {last_name}".strip() + f" takes a corner kick{side}."
 
 class FinalWhistleEvent(BaseEventData):
     """Final whistle event"""

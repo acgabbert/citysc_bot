@@ -85,7 +85,7 @@ class Broadcaster(BaseModel):
     """Model for broadcaster object from Sport API match call"""
     model_config = ConfigDict(extra="ignore", strict=False)
     
-    broadcasterTypeLabel: str
+    broadcasterTypeLabel: Optional[str]
     broadcasterName: str
     broadcasterStreamingURL: Optional[str] = None
     broadcasterType: str

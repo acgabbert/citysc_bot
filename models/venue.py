@@ -8,4 +8,4 @@ class MatchVenue(BaseModel):
 
     venueSportecId: str
     name: str
-    city: Optional[str]
+    city: Optional[str] = None

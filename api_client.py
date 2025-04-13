@@ -1,3 +1,5 @@
+import re
+import traceback
 import aiohttp
 import asyncio
 import backoff
@@ -162,10 +164,25 @@ class MLSApiClient:
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        # Close all sessions
-        for session in self._sessions.values():
-            if session:
-                await session.close()
+        close_tasks = []
+        sessions_to_close = []
+
+        for endpoint, session in self._sessions.items():
+            if session and not session.closed:
+                close_tasks.append(session.close())
+                sessions_to_close.append(endpoint.name)
+        
+        if close_tasks:
+            logger.info(f"Closing sessions for: {", ".join(sessions_to_close)}")
+            results = await asyncio.gather(*close_tasks, return_exceptions=True)
+
+            for i, result in enumerate(results):
+                if isinstance(result, Exception):
+                    endpoint_name = sessions_to_close[i]
+                    logger.error(f"Error closing session for {endpoint_name}: {result}")
+            
+        self._sessions = {key: None for key in self._sessions}
+        logger.info("All active sessions processed for closure.")
 
     def _get_base_url(self, endpoint: ApiEndpoint) -> str:
         if endpoint == ApiEndpoint.STATS:
@@ -199,11 +216,10 @@ class MLSApiClient:
             which may be either a dictionary or a list of dictionaries
         """
         base_url = self._get_base_url(endpoint)
-        print(base_url)
-        print(path)
         url = urljoin(base_url, path)
-        print(url)
         session = self._sessions[endpoint]
+        print(url)
+        print(params)
         rate_limiter = self._rate_limiters[endpoint]
         
         async with rate_limiter:
@@ -242,14 +258,18 @@ class MLSApiClient:
                     if hasattr(self.config, "log_responses") and self.config.log_responses:
                         try:
                             caller_name = inspect.stack()[2].function
-                            # Extract match_id or club opta ID from params if it exists
-                            id = params.get('match_game_id', params.get('clubOptaId', '')) if params else ''
-                            if id == '':
-                                id = path.split('/')[1]
+                            # Extract match_id
+                            id = ''
+                            match = re.search(r"MLS-(?:MAT|CLU)-\w+", url)
+                            if match:
+                                id = match.group(0)
+                            else:
+                                raise Exception("No match or club ID found in URL.")
                             filename = f"assets/{caller_name.split('get_')[1]}_{id}.json"
                             util.write_json(response_data, filename)
                         except Exception as e:
                             logger.error(f"Failed to log response: {str(e)}")
+                            traceback.print_exc()
 
                     return response_data
                     
@@ -448,6 +468,19 @@ class MLSApiClient:
             for error in e.errors():
                 if error['type'] == 'missing':
                     print(error['loc'][0])
+    
+    async def get_match_by_id(self, id: str) -> Match_Sport:
+        """Get single match info from the sport API by Sportec ID"""
+        data = await self._make_request(
+            ApiEndpoint.SPORT,
+            f"matches/{id}"
+        )
+        try:
+            return Match_Sport(**data)
+        except ValidationError as e:
+            for error in e.errors():
+                if error['type'] == 'missing':
+                    print(error['loc'][0])
 
     async def get_standings(
         self,
@@ -473,7 +506,6 @@ class MLSApiClient:
         match_date: datetime
     ) -> Dict[str, Any]:
         """Get recent form for the teams participating in a match"""
-        print(f"received {club_id}, {second_club_id}, {match_date}")
         return await self._make_request(
             ApiEndpoint.SPORT,
             f"/previousMatches/{club_id}",
@@ -522,6 +554,8 @@ class MLSApiClient:
             params["match_date[gte]"] = kwargs["match_date_gte"]
         if kwargs.get("match_date_lte"):
             params["match_date[lte]"] = kwargs["match_date_lte"]
+        if kwargs.get("team_id"):
+            params["team_id"] = kwargs["team_id"]
         
         data = await self._make_request(
             ApiEndpoint.STATS,
@@ -532,6 +566,21 @@ class MLSApiClient:
         try:
             return [MatchSchedule(**match) for match in data]
         except ValidationError as e:
+            for error in e.errors():
+                if error['type'] == 'missing':
+                    print(error['loc'][0])
+    
+    async def get_match_schedule(self, match_id: str, **kwargs) -> MatchSchedule:
+        """Get schedule object for a single match"""
+        data = await self._make_request(
+            ApiEndpoint.STATS,
+            f"/matches/{match_id}"
+        )
+        try:
+            return MatchSchedule(**data)
+        except ValidationError as e:
+            print('error: ', e)
+            print(data)
             for error in e.errors():
                 if error['type'] == 'missing':
                     print(error['loc'][0])
@@ -548,6 +597,8 @@ class MLSApiClient:
             for error in e.errors():
                 if error['type'] == 'missing':
                     print(error['loc'][0])
+        except Exception as e:
+            print(e)
     
     async def get_match_stats(self, match_id: str, **kwargs) -> MatchStats:
         data = await self._make_request(
@@ -563,6 +614,8 @@ class MLSApiClient:
             for error in e.errors():
                 if error['type'] == 'missing':
                     print(error['loc'][0])
+        except Exception as e:
+            print(e)
     
     async def get_match_events(self, match_id: str, **kwargs) -> List[MlsEvent]:
         params = {
@@ -581,34 +634,43 @@ class MLSApiClient:
             for error in e.errors():
                 if error['type'] == 'missing':
                     print(error['loc'][0])
+        except Exception as e:
+            print(e)
     
-    async def get_all_match_details(self, match_id: str, **kwargs) -> Any:
+    async def get_all_match_data(self, match_id: str, **kwargs) -> ComprehensiveMatchData:
         results = await asyncio.gather(
+            self.get_match_by_id(match_id),
             self.get_match(match_id),
             self.get_match_stats(match_id),
             self.get_match_events(match_id),
             return_exceptions=True
         )
 
-        match_base, match_stats, match_events = None, None, None
+        match_info, match_base, match_stats, match_events, match_schedule = None, None, None, None, None
         errors = []
 
         if isinstance(results[0], Exception):
-            errors.append(f"Failed to get match base: {results[0]}")
+            errors.append(f"Failed to get match info: {results[0]}")
         else:
-            match_base = results[0]
+            match_info = results[0]
 
         if isinstance(results[1], Exception):
-            errors.append(f"Failed to get match stats: {results[1]}")
+            errors.append(f"Failed to get match base: {results[1]}")
         else:
-            match_stats = results[1]
+            match_base = results[1]
 
         if isinstance(results[2], Exception):
-            errors.append(f"Failed to get match events: {results[2]}")
+            errors.append(f"Failed to get match stats: {results[2]}")
         else:
-            match_events = results[2]
+            match_stats = results[2]
+
+        if isinstance(results[3], Exception):
+            errors.append(f"Failed to get match events: {results[3]}")
+        else:
+            match_events = results[3]
 
         return ComprehensiveMatchData(
+            match_info=match_info,
             match_base=match_base,
             match_stats=match_stats,
             match_events=match_events,

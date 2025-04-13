@@ -7,7 +7,7 @@ from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_EXECUTED, JobEvent
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.job import Job
-from datetime import datetime, timezone
+from datetime import datetime, date
 
 from api_client import MLSApiClient
 import discipline
@@ -16,9 +16,11 @@ import injuries
 import match_thread as thread
 import mls_schedule
 import mls_playwright
+from models.constants import MlsSeason
 from thread_manager import ThreadManager
 import widgets
 from config import FEATURE_FLAGS, SUB, TEAMS, THREADS_JSON
+from util import names
 
 # Configure logging
 fh = logging.handlers.RotatingFileHandler('log/debug.log', maxBytes=1000000, backupCount=10)
@@ -93,7 +95,12 @@ class AsyncController:
                     if team == 19202:  # CITY2
                         data = await client.get_nextpro_schedule(club_opta_id=team)
                     else:
-                        data = await client.get_schedule_deprecated(club_opta_id=team)
+                        data = await client.get_schedule(
+                            season=MlsSeason.SEASON_2025.value,
+                            match_date_gte=date.today().isoformat(),
+                            match_date_lte=date.today().isoformat(),
+                            team_id=names[team].sportec_id
+                        )
                 
                 # Check for upcoming matches
                 # use a starting time of 3 hours ago to check for ongoing matches as well
