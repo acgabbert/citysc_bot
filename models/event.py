@@ -42,7 +42,11 @@ class CardEvent(BaseEventData):
     event: CardEventDetails
 
     def __str__(self) -> str:
-        return f"{self.event.minute_of_play}': {self.event.player_first_name} {self.event.player_last_name} receives a {self.event.card_color} card."
+        minute = self.event.minute_of_play or '?'
+        first_name = self.event.player_first_name or ''
+        last_name = self.event.player_last_name or 'Unknown player'
+        color = self.event.card_color or self.event.card_rating or 'unknown'
+        return f"{minute}': {first_name} {last_name}".strip() + f" receives a {color} card."
 
 class CornerEvent(BaseEventData):
     """Corner event"""
@@ -137,6 +141,33 @@ class ShotEvent(BaseEventData):
 
     event: ShotEventDetails
 
+    def __str__(self) -> str:
+        retval = f"{self.event.minute_of_play or '?'}': "
+        first_name = self.event.player_first_name or ''
+        last_name = self.event.player_last_name or 'Unknown player'
+        team = self.event.team_three_letter_code or self.event.team_name or ''
+        shot_taker = f"{first_name} {last_name} {f"({team})" if team else ""}".strip()
+
+        shot_description = ""
+        match self.event.type_of_shot:
+            case "leftLeg":
+                shot_description += "left-footed shot"
+            case "rightLeg":
+                shot_description += "left-footed shot"
+            case "head":
+                shot_description += "headed shot"
+        
+        if self.event.shot_result == 'SuccessfulShot':
+            retval += "Goal!"
+            retval += f" {self.event.result}." or ''
+            retval += f" {shot_taker} scores with a {shot_description}"
+        else:
+            retval += f" {shot_taker} shoots with a {shot_description}"
+        xg = f" with an xG of {self.event.xG}." if self.event.xG else "."
+        retval += xg
+        return retval
+
+
 class SubstitutionEvent(BaseEventData):
     """Sub event"""
 
@@ -152,6 +183,20 @@ class SubstitutionEvent(BaseEventData):
         player_out_id: Optional[str] = None
 
     event: SubstitutionEventDetails
+    
+    def __str__(self) -> str:
+        team_name = self.event.team_name or ''
+        minute = self.event.minute_of_play or '?'
+        in_first = self.event.player_in_first_name or ''
+        in_last = self.event.player_in_last_name or 'Unknown player'
+        out_first = self.event.player_out_first_name or ''
+        out_last = self.event.player_out_last_name or 'Unknown player'
+
+        retval = f"{minute}': Subsitution{f", {team_name}" if team_name else ""}: "
+        retval += f"{in_first} {in_last}".strip()
+        retval += " "
+        retval += f"{out_first} {out_last}.".strip()
+        return retval
 
 MlsEvent = Union[
     CardEvent,
