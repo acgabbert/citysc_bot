@@ -2,6 +2,8 @@ from typing import Any, List, Optional
 from pydantic import BaseModel, ConfigDict
 
 from models.club import Club_Sport, ClubMatch_Base
+from models.event import MlsEvent
+from models.match_stats import MatchStats
 from models.person import BasePerson, NonPlayer
 from models.schedule import Competition, Season
 
@@ -75,4 +77,10 @@ class Match_Base(BaseModel):
     home: ClubMatch_Base
     away: ClubMatch_Base
     referees: List[BasePerson]
-    #last_matches: 
+
+
+class ComprehensiveMatchData(BaseModel):
+    match_base: Optional[Match_Base] = None
+    match_stats: Optional[MatchStats] = None
+    match_events: Optional[List[MlsEvent]] = None
+    errors: List[str] = [] # To track specific fetch errors

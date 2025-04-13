@@ -12,7 +12,7 @@ from pydantic import BaseModel, ValidationError, field_validator, model_validato
 
 import config
 from models.event import MlsEvent, MatchEventResponse
-from models.match import Match_Base, Match_Sport
+from models.match import ComprehensiveMatchData, Match_Base, Match_Sport
 from models.match_stats import MatchStats
 from models.schedule import MatchSchedule
 import util
@@ -259,7 +259,7 @@ class MLSApiClient:
                 raise MLSApiError(f"Request to {url} failed: {str(e)}") from e
 
     # Stats API endpoints
-    async def get_match_stats(self, match_id: int) -> List[Dict[str, Any]]:
+    async def get_match_stats_deprecated(self, match_id: int) -> List[Dict[str, Any]]:
         """Get match statistics from stats API"""
         response = await self._make_request(
             ApiEndpoint.STATS_DEPRECATED,
@@ -512,7 +512,7 @@ class MLSApiClient:
             f"/competitions/{competition_id}/seasons"
         )
     
-    async def get_schedule(self, season: str, **kwargs) -> Dict[str, Any]:
+    async def get_schedule(self, season: str, **kwargs) -> List[MatchSchedule]:
         """Get schedule"""
         params = {
             "per_page": 100,
@@ -556,9 +556,7 @@ class MLSApiClient:
         )
         try:
             data = data.get("match_statistics_list")[0].get("match_statistics")
-            print(data)
             data = MatchStats(**data)
-            print(data)
             return data
         except ValidationError as e:
             print('error: ', e)
@@ -584,6 +582,40 @@ class MLSApiClient:
                 if error['type'] == 'missing':
                     print(error['loc'][0])
     
+    async def get_all_match_details(self, match_id: str, **kwargs) -> Any:
+        results = await asyncio.gather(
+            self.get_match(match_id),
+            self.get_match_stats(match_id),
+            self.get_match_events(match_id),
+            return_exceptions=True
+        )
+
+        match_base, match_stats, match_events = None, None, None
+        errors = []
+
+        if isinstance(results[0], Exception):
+            errors.append(f"Failed to get match base: {results[0]}")
+        else:
+            match_base = results[0]
+
+        if isinstance(results[1], Exception):
+            errors.append(f"Failed to get match stats: {results[1]}")
+        else:
+            match_stats = results[1]
+
+        if isinstance(results[2], Exception):
+            errors.append(f"Failed to get match events: {results[2]}")
+        else:
+            match_events = results[2]
+
+        return ComprehensiveMatchData(
+            match_base=match_base,
+            match_stats=match_stats,
+            match_events=match_events,
+            errors=errors
+        )
+
+
     # MLS Next Pro API endpoints
     async def get_nextpro_match_info(self, match_id: int) -> Dict[str, Any]:
         """Get match info for an MLS Next Pro match"""
