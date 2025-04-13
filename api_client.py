@@ -637,6 +637,14 @@ class MLSApiClient:
         except Exception as e:
             print(e)
     
+    async def get_detailed_possession(self, match_id: str, **kwargs) -> Any:
+        data = await self._make_request(
+            ApiEndpoint.STATS,
+            f"/statistics/clubs/matches/{match_id}/possession",
+            params={'scope': 'all'}
+        )
+        return data
+    
     async def get_all_match_data(self, match_id: str, **kwargs) -> ComprehensiveMatchData:
         results = await asyncio.gather(
             self.get_match_by_id(match_id),

@@ -26,6 +26,8 @@ class Match:
         if self.data.match_base.match_information.match_status in ['scheduled']:
             return False
         
+        return True
+        
     def final(self) -> bool:
         if not self.data.match_base:
             return False
@@ -49,3 +51,16 @@ class Match:
 
     def get_broadcasters(self) -> List[str]:
         pass
+
+    def get_goalscorers(self):
+        pass
+
+    def get_venue(self):
+        pass
+
+    def get_feed(self):
+        pass
+
+    def get_lineups(self):
+        pass
+

@@ -14,12 +14,53 @@ class EventDetails(BaseModel):
     player_first_name: Optional[str] = None
     player_last_name: Optional[str] = None
     player_id: Optional[str] = None
+    result: Optional[str] = None
     team_id: Optional[str] = None
     team_name: Optional[str] = None
     team_role: Optional[str] = None
     team_short_name: Optional[str] = None
     team_three_letter_code: Optional[str] = None
     three_letter_code: Optional[str] = None
+
+class ShotEventDetails(EventDetails):
+    assist_player_first_name: Optional[str] = None
+    assist_player_last_name: Optional[str] = None
+    assist_player_id: Optional[str] = None
+    chance_evaluation: Optional[str] = None
+    distance_to_goal: Optional[float] = None
+    inside_box: Optional[str] = None
+    origin: Optional[str] = None
+    result: Optional[str] = None
+    shot_result: Optional[str] = None
+    type_of_shot: Optional[str] = None
+    woodwork_location: Optional[str] = None
+    xG: Optional[float] = None
+
+    def __str__(self) -> str:
+        retval = f"{self.minute_of_play or '?'}': "
+        first_name = self.player_first_name or ''
+        last_name = self.player_last_name or 'Unknown player'
+        team = self.team_three_letter_code or self.team_name or ''
+        shot_taker = f"{first_name} {last_name} {f"({team})" if team else ""}".strip()
+
+        shot_description = ""
+        match self.type_of_shot:
+            case "leftLeg":
+                shot_description += "left-footed shot"
+            case "rightLeg":
+                shot_description += "left-footed shot"
+            case "head":
+                shot_description += "headed shot"
+        
+        if self.shot_result == 'SuccessfulShot':
+            retval += "Goal!"
+            retval += f" {self.result}." or ''
+            retval += f" {shot_taker} scores with a {shot_description}"
+        else:
+            retval += f" {shot_taker} shoots with a {shot_description}"
+        xg = f" with an xG of {self.xG}." if self.xG else "."
+        retval += xg
+        return retval
 
 class BaseEventData(BaseModel):
     """Base event model"""
@@ -119,53 +160,37 @@ class OffsideEvent(BaseEventData):
     sub_type: Optional[str] = None
     event: EventDetails
 
+class OwnGoalEvent(BaseEventData):
+    type: Literal['own_goals']
+    sub_type: Optional[str] = None
+    event: EventDetails
+
+class PenaltyEvent(BaseEventData):
+    """Penalty event"""
+
+    type: Literal['penalties']
+    sub_type: Optional[str] = None
+
+    class PenaltyEventDetails(EventDetails):
+        causing_player_alias: Optional[str] = None
+        causing_player_first_name: Optional[str] = None
+        causing_player_id: Optional[str] = None
+        causing_player_last_name: Optional[str] = None
+        decision_timestamp: Optional[str] = None
+        prospective_taker_first_name: Optional[str] = None
+        prospective_taker_id: Optional[str] = None
+        prospective_taker_last_name: Optional[str] = None
+        shot_at_goal: ShotEventDetails
+
+    event: PenaltyEventDetails
+
 class ShotEvent(BaseEventData):
     """Shot event"""
 
     type: Literal['shot_at_goals']
     sub_type: Optional[str] = None
-    
-    class ShotEventDetails(EventDetails):
-        assist_player_first_name: Optional[str] = None
-        assist_player_last_name: Optional[str] = None
-        assist_player_id: Optional[str] = None
-        chance_evaluation: Optional[str] = None
-        distance_to_goal: Optional[float] = None
-        inside_box: Optional[str] = None
-        origin: Optional[str] = None
-        result: Optional[str] = None
-        shot_result: Optional[str] = None
-        type_of_shot: Optional[str] = None
-        woodwork_location: Optional[str] = None
-        xG: Optional[float] = None
 
     event: ShotEventDetails
-
-    def __str__(self) -> str:
-        retval = f"{self.event.minute_of_play or '?'}': "
-        first_name = self.event.player_first_name or ''
-        last_name = self.event.player_last_name or 'Unknown player'
-        team = self.event.team_three_letter_code or self.event.team_name or ''
-        shot_taker = f"{first_name} {last_name} {f"({team})" if team else ""}".strip()
-
-        shot_description = ""
-        match self.event.type_of_shot:
-            case "leftLeg":
-                shot_description += "left-footed shot"
-            case "rightLeg":
-                shot_description += "left-footed shot"
-            case "head":
-                shot_description += "headed shot"
-        
-        if self.event.shot_result == 'SuccessfulShot':
-            retval += "Goal!"
-            retval += f" {self.event.result}." or ''
-            retval += f" {shot_taker} scores with a {shot_description}"
-        else:
-            retval += f" {shot_taker} shoots with a {shot_description}"
-        xg = f" with an xG of {self.event.xG}." if self.event.xG else "."
-        retval += xg
-        return retval
 
 
 class SubstitutionEvent(BaseEventData):
@@ -205,6 +230,8 @@ MlsEvent = Union[
     FoulEvent,
     KickOffEvent,
     OffsideEvent,
+    OwnGoalEvent,
+    PenaltyEvent,
     ShotEvent,
     SubstitutionEvent
 ]
