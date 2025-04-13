@@ -11,6 +11,7 @@ from urllib.parse import urljoin
 from pydantic import BaseModel, ValidationError, field_validator, model_validator
 
 import config
+from models.event import MlsEvent, MatchEventResponse
 from models.match import Match_Base, Match_Sport
 from models.match_stats import MatchStats
 from models.schedule import MatchSchedule
@@ -559,6 +560,24 @@ class MLSApiClient:
             data = MatchStats(**data)
             print(data)
             return data
+        except ValidationError as e:
+            print('error: ', e)
+            for error in e.errors():
+                if error['type'] == 'missing':
+                    print(error['loc'][0])
+    
+    async def get_match_events(self, match_id: str, **kwargs) -> List[MlsEvent]:
+        params = {
+            "per_page": 1000
+        }
+        data = await self._make_request(
+            ApiEndpoint.MATCHES,
+            f"{match_id}/key_events",
+            params=params
+        )
+        try:
+            data = MatchEventResponse(**data)
+            return data.events
         except ValidationError as e:
             print('error: ', e)
             for error in e.errors():
