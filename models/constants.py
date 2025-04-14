@@ -1,4 +1,10 @@
+from datetime import datetime
 import enum
+from typing import Annotated
+
+from pydantic import AfterValidator, BeforeValidator
+
+from util import normalize_bool, normalize_datetime
 
 class MlsSeason(enum.Enum):
     """
@@ -84,3 +90,6 @@ class MlsCompetition(enum.Enum):
     def value(self):
         """Returns the competition_id as the primary value."""
         return self.competition_id
+
+UtcDatetime = Annotated[datetime, AfterValidator(normalize_datetime)]
+FlexibleBool = Annotated[bool, BeforeValidator(normalize_bool)]

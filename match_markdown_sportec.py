@@ -1,3 +1,4 @@
+import time
 from typing import Optional
 from match_sportec import Match
 
@@ -25,3 +26,10 @@ def generate_match_info(match_obj: Match) -> Optional[str]:
 
     tv_streaming = "No data via mlssoccer.com."
     pass
+
+def generate_match_footer(match_obj: Match) -> str:
+    footer = "Last Updated: "
+    update = time.strftime('%b %d, %I:%M%p', time.localtime())
+    footer += update + f'. All data via mlssoccer.com. Match ID: {str(match_obj.sportec_id)}'
+    retval += f'^({footer})'
+    return retval

@@ -2,6 +2,7 @@ from typing import Any, List, Optional
 from pydantic import BaseModel, ConfigDict
 
 from models.club import Club_Sport, ClubMatch_Base
+from models.constants import FlexibleBool
 from models.event import MlsEvent
 from models.match_stats import MatchStats
 from models.person import BasePerson, NonPlayer
@@ -28,7 +29,7 @@ class Match_Sport(BaseModel):
     roundNumber: Optional[int] = None
     roundGroup: Optional[str] = None
     matchDay: Optional[str] = None
-    delayedMatch: Optional[bool] = None
+    delayedMatch: Optional[FlexibleBool] = None
 
 class MatchInformation(BaseModel):
     """Model for match information from Stats API base"""
@@ -46,7 +47,7 @@ class MatchInformation(BaseModel):
     season_id: str
     competition_type: str
     match_type: Optional[str] = None
-    match_scheduled: Optional[bool] = None
+    match_scheduled: Optional[FlexibleBool] = None
     match_status: str
     minute_of_play: Optional[str] = None
 

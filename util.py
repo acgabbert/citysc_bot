@@ -8,8 +8,9 @@ import asyncpraw
 import asyncio
 import signal
 import subprocess
-from datetime import datetime
+from datetime import datetime, timezone
 from collections import namedtuple
+from typing import Any
 
 import config
 import discord as msg
@@ -170,7 +171,7 @@ names = {
     1207: Names('Chicago Fire FC', 'Chicago', 'CHI', ''),
     1897: Names('Houston Dynamo FC', 'Houston', 'HOU', ''),
     1230: Names('LA Galaxy', 'LA Galaxy', 'LA', ''),
-    454: Names('Columbus Crew', 'Columbus', 'CLB', ''),
+    454: Names('Columbus Crew', 'Columbus', 'CLB', 'MLS-CLU-00000E'),
     11690: Names('Los Angeles Football Club', 'LAFC', 'LAFC', ''),
     1326: Names('D.C. United', 'D.C.', 'DC', ''),
     6977: Names('Minnesota United', 'Minnesota', 'MIN', ''),
@@ -235,3 +236,41 @@ def get_reddit() -> asyncpraw.Reddit:
     )
     reddit.validate_on_submit = True
     return reddit
+
+def normalize_datetime(v: Any) -> datetime:
+    """
+    Take a datetime string or object and return a UTC datetime.
+    Raises ValueError for invalid formats or types.
+    """
+    if isinstance(v, str):
+        try:
+            dt = datetime.fromisoformat(v.replace('Z', '+00:00'))
+            if dt.tzinfo is not None:
+                dt = dt.astimezone(timezone.utc)
+            else:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return dt
+        except Exception as e:
+            raise ValueError(f"Invalid date format: {v}") from e
+    elif isinstance(v, datetime):
+        if v.tzinfo is not None:
+            return v.astimezone(timezone.utc)
+        return v.replace(tzinfo=timezone.utc)
+    raise ValueError(f"Expected string or datetime, got {type(v)}")
+
+def normalize_bool(v: Any) -> bool:
+    if isinstance(v, bool):
+        return v
+    if isinstance(v, str):
+        v_lower = v.strip().lower()
+        if v.lower in ('true', '1', 'yes', 'on'):
+            return True
+        if v.lower in ('false', '0', 'no', 'off'):
+            return True
+    if isinstance(v, int):
+        if v == 1:
+            return True
+        if v == 0:
+            return False
+    
+    raise ValueError(f"Invalid boolean value: {v!r}")

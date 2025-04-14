@@ -1,13 +1,15 @@
 from typing import Annotated, List, Literal, Optional, Union
 from pydantic import BaseModel, ConfigDict, Field
 
+from models.constants import UtcDatetime
+
 
 class EventDetails(BaseModel):
     """Base event details for key events"""
     model_config = ConfigDict(extra="allow", strict=False)
     
     event_id: int
-    event_time: str
+    event_time: UtcDatetime
     minute_of_play: Optional[str] = None
     event_time: Optional[str] = None
     game_section: Optional[str] = None
@@ -28,7 +30,7 @@ class ShotEventDetails(EventDetails):
     assist_player_id: Optional[str] = None
     chance_evaluation: Optional[str] = None
     distance_to_goal: Optional[float] = None
-    inside_box: Optional[str] = None
+    inside_box: Optional[FlexibleBool] = None
     origin: Optional[str] = None
     result: Optional[str] = None
     shot_result: Optional[str] = None

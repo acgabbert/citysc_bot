@@ -1,6 +1,7 @@
 from typing import List, Optional
 from pydantic import BaseModel, ConfigDict
 
+from models.constants import UtcDatetime
 from models.team_stats import TeamStats
 
 
@@ -10,8 +11,8 @@ class MatchStats(BaseModel):
 
     match_id: str
     game_title: Optional[str] = None
-    planned_kick_off: Optional[str] = None
-    kick_off: Optional[str] = None
+    planned_kick_off: Optional[UtcDatetime] = None
+    kick_off: Optional[UtcDatetime] = None
     competition: str
     competition_id: str
     match_day: Optional[int] = None
