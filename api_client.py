@@ -13,6 +13,7 @@ from urllib.parse import urljoin
 from pydantic import BaseModel, ValidationError, field_validator, model_validator
 
 import config
+from models.constants import UtcDatetime
 from models.event import MlsEvent, MatchEventResponse
 from models.match import ComprehensiveMatchData, Match_Base, Match_Sport
 from models.match_stats import MatchStats
@@ -81,31 +82,12 @@ class MLSApiConfig:
 class MatchScheduleDeprecated(BaseModel):
     """Model for schedule response from sport API"""
     optaId: int
-    matchDate: datetime
+    matchDate: UtcDatetime
     slug: str
     competition: Dict[str, Any]
     appleSubscriptionTier: Optional[str]
     appleStreamURL: Optional[str]
     broadcasters: List[Dict[str, Any]]
-
-    @field_validator('matchDate')
-    @classmethod
-    def validate_match_date(cls, v: Any) -> datetime:
-        if isinstance(v, str):
-            try:
-                dt = datetime.fromisoformat(v.replace('Z', '+00:00'))
-                if dt.tzinfo is not None:
-                    dt = dt.astimezone(timezone.utc)
-                else:
-                    dt = dt.replace(tzinfo=timezone.utc)
-                return dt
-            except Exception as e:
-                raise ValueError(f"Invalid date format: {v}") from e
-        elif isinstance(v, datetime):
-            if v.tzinfo is not None:
-                return v.astimezone(timezone.utc)
-            return v.replace(tzinfo=timezone.utc)
-        raise ValueError(f"Expected string or datetime, got {type(v)}")
     
     @model_validator(mode='after')
     def validate_model(self) -> 'MatchScheduleDeprecated':
@@ -621,6 +603,8 @@ class MLSApiClient:
         params = {
             "per_page": 1000
         }
+        if kwargs.get('substitutions'):
+            params['substitutions'] = kwargs['substitutions']
         data = await self._make_request(
             ApiEndpoint.MATCHES,
             f"{match_id}/key_events",
