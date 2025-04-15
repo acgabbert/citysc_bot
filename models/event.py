@@ -1,7 +1,7 @@
 from typing import Annotated, List, Literal, Optional, Union
 from pydantic import BaseModel, ConfigDict, Field
 
-from models.constants import UtcDatetime
+from models.constants import FlexibleBool, UtcDatetime
 
 
 class EventDetails(BaseModel):

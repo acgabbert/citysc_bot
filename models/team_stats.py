@@ -154,6 +154,6 @@ class TeamStats(BaseModel):
     passes_conversion_rate: Optional[float] = None
     crosses_conversion_rate: Optional[float] = None
     crosses_from_play_conversion_rate: Optional[float] = None
-    advanced_stats: AdvancedStats
+    advanced_stats: Optional[AdvancedStats] = None
     total_attacking_zone_entries: Optional[str] = None
     possession_ratio: Optional[float] = None
