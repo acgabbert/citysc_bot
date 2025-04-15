@@ -2,7 +2,7 @@ from typing import Any, List, Optional
 from pydantic import BaseModel, ConfigDict
 
 from models.club import Club_Sport, ClubMatch_Base
-from models.constants import FlexibleBool
+from models.constants import FlexibleBool, UtcDatetime
 from models.event import MlsEvent
 from models.match_stats import MatchStats
 from models.person import BasePerson, NonPlayer
@@ -42,6 +42,7 @@ class MatchInformation(BaseModel):
     match_day: Optional[int] = None
     match_id: str
     match_title: str
+    planned_kickoff_time: Optional[UtcDatetime] = None
     result: Optional[str] = None
     season: int
     season_id: str
