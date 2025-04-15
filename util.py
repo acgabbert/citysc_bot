@@ -263,10 +263,10 @@ def normalize_bool(v: Any) -> bool:
         return v
     if isinstance(v, str):
         v_lower = v.strip().lower()
-        if v.lower in ('true', '1', 'yes', 'on'):
+        if v_lower in ('true', '1', 'yes', 'on'):
             return True
-        if v.lower in ('false', '0', 'no', 'off'):
-            return True
+        if v_lower in ('false', '0', 'no', 'off'):
+            return False
     if isinstance(v, int):
         if v == 1:
             return True
