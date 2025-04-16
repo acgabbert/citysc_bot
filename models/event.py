@@ -194,6 +194,19 @@ class ShotEvent(BaseEventData):
 
     event: ShotEventDetails
 
+class StartShootoutEvent(BaseEventData):
+    """Start of penalty shootout event"""
+    type: Literal['start_penalty_shoot_out']
+    sub_type: Optional[str] = None
+
+    event: EventDetails
+
+class PenaltyNotSuccessfulEvent(BaseEventData):
+    """Unsuccessful penalty event"""
+    type: Literal['penalties_not_successful']
+    sub_type: Optional[str] = None
+
+    event: EventDetails
 
 class SubstitutionEvent(BaseEventData):
     """Sub event"""
@@ -234,9 +247,48 @@ MlsEvent = Union[
     OffsideEvent,
     OwnGoalEvent,
     PenaltyEvent,
+    PenaltyNotSuccessfulEvent,
+    StartShootoutEvent,
     ShotEvent,
     SubstitutionEvent
 ]
 
 class MatchEventResponse(BaseModel):
+    model_config = ConfigDict(extra="allow", strict=False)
     events: List[Annotated[MlsEvent, Field(discriminator='type')]]
+
+    class EventsMatchInfo(BaseModel):
+        model_config = ConfigDict(extra="allow", strict=False)
+        
+        match_id: str
+        game_title: Optional[str] = None
+        planned_kick_off: Optional[UtcDatetime] = None
+        kick_off: Optional[UtcDatetime] = None
+        competition: Optional[str] = None
+        competition_id: Optional[str] = None
+        match_day: Optional[int] = None
+        match_day_id: Optional[str] = None
+        season: Optional[int] = None
+        creation_date: Optional[UtcDatetime] = None
+        match_status: Optional[str] = None
+        minute_of_play: Optional[str] = None
+        result: Optional[str] = None
+        home_team_goals: Optional[int] = None
+        away_team_goals: Optional[int] = None
+        home_team_id: Optional[str] = None
+        home_team_name: Optional[str] = None
+        away_team_id: Optional[str] = None
+        away_team_name: Optional[str] = None
+
+        class GameSection(BaseModel):
+            model_config = ConfigDict(extra="allow", strict=False)
+
+            name: Optional[str] = None
+            result: Optional[str] = None
+            kick_off_time: Optional[UtcDatetime] = None
+            final_whistle_time: Optional[UtcDatetime] = None
+
+        game_section: Optional[List[GameSection]] = None
+
+    
+    match_info: Optional[EventsMatchInfo] = None

@@ -599,7 +599,7 @@ class MLSApiClient:
         except Exception as e:
             print(e)
     
-    async def get_match_events(self, match_id: str, **kwargs) -> List[MlsEvent]:
+    async def get_match_events(self, match_id: str, **kwargs) -> MatchEventResponse:
         params = {
             "per_page": 1000
         }
@@ -612,7 +612,7 @@ class MLSApiClient:
         )
         try:
             data = MatchEventResponse(**data)
-            return data.events
+            return data
         except ValidationError as e:
             print('error: ', e)
             for error in e.errors():
@@ -638,7 +638,7 @@ class MLSApiClient:
             return_exceptions=True
         )
 
-        match_info, match_base, match_stats, match_events, match_schedule = None, None, None, None, None
+        match_info, match_base, match_stats, match_events = None, None, None, None
         errors = []
 
         if isinstance(results[0], Exception):

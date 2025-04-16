@@ -24,7 +24,7 @@ class Match:
         
         return match
     
-    def started(self) -> bool:
+    def is_started(self) -> bool:
         if not self.data.match_base:
             return False
         
@@ -33,7 +33,7 @@ class Match:
         
         return True
         
-    def final(self) -> bool:
+    def is_final(self) -> bool:
         if not self.data.match_base:
             return False
         
@@ -124,7 +124,7 @@ class Match:
         """
         Get all events for a match.
         """
-        return self.data.match_events
+        return self.data.match_events.events
 
     def get_broadcasters(self) -> List[Broadcaster] | None:
         """
@@ -136,9 +136,9 @@ class Match:
         """
         Get goalscorers for a match.
         """
-        if not self.data.match_events:
+        if not self.data.match_events.events:
             return []
-        goal_events = [event for event in self.data.match_events if event.sub_type == 'goals']
+        goal_events = [event for event in self.data.match_events.events if event.sub_type == 'goals']
 
 
     def get_venue(self) -> MatchVenue:
@@ -151,10 +151,37 @@ class Match:
         """
         Get all events for a match
         """
-        if not self.data.match_events:
+        if not self.data.match_events.events:
             return []
 
     def get_lineups(self):
         """
         Get 
         """
+        pass
+
+    def get_score(self) -> str:
+        """
+        Get a score string, including penalties if applicable.
+        """
+        if self.data.match_base.match_information.result:
+            return f"{self.data.match_info.home.fullName} {self.data.match_base.match_information.result} {self.data.match_info.away.fullName}"
+
+    def get_result_type(self) -> str:
+        """
+        Get result type if the match is finished.
+        """
+        result = "FT"
+        # check if any events are in extra time
+        penalties = any('penalty' in event_obj.event.game_section.lower() for event_obj in self.data.match_events.events)
+        extra_time = any('extra' in event_obj.event.game_section.lower() for event_obj in self.data.match_events.events)
+
+        if extra_time:
+            result = "AET"
+        if penalties:
+            result += " (Pens)"
+        
+        if self.is_final():
+            return result
+        else:
+            return "Unknown"
