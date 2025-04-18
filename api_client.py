@@ -200,8 +200,6 @@ class MLSApiClient:
         base_url = self._get_base_url(endpoint)
         url = urljoin(base_url, path)
         session = self._sessions[endpoint]
-        print(url)
-        print(params)
         rate_limiter = self._rate_limiters[endpoint]
         
         async with rate_limiter:
@@ -449,7 +447,7 @@ class MLSApiClient:
         except ValidationError as e:
             for error in e.errors():
                 if error['type'] == 'missing':
-                    print(error['loc'][0])
+                    logger.error(error['loc'][0])
     
     async def get_match_by_id(self, id: str) -> Match_Sport:
         """Get single match info from the sport API by Sportec ID"""
@@ -462,7 +460,7 @@ class MLSApiClient:
         except ValidationError as e:
             for error in e.errors():
                 if error['type'] == 'missing':
-                    print(error['loc'][0])
+                    logger.error(error['loc'][0])
 
     async def get_standings(
         self,
@@ -550,7 +548,7 @@ class MLSApiClient:
         except ValidationError as e:
             for error in e.errors():
                 if error['type'] == 'missing':
-                    print(error['loc'][0])
+                    logger.error(error['loc'][0])
     
     async def get_match_schedule(self, match_id: str, **kwargs) -> MatchSchedule:
         """Get schedule object for a single match"""
@@ -561,11 +559,11 @@ class MLSApiClient:
         try:
             return MatchSchedule(**data)
         except ValidationError as e:
-            print('error: ', e)
-            print(data)
+            logger.error('error: ', e)
+            logger.error(data)
             for error in e.errors():
                 if error['type'] == 'missing':
-                    print(error['loc'][0])
+                    logger.error(error['loc'][0])
     
     async def get_match(self, match_id: str, **kwargs) -> Match_Base:
         """Get match by Sportec ID"""
@@ -578,9 +576,9 @@ class MLSApiClient:
         except ValidationError as e:
             for error in e.errors():
                 if error['type'] == 'missing':
-                    print(error['loc'][0])
+                    logger.error(error['loc'][0])
         except Exception as e:
-            print(e)
+            logger.error(e)
     
     async def get_match_stats(self, match_id: str, **kwargs) -> MatchStats:
         data = await self._make_request(
@@ -592,12 +590,12 @@ class MLSApiClient:
             data = MatchStats(**data)
             return data
         except ValidationError as e:
-            print('error: ', e)
+            logger.error('error: ', e)
             for error in e.errors():
                 if error['type'] == 'missing':
-                    print(error['loc'][0])
+                    logger.error(error['loc'][0])
         except Exception as e:
-            print(e)
+            logger.error(e)
     
     async def get_match_events(self, match_id: str, **kwargs) -> MatchEventResponse:
         params = {
@@ -614,12 +612,12 @@ class MLSApiClient:
             data = MatchEventResponse(**data)
             return data
         except ValidationError as e:
-            print('error: ', e)
+            logger.error('error: ', e)
             for error in e.errors():
                 if error['type'] == 'missing':
-                    print(error['loc'][0])
+                    logger.error(error['loc'][0])
         except Exception as e:
-            print(e)
+            logger.error(e)
     
     async def get_detailed_possession(self, match_id: str, **kwargs) -> Any:
         data = await self._make_request(
@@ -661,6 +659,9 @@ class MLSApiClient:
         else:
             match_events = results[3]
 
+        for e in errors:
+            logger.error(e)
+        
         return ComprehensiveMatchData(
             match_info=match_info,
             match_base=match_base,
