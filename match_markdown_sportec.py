@@ -28,7 +28,7 @@ def generate_match_info(match_obj: Match) -> Optional[str]:
     info_lines = [
         "### Match Info",
         f"- **Competition:** {match_obj.get_comp().name}",
-        f"_ **Date:** {date}",
+        f"- **Date:** {date}",
         f"- **Time:** {time_str}",
         f"- **Venue:** {match_obj.data.match_info.venue.name}"
     ]
