@@ -1,16 +1,38 @@
 from collections import defaultdict
 from datetime import datetime
+import logging
+import sys
 from typing import Dict, List, Optional, Tuple
 from api_client import MLSApiClient
-from models.event import EventDetails, MlsEvent
+from models.club import Club_Sport, ClubMatch_Base
+from models.event import EventDetails, MlsEvent, SubstitutionEvent
 from models.match import ComprehensiveMatchData
 from models.person import BasePerson
 from models.schedule import Broadcaster, Competition
+from models.team_stats import TeamStats
 from models.venue import MatchVenue
+
+logging.basicConfig(
+    level=logging.INFO,  # Set the minimum level of messages to handle (e.g., INFO, DEBUG)
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', # Example format
+    stream=sys.stdout  # Direct output to stdout
+)
+
+logger = logging.getLogger(__name__)
 
 
 class Match:
     data: Optional[ComprehensiveMatchData] = None
+    home: Optional[Club_Sport] = None
+    away: Optional[Club_Sport] = None
+    home_id: Optional[str] = None
+    away_id: Optional[str] = None
+    home_stats: Optional[TeamStats] = None
+    away_stats: Optional[TeamStats] = None
+    home_goals: int = 0
+    away_goals: int = 0
+    home_starters: List[BasePerson] = None
+    away_starters: List[BasePerson] = None
 
     def __init__(self, sportec_id: str):
         self.sportec_id = sportec_id
@@ -19,12 +41,39 @@ class Match:
     async def create(cls, sportec_id: str):
         match = cls(sportec_id)
         async with MLSApiClient() as client:
-            match.data = await client.get_all_match_data(match.sportec_id)
-            if match.data.errors:
-                print("\n".join(match.data.errors))
-        
+            data = await client.get_all_match_data(match.sportec_id)
+            if data.errors:
+                logger.error("\n".join(data.errors))
+        match.data = data
+        match._process_data(data)
         return match
     
+    def _process_data(self, data: ComprehensiveMatchData) -> None:
+        """
+        Process comprehensive match data for easier access from other functions.
+        """
+        self.home = data.match_info.home
+        self.home_id = self.home.sportecId
+        self.away = data.match_info.away
+        self.away_id = self.away.sportecId
+        if self.is_started():
+            self.home_goals = data.match_base.match_information.home_team_goals
+            self.away_goals = data.match_base.match_information.away_team_goals
+        
+        if data.match_stats is not None:
+            for stats in data.match_stats.team_statistics:
+                if stats.team_id == self.home_id:
+                    self.home_stats = stats
+                    continue
+                if stats.team_id == self.away_id:
+                    self.away_stats = stats
+                    continue
+                logger.info(f"Team {stats.team_id} ({stats.team_name}) does not match home or away.")
+        
+        lineups = self.get_starting_lineups()
+        self.home_starters = lineups.get(self.home_id, [])
+        self.away_starters = lineups.get(self.away_id, [])
+        
     def is_started(self) -> bool:
         if not self.data.match_base:
             return False
@@ -96,10 +145,10 @@ class Match:
             try:
                 home_lineup = [
                     p for p in home_team.players
-                    if hasattr(p, 'starting') and p.starting == 'true'
+                    if hasattr(p, 'starting') and p.starting
                 ]
             except TypeError:
-                pass
+                logger.error(f"Failed to create starting lineup for team {home_team.team_name}")
             lineups[home_team.team_id] = home_lineup
 
         if away_team and away_team.team_id and hasattr(away_team, 'players') and away_team.players is not None:
@@ -107,10 +156,10 @@ class Match:
             try:
                 away_lineup = [
                     p for p in away_team.players
-                    if hasattr(p, 'starting') and p.starting == 'true'
+                    if hasattr(p, 'starting') and p.starting
                 ]
             except TypeError:
-                pass
+                logger.error(f"Failed to create starting lineup for team {away_team.team_name}")
             lineups[away_team.team_id] = away_lineup
 
         return lineups
@@ -141,7 +190,7 @@ class Match:
             A dictionary mapping team ID to a list of strings
         """
         if not self.data.match_events.events:
-            return []
+            return {}
         # Get goal events
         goal_event_details: List[EventDetails] = []
         for event in self.data.match_events.events:
@@ -224,11 +273,23 @@ class Match:
         if not self.data.match_events.events:
             return []
 
-    def get_lineups(self):
+    def get_subs(self) -> Dict[str, List[SubstitutionEvent]]:
         """
-        Get 
+        Get substitution events, ordered by team.
         """
-        pass
+        if not self.data.match_events.events:
+            return {}
+        subs_by_team = {
+            self.data.match_base.home.team_id: [],
+            self.data.match_base.away.team_id: []
+        }
+        if not self.data.match_events.events:
+            return {}
+        # Get sub events
+        for event in self.data.match_events.events:
+            if event.type == 'substitutions':
+                subs_by_team[event.event.team_id].append(event)
+        return subs_by_team
 
     def get_score(self) -> str:
         """
