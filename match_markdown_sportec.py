@@ -38,7 +38,7 @@ def generate_match_info(match_obj: Match) -> Optional[str]:
 
 def generate_scorers(match_obj: Match) -> List[str]:
     """Generate scorer strings for a match object"""
-
+    pass
 
 def generate_match_footer(match_obj: Match) -> str:
     footer = "Last Updated: "
@@ -70,17 +70,24 @@ def generate_match_stats(match_obj: Match) -> str:
     markdown += add_stat(match_obj, 'passes_sum', 'Total Passes')
     markdown += add_stat(match_obj, 'passes_from_play_conversion_rate', 'Pass Accuracy', True)
     
+    if markdown.endswith(":-:"):
+        # Likely no stats other than 
+        print("returning no stats")
+        return None
     return markdown
 
 def generate_lineups(match_obj: Match) -> str:
     starting_lineups = match_obj.get_starting_lineups()
     subs = match_obj.get_subs()
-    home_lineup = generate_team_lineup(starting_lineups[match_obj.home_id], subs.get(match_obj.home_id))
-    away_lineup = generate_team_lineup(starting_lineups[match_obj.away_id], subs.get(match_obj.away_id))
-    if len(starting_lineups[match_obj.home_id]) < 1:
-        home_lineup = "Not yet available via mlssoccer.com."
-    if len(starting_lineups[match_obj.away_id]) < 1:
-        away_lineup = "Not yet available via mlssoccer.com."
+    home_lineup = "Not yet available via mlssoccer.com."
+    away_lineup = "Not yet available via mlssoccer.com."
+    if starting_lineups:
+        home_lineup = generate_team_lineup(starting_lineups[match_obj.home_id], subs.get(match_obj.home_id))
+        away_lineup = generate_team_lineup(starting_lineups[match_obj.away_id], subs.get(match_obj.away_id))
+        if len(starting_lineups[match_obj.home_id]) < 1:
+            home_lineup = "Not yet available via mlssoccer.com."
+        if len(starting_lineups[match_obj.away_id]) < 1:
+            home_lineup = "Not yet available via mlssoccer.com."
     return "\n".join([
         "### Lineups",
         f"**{match_obj.home.fullName}**: {home_lineup}"

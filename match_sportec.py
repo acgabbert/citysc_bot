@@ -298,7 +298,7 @@ class Match:
         """
         Get substitution events, ordered by team.
         """
-        if not self.data.match_events.events:
+        if not self.data.match_events or not self.data.match_events.events:
             return {}
         subs_by_team = {
             self.data.match_base.home.team_id: [],
