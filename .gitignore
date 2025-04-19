@@ -10,7 +10,7 @@ env/*
 *.db
 mls_test.db
 __pycache__
-config.json
+*.json
 scripts/*
 .env
 *.pyc
