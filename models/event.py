@@ -1,5 +1,5 @@
 from typing import Annotated, List, Literal, Optional, Union
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from models.constants import FlexibleBool, UtcDatetime
 
@@ -23,6 +23,19 @@ class EventDetails(BaseModel):
     team_short_name: Optional[str] = None
     team_three_letter_code: Optional[str] = None
     three_letter_code: Optional[str] = None
+
+    @model_validator(mode='after')
+    def set_minute_of_play_for_half(self) -> 'EventDetails':
+        """
+        Sets minute_of_play to '46' if game_section is 'half'
+        and minute_of_play was not provided (is None).
+        """
+        if self.minute_of_play is None:
+            if self.game_section == "half":
+                self.minute_of_play = "46"
+            else:
+                self.minute_of_play = "?"
+        return self
 
 class ShotEventDetails(EventDetails):
     assist_player_first_name: Optional[str] = None

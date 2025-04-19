@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
 from models.constants import FlexibleBool
@@ -19,6 +19,9 @@ class BasePerson(BaseModel):
     team_leader: Optional[FlexibleBool] = None
     role: Optional[str] = None
 
+    def __str__(self) -> str:
+        return f"{self.first_name} {self.last_name}"
+
 class Player(BaseModel):
     """Model for a player"""
     model_config = ConfigDict(extra="ignore", strict=False)
@@ -30,8 +33,6 @@ class Player(BaseModel):
 
     playing_position: str
     shirt_number: int
-    # starting: Union[bool, str]
-    # team_leader: Union[bool, str]
 
 class NonPlayer(BaseModel):
     """Model for a member of training staff"""
