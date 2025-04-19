@@ -199,6 +199,8 @@ class MLSApiClient:
         """
         base_url = self._get_base_url(endpoint)
         url = urljoin(base_url, path)
+        logger.debug(url)
+        logger.debug(params)
         session = self._sessions[endpoint]
         rate_limiter = self._rate_limiters[endpoint]
         

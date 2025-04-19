@@ -2,12 +2,13 @@ import argparse
 import asyncio
 import logging, logging.handlers
 import time
+import traceback
 
 from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_EXECUTED, JobEvent
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.job import Job
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 from api_client import MLSApiClient
 import discipline
@@ -92,15 +93,16 @@ class AsyncController:
             try:
                 async with MLSApiClient() as client:
                     # Get schedule data
-                    if team == 19202:  # CITY2
-                        data = await client.get_nextpro_schedule(club_opta_id=team)
-                    else:
-                        data = await client.get_schedule(
-                            season=MlsSeason.SEASON_2025.value,
-                            match_date_gte=date.today().isoformat(),
-                            match_date_lte=date.today().isoformat(),
-                            team_id=names[team].sportec_id
-                        )
+                    msg.send(f"Checking schedule for team {team}")
+                    from_date = date.today() - timedelta(days=2)
+                    to_date = date.today() + timedelta(days=2)
+                    root.info('Calling get_schedule with:', MlsSeason.SEASON_2025.value, from_date.isoformat(), to_date.isoformat(), names[team].sportec_id)
+                    data = await client.get_schedule(
+                        season=MlsSeason.SEASON_2025.value,
+                        match_date_gte=from_date.isoformat(),
+                        match_date_lte=to_date.isoformat(),
+                        team_id=names[team].sportec_id
+                    )
                 
                 # Check for upcoming matches
                 # use a starting time of 3 hours ago to check for ongoing matches as well
@@ -161,6 +163,7 @@ class AsyncController:
                                 except Exception as e:
                                     error_msg = f"Error creating pre-match thread: {str(e)}"
                                     root.error(error_msg)
+                                    root.error(traceback.format_exc())
                                     msg.send(error_msg, tag=True)
                     
                     # If match has started but not likely finished (within last 3 hours)
@@ -187,7 +190,7 @@ class AsyncController:
             
             except Exception as e:
                 root.exception(f"Error in daily setup for team {team}: {str(e)}")
-                msg.send(f"Error in daily setup for team {team}: {str(e)}")
+                msg.send(f"Error in daily setup for team {team}: {str(e)}", True)
     
     def setup_jobs(self):
         """Setup all scheduled jobs based on feature flags"""
