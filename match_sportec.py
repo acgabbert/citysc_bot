@@ -25,6 +25,9 @@ class Match:
     data: Optional[ComprehensiveMatchData] = None
     home: Optional[Club_Sport] = None
     away: Optional[Club_Sport] = None
+    competition: Optional[str] = None
+    slug: Optional[str] = None
+    minute_display: Optional[str] = None
     home_id: Optional[str] = None
     away_id: Optional[str] = None
     home_stats: Optional[TeamStats] = None
@@ -46,7 +49,17 @@ class Match:
                 logger.error("\n".join(data.errors))
         match.data = data
         match._process_data(data)
+        match.update_injuries()
+        match.update_discipline()
         return match
+    
+    async def refresh(self):
+        async with MLSApiClient() as client:
+            data = await client.get_all_match_data(self.sportec_id)
+            if data.errors:
+                logger.error("\n".join(data.errors))
+        self.data = data
+        self._process_data(data)
     
     def _process_data(self, data: ComprehensiveMatchData) -> None:
         """
@@ -56,6 +69,8 @@ class Match:
         self.home_id = self.home.sportecId
         self.away = data.match_info.away
         self.away_id = self.away.sportecId
+        self.competition = data.match_info.competition.shortName or data.match_info.competition.name
+        self.slug = data.match_info.slug
         if self.is_started():
             self.home_goals = data.match_base.match_information.home_team_goals
             self.away_goals = data.match_base.match_information.away_team_goals
@@ -73,6 +88,13 @@ class Match:
         lineups = self.get_starting_lineups()
         self.home_starters = lineups.get(self.home_id, [])
         self.away_starters = lineups.get(self.away_id, [])
+        self.minute_display = data.match_base.match_information.minute_of_play
+    
+    def update_injuries(self) -> None:
+        pass
+
+    def update_discipline(self) -> None:
+        pass
         
     def is_started(self) -> bool:
         if not self.data.match_base:
@@ -228,7 +250,6 @@ class Match:
         }
         for team_id, team_scorers in scorers_by_team.items():
             for player_id, player_data in team_scorers.items():
-                print(player_data)
                 # Skip if no goals for this player
                 if not player_data.get("goals"):
                     continue
@@ -300,11 +321,11 @@ class Match:
             result = f"{self.data.match_info.home.fullName} {self.data.match_base.match_information.result} {self.data.match_info.away.fullName}"
         home_goals = self.data.match_base.match_information.home_team_goals
         away_goals = self.data.match_base.match_information.away_team_goals
-        result = f"{home_goals}:{away_goals}"
+        result = f"{home_goals}-{away_goals}"
         if self.data.match_base.match_information.home_team_penalty_goals is not None or self.data.match_base.match_information.away_team_penalty_goals is not None:
             home_pens = self.data.match_base.match_information.home_team_penalty_goals or 0
             away_pens = self.data.match_base.match_information.away_team_penalty_goals or 0
-            result += f" ({home_pens}:{away_pens} pens)"
+            result += f" ({home_pens}-{away_pens} pens)"
         return result
 
     def get_result_type(self) -> str:

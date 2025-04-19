@@ -17,6 +17,7 @@ class Match_Sport(BaseModel):
     optaId: int
     sportecId: str
     leagueMatchTitle: Optional[str] = None
+    slug: Optional[str] = None
     home: Club_Sport
     away: Club_Sport
     venue: MatchVenue

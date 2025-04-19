@@ -1,16 +1,14 @@
 import argparse
 import asyncio
-import json
 import logging
-import asyncpraw, asyncpraw.models, asyncprawcore.exceptions
+import asyncpraw, asyncpraw.models
 import sys
 import time
-from dataclasses import dataclass, field
-from typing import Optional, Union, Dict, Any
+from typing import Optional, Union
 
 import config
-import match
-import match_markdown as md
+import match_markdown_sportec as md
+from match_sportec import Match
 from thread_manager import MatchThreads, ThreadManager
 import util
 import discord as msg
@@ -22,18 +20,18 @@ parser = argparse.ArgumentParser(prog='match_thread.py', usage='%(prog)s [option
 parser.add_argument('--pre', action='store_true', help='Create a pre-match thread')
 parser.add_argument('--post', action='store_true', help='Create a post-match thread')
 parser.add_argument('--no-post', action='store_true', help='Create a match thread with no post-match thread')
-parser.add_argument('-i', '--id', help='Match Opta ID')
+parser.add_argument('-i', '--id', help='Match Sportec ID')
 parser.add_argument('-s', '--sub', help='Subreddit')
 
 test_sub = config.TEST_SUB
 prod_sub = config.SUB
 file_manager = ThreadManager(config.THREADS_JSON)
 
-async def pre_match_thread(opta_id: Union[str, int], sub: str = prod_sub):
+async def pre_match_thread(sportec_id: str, sub: str = prod_sub):
     """Post a pre-match/matchday thread.
     
     Args:
-        opta_id: Opta ID for the match
+        sportec_id: Sportec ID for the match
         sub: Subreddit to post to
         
     Returns:
@@ -42,7 +40,7 @@ async def pre_match_thread(opta_id: Union[str, int], sub: str = prod_sub):
     if '/r/' in sub:
         sub = sub.split('/r/')[1]
     # get a match object
-    match_obj: match.Match = await match.Match.create_prematch(opta_id)
+    match_obj = await Match.create(sportec_id)
 
     # get post details for the match object
     title, markdown = md.pre_match_thread(match_obj)
@@ -52,18 +50,18 @@ async def pre_match_thread(opta_id: Union[str, int], sub: str = prod_sub):
         msg.send(f'Pre-match thread posted! https://www.reddit.com/r/{sub}/comments/{thread.id_from_url(thread.shortlink)}', tag=True)
     
         # keep track of threads
-        threads = file_manager.get_threads(str(opta_id))
+        threads = file_manager.get_threads(str(sportec_id))
         if not threads:
             threads = MatchThreads(slug=match_obj.slug)
         
         threads.pre = thread.id_from_url(thread.shortlink)
-        file_manager.add_threads(str(opta_id), threads)
+        file_manager.add_threads(sportec_id, threads)
 
         return thread
 
 
 async def match_thread(
-    opta_id: Union[str, int],
+    sportec_id: str,
     sub: str = prod_sub,
     pre_thread: Optional[Union[str, asyncpraw.models.Submission]] = None,
     thread: Optional[Union[str, asyncpraw.models.Submission]] = None,
@@ -72,17 +70,17 @@ async def match_thread(
     """Post and maintain a match thread.
     
     Args:
-        opta_id: Opta ID for the match
+        sportec_id: Sportec ID for the match
         sub: Subreddit to post to
         pre_thread: Pre-match thread to unsticky
         thread: Existing match thread to update
         post: Whether to create a post-match thread when done
     """
     # get a match object
-    match_obj: match.Match = await match.Match.create(opta_id)
+    match_obj = await Match.create(sportec_id)
 
     # get reddit ids of any threads that may already exist for this match
-    threads = file_manager.get_threads(str(opta_id))
+    threads = file_manager.get_threads(sportec_id)
     if threads is None:
         threads = MatchThreads(slug=match_obj.slug)
     
@@ -106,7 +104,7 @@ async def match_thread(
             )
 
             threads.match = thread.id_from_url(thread.shortlink)
-            file_manager.add_threads(str(opta_id), threads)
+            file_manager.add_threads(sportec_id, threads)
             
             if pre_thread is not None:
                 text = f'[Continue the discussion in the match thread.](https://www.reddit.com/r/{sub}/comments/{thread.id_from_url(thread.shortlink)})'
@@ -130,7 +128,7 @@ async def match_thread(
                 _, markdown = md.match_thread(match_obj)
                 try:
                     await reddit.edit_thread(thread, markdown)
-                    logger.debug(f'Successfully updated {match_obj.opta_id} at minute {match_obj.minute}')
+                    logger.debug(f'Successfully updated {match_obj.sportec_id} at minute {match_obj.minute_display}')
                 except Exception as e:
                     message = (
                         f'Error while editing match thread.\n'
@@ -153,38 +151,38 @@ async def match_thread(
                 msg.send('Match is finished, final update made', tag=True)
                 if post and not post_thread:
                     # post a post-match thread before exiting the loop
-                    await post_match_thread(opta_id, sub, thread)
+                    await post_match_thread(sportec_id, sub, thread)
                 elif not post:
-                    message = f'No post-match thread for {opta_id}'
+                    message = f'No post-match thread for {sportec_id}'
                     msg.send(message)
                 elif post_thread:
-                    message = f'Found post-match thread for {opta_id}. Skipping post-match thread.'
+                    message = f'Found post-match thread for {sportec_id}. Skipping post-match thread.'
                     msg.send(message, tag=True)
                 break
             await asyncio.sleep(60)
 
 
 async def post_match_thread(
-    opta_id: Union[str, int],
+    sportec_id: str,
     sub: str = prod_sub,
     thread: Optional[Union[str, asyncpraw.models.Submission]] = None
 ) -> None:
     """Post a post-match thread.
     
     Args:
-        opta_id: Opta ID for the match  
+        sportec_id: Sportec ID for the match  
         sub: Subreddit to post to
         thread: Match thread to unsticky
     """
     # get reddit ids of any threads that may already exist for this match
-    threads = file_manager.get_threads(str(opta_id))
+    threads = file_manager.get_threads(sportec_id)
     if thread is None and threads and threads.match:
         thread = threads.match
 
     if '/r/' in sub:
         sub = sub.split('/r/')[1]
 
-    match_obj: match.Match = await match.Match.create(opta_id)
+    match_obj = await Match.create(sportec_id)
     title, markdown = md.post_match_thread(match_obj)
     async with RedditClient() as reddit:
         post_thread_obj: asyncpraw.models.Submission = await reddit.submit_thread(
@@ -201,7 +199,7 @@ async def post_match_thread(
         if threads is None:
             threads = MatchThreads(slug=match_obj.slug)
         threads.post = post_thread_obj.id_from_url(post_thread_obj.shortlink)
-        file_manager.add_threads(str(opta_id), threads)
+        file_manager.add_threads(sportec_id, threads)
 
 @util.time_dec(False)
 async def main():

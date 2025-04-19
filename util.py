@@ -216,7 +216,7 @@ names = {
     12137: Names('Real Monarchs', 'Monarchs', 'SLC', ''),
     19201: Names('The Town FC', 'The Town', 'TTFC', ''),
     11521: Names('Sporting KC II', 'Sporting KC II', 'SKC2', ''),
-    19202: Names('St. Louis CITY 2', 'CITY 2', 'STL2', ''),
+    19202: Names('St. Louis CITY 2', 'CITY 2', 'STL2', 'MLS-CLU-00001G'),
     10970: Names('Tacoma Defiance', 'Tacoma', 'TAC', ''),
     12134: Names('TFC II', 'TFC II', 'TOR2', ''),
     12136: Names('Timbers2', 'Timbers2', 'POR2', ''),

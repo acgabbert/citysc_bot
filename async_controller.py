@@ -70,17 +70,17 @@ class AsyncController:
         root.error(message)
         msg.send(message, tag=True)
         
-    async def create_match_thread(self, opta_id: int, post: bool = True):
+    async def create_match_thread(self, sportec_id: str, post: bool = True):
         """Create a match thread in an async context"""
-        message = f'Posting match thread for {opta_id} on subreddit {self.subreddit}'
+        message = f'Posting match thread for {sportec_id} on subreddit {self.subreddit}'
         root.info(message)
         msg.send(message, tag=True)
         
         try:
-            await thread.match_thread(opta_id, self.subreddit, post=post)
+            await thread.match_thread(sportec_id, self.subreddit, post=post)
         except Exception as e:
             root.error(f"Error creating match thread: {str(e)}")
-            msg.send(f"Error creating match thread for {opta_id}: {str(e)}")
+            msg.send(f"Error creating match thread for {sportec_id}: {str(e)}")
     
     async def daily_setup(self):
         """Check for upcoming matches and schedule threads"""
