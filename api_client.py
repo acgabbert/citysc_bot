@@ -1,3 +1,5 @@
+import re
+import traceback
 import aiohttp
 import asyncio
 import backoff
@@ -8,9 +10,14 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Dict, List, Optional, Any, Union
 from urllib.parse import urljoin
-from pydantic import BaseModel, field_validator, model_validator
+from pydantic import BaseModel, ValidationError, field_validator, model_validator
 
 import config
+from models.constants import UtcDatetime
+from models.event import MlsEvent, MatchEventResponse
+from models.match import ComprehensiveMatchData, Match_Base, Match_Sport
+from models.match_stats import MatchStats
+from models.schedule import MatchSchedule
 import util
 
 logger = logging.getLogger(__name__)
@@ -37,6 +44,8 @@ class MLSApiRateLimitError(MLSApiError):
 
 class ApiEndpoint(Enum):
     STATS = "stats"
+    MATCHES = "matches"
+    STATS_DEPRECATED = "stats"
     SPORT = "sport"
     VIDEO = "video"
     NEXT_PRO = "nextpro"
@@ -57,7 +66,9 @@ class MatchType(Enum):
 @dataclass
 class MLSApiConfig:
     """Configuration for the MLS API client"""
-    stats_base_url: str = "https://stats-api.mlssoccer.com/v1/"
+    stats_base_url: str = "https://stats-api.mlssoccer.com/"
+    stats_base_url_deprecated: str = f"{stats_base_url}v1/"
+    matches_base_url: str = "https://stats-api.mlssoccer.com/matches/"
     sport_base_url: str = "https://sportapi.mlssoccer.com/api/"
     video_base_url: str = "https://dapi.mlssoccer.com/v2/"
     nextpro_base_url: str = "https://sportapi.mlsnextpro.com/api/matches"
@@ -68,37 +79,18 @@ class MLSApiConfig:
     rate_limit_period: int = 1  # seconds
     log_responses: bool = True
 
-class MatchSchedule(BaseModel):
+class MatchScheduleDeprecated(BaseModel):
     """Model for schedule response from sport API"""
     optaId: int
-    matchDate: datetime
+    matchDate: UtcDatetime
     slug: str
     competition: Dict[str, Any]
     appleSubscriptionTier: Optional[str]
     appleStreamURL: Optional[str]
     broadcasters: List[Dict[str, Any]]
-
-    @field_validator('matchDate')
-    @classmethod
-    def validate_match_date(cls, v: Any) -> datetime:
-        if isinstance(v, str):
-            try:
-                dt = datetime.fromisoformat(v.replace('Z', '+00:00'))
-                if dt.tzinfo is not None:
-                    dt = dt.astimezone(timezone.utc)
-                else:
-                    dt = dt.replace(tzinfo=timezone.utc)
-                return dt
-            except Exception as e:
-                raise ValueError(f"Invalid date format: {v}") from e
-        elif isinstance(v, datetime):
-            if v.tzinfo is not None:
-                return v.astimezone(timezone.utc)
-            return v.replace(tzinfo=timezone.utc)
-        raise ValueError(f"Expected string or datetime, got {type(v)}")
     
     @model_validator(mode='after')
-    def validate_model(self) -> 'MatchSchedule':
+    def validate_model(self) -> 'MatchScheduleDeprecated':
         if self.appleStreamURL and not self.appleStreamURL:
             raise ValueError("appleStreamURL must be set if appleSubscriptionTier is set")
         return self
@@ -108,18 +100,24 @@ class MLSApiClient:
         self.config = config
         self._sessions: Dict[ApiEndpoint, Optional[aiohttp.ClientSession]] = {
             ApiEndpoint.STATS: None,
+            ApiEndpoint.MATCHES: None,
+            ApiEndpoint.STATS_DEPRECATED: None,
             ApiEndpoint.SPORT: None,
             ApiEndpoint.VIDEO: None,
             ApiEndpoint.NEXT_PRO: None
         }
         self._rate_limiters: Dict[ApiEndpoint, asyncio.Semaphore] = {
             ApiEndpoint.STATS: asyncio.Semaphore(self.config.rate_limit_calls),
+            ApiEndpoint.MATCHES: asyncio.Semaphore(self.config.rate_limit_calls),
+            ApiEndpoint.STATS_DEPRECATED: asyncio.Semaphore(self.config.rate_limit_calls),
             ApiEndpoint.SPORT: asyncio.Semaphore(self.config.rate_limit_calls),
             ApiEndpoint.VIDEO: asyncio.Semaphore(self.config.rate_limit_calls),
             ApiEndpoint.NEXT_PRO: asyncio.Semaphore(self.config.rate_limit_calls)
         }
         self._last_requests: Dict[ApiEndpoint, List[float]] = {
             ApiEndpoint.STATS: [],
+            ApiEndpoint.MATCHES: [],
+            ApiEndpoint.STATS_DEPRECATED: [],
             ApiEndpoint.SPORT: [],
             ApiEndpoint.VIDEO: [],
             ApiEndpoint.NEXT_PRO: []
@@ -128,6 +126,12 @@ class MLSApiClient:
     async def __aenter__(self):
         # Initialize sessions for both APIs
         self._sessions[ApiEndpoint.STATS] = aiohttp.ClientSession(
+            headers={"User-Agent": self.config.user_agent}
+        )
+        self._sessions[ApiEndpoint.MATCHES] = aiohttp.ClientSession(
+            headers={"User-Agent": self.config.user_agent}
+        )
+        self._sessions[ApiEndpoint.STATS_DEPRECATED] = aiohttp.ClientSession(
             headers={"User-Agent": self.config.user_agent}
         )
         self._sessions[ApiEndpoint.SPORT] = aiohttp.ClientSession(
@@ -142,14 +146,33 @@ class MLSApiClient:
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        # Close all sessions
-        for session in self._sessions.values():
-            if session:
-                await session.close()
+        close_tasks = []
+        sessions_to_close = []
+
+        for endpoint, session in self._sessions.items():
+            if session and not session.closed:
+                close_tasks.append(session.close())
+                sessions_to_close.append(endpoint.name)
+        
+        if close_tasks:
+            logger.info(f"Closing sessions for: {", ".join(sessions_to_close)}")
+            results = await asyncio.gather(*close_tasks, return_exceptions=True)
+
+            for i, result in enumerate(results):
+                if isinstance(result, Exception):
+                    endpoint_name = sessions_to_close[i]
+                    logger.error(f"Error closing session for {endpoint_name}: {result}")
+            
+        self._sessions = {key: None for key in self._sessions}
+        logger.info("All active sessions processed for closure.")
 
     def _get_base_url(self, endpoint: ApiEndpoint) -> str:
         if endpoint == ApiEndpoint.STATS:
             return self.config.stats_base_url
+        if endpoint == ApiEndpoint.STATS_DEPRECATED:
+            return self.config.stats_base_url_deprecated
+        if endpoint == ApiEndpoint.MATCHES:
+            return self.config.matches_base_url
         if endpoint == ApiEndpoint.VIDEO:
             return self.config.video_base_url
         if endpoint == ApiEndpoint.NEXT_PRO:
@@ -176,6 +199,8 @@ class MLSApiClient:
         """
         base_url = self._get_base_url(endpoint)
         url = urljoin(base_url, path)
+        logger.debug(url)
+        logger.debug(params)
         session = self._sessions[endpoint]
         rate_limiter = self._rate_limiters[endpoint]
         
@@ -215,14 +240,18 @@ class MLSApiClient:
                     if hasattr(self.config, "log_responses") and self.config.log_responses:
                         try:
                             caller_name = inspect.stack()[2].function
-                            # Extract match_id or club opta ID from params if it exists
-                            id = params.get('match_game_id', params.get('clubOptaId', '')) if params else ''
-                            if id == '':
-                                id = path.split('/')[1]
+                            # Extract match_id
+                            id = ''
+                            match = re.search(r"MLS-(?:MAT|CLU)-\w+", url)
+                            if match:
+                                id = match.group(0)
+                            else:
+                                raise Exception("No match or club ID found in URL.")
                             filename = f"assets/{caller_name.split('get_')[1]}_{id}.json"
                             util.write_json(response_data, filename)
                         except Exception as e:
                             logger.error(f"Failed to log response: {str(e)}")
+                            traceback.print_exc()
 
                     return response_data
                     
@@ -232,10 +261,10 @@ class MLSApiClient:
                 raise MLSApiError(f"Request to {url} failed: {str(e)}") from e
 
     # Stats API endpoints
-    async def get_match_stats(self, match_id: int) -> List[Dict[str, Any]]:
+    async def get_match_stats_deprecated(self, match_id: int) -> List[Dict[str, Any]]:
         """Get match statistics from stats API"""
         response = await self._make_request(
-            ApiEndpoint.STATS,
+            ApiEndpoint.STATS_DEPRECATED,
             "clubs/matches",
             params={
                 "match_game_id": match_id,
@@ -255,7 +284,7 @@ class MLSApiClient:
     async def get_match_data(self, match_id: int) -> Dict[str, Any]:
         """Get match data from stats API"""
         response = await self._make_request(
-            ApiEndpoint.STATS,
+            ApiEndpoint.STATS_DEPRECATED,
             "matches",
             params={
                 "match_game_id": match_id,
@@ -277,7 +306,7 @@ class MLSApiClient:
     async def get_match_commentary(self, match_id: int) -> List[Dict[str, Any]]:
         """Get match commentary from stats API"""
         return await self._make_request(
-            ApiEndpoint.STATS,
+            ApiEndpoint.STATS_DEPRECATED,
             "commentaries",
             params={
                 "match_game_id": match_id,
@@ -288,7 +317,7 @@ class MLSApiClient:
     async def get_preview(self, match_id: int) -> List[Dict[str, Any]]:
         """Get the preview (match facts) for a match."""
         return await self._make_request(
-            ApiEndpoint.STATS,
+            ApiEndpoint.STATS_DEPRECATED,
             "matchfacts",
             params={
                 "match_game_id": match_id,
@@ -299,7 +328,7 @@ class MLSApiClient:
     async def get_feed(self, match_id: int) -> List[Dict[str, Any]]:
         """Get the full feed from a match."""
         return await self._make_request(
-            ApiEndpoint.STATS,
+            ApiEndpoint.STATS_DEPRECATED,
             "commentaries",
             params={
                 "match_game_id": match_id,
@@ -322,7 +351,7 @@ class MLSApiClient:
     async def get_summary(self, match_id: int) -> List[Dict[str, Any]]:
         """Get the summary feed from a match."""
         return await self._make_request(
-            ApiEndpoint.STATS,
+            ApiEndpoint.STATS_DEPRECATED,
             "commentaries",
             params={
                 "match_game_id": match_id,
@@ -340,7 +369,7 @@ class MLSApiClient:
     async def get_lineups(self, match_id: int) -> List[Dict[str, Any]]:
         """Get the lineups from a match."""
         return await self._make_request(
-            ApiEndpoint.STATS,
+            ApiEndpoint.STATS_DEPRECATED,
             "players/matches",
             params={
                 "match_game_id": match_id,
@@ -351,7 +380,7 @@ class MLSApiClient:
     async def get_subs(self, match_id: int) -> List[Dict[str, Any]]:
         """Get the subs from a match."""
         return await self._make_request(
-            ApiEndpoint.STATS,
+            ApiEndpoint.STATS_DEPRECATED,
             "substitutions",
             params={
                 "match_game_id": match_id,
@@ -362,7 +391,7 @@ class MLSApiClient:
     async def get_managers(self, match_id: int) -> List[Dict[str, Any]]:
         """Get managers for a match."""
         return await self._make_request(
-            ApiEndpoint.STATS,
+            ApiEndpoint.STATS_DEPRECATED,
             "managers/matches",
             params={
                 "match_game_id": match_id,
@@ -371,14 +400,14 @@ class MLSApiClient:
         )
 
     # Sport API endpoints
-    async def get_schedule(
+    async def get_schedule_deprecated(
         self,
         club_opta_id: Optional[int] = None,
         competition: Optional[Competition] = None,
         match_type: Optional[MatchType] = None,
         date_from: Optional[str] = None,
         date_to: Optional[str] = None
-    ) -> List[MatchSchedule]:
+    ) -> List[MatchScheduleDeprecated]:
         """Get schedule from sport API"""
         params = {
             "culture": "en-us"
@@ -396,17 +425,44 @@ class MLSApiClient:
 
         data = await self._make_request(
             ApiEndpoint.SPORT,
-            "matches",
+            "/matches",
             params=params
         )
-        return [MatchSchedule.model_validate(match) for match in data]
+        return [MatchScheduleDeprecated.model_validate(match) for match in data]
 
     async def get_match_info(self, match_id: int) -> Dict[str, Any]:
         """Get match info from sport API"""
         return await self._make_request(
             ApiEndpoint.SPORT,
-            f"matches/{match_id}"
+            f"/matches/{match_id}"
         )
+    
+    async def get_matches_by_id(self, ids: List[str]) -> List[Match_Sport]:
+        """Get match info from the sport API by Sportec ID"""
+        joined_ids = ",".join(ids)
+        data = await self._make_request(
+            ApiEndpoint.SPORT,
+            f"matches/bySportecIds/{joined_ids}"
+        )
+        try:
+            return [Match_Sport(**match) for match in data]
+        except ValidationError as e:
+            for error in e.errors():
+                if error['type'] == 'missing':
+                    logger.error(error['loc'][0])
+    
+    async def get_match_by_id(self, id: str) -> Match_Sport:
+        """Get single match info from the sport API by Sportec ID"""
+        data = await self._make_request(
+            ApiEndpoint.SPORT,
+            f"matches/{id}"
+        )
+        try:
+            return Match_Sport(**data)
+        except ValidationError as e:
+            for error in e.errors():
+                if error['type'] == 'missing':
+                    logger.error(error['loc'][0])
 
     async def get_standings(
         self,
@@ -417,7 +473,7 @@ class MLSApiClient:
         """Get standings from sport API"""
         return await self._make_request(
             ApiEndpoint.SPORT,
-            "standings/live",
+            "/standings/live",
             params={
                 "isLive": str(is_live).lower(),
                 "seasonId": season_id,
@@ -432,10 +488,9 @@ class MLSApiClient:
         match_date: datetime
     ) -> Dict[str, Any]:
         """Get recent form for the teams participating in a match"""
-        print(f"received {club_id}, {second_club_id}, {match_date}")
         return await self._make_request(
             ApiEndpoint.SPORT,
-            f"previousMatches/{club_id}",
+            f"/previousMatches/{club_id}",
             params={
                 "culture": "en-us",
                 "secondClub": second_club_id,
@@ -450,13 +505,174 @@ class MLSApiClient:
         """Get standings from sport API"""
         return await self._make_request(
             ApiEndpoint.SPORT,
-            "content/en-us/brightcovevideos",
+            "/content/en-us/brightcovevideos",
             params={
                 'fields.optaMatchId': match_id
             },
             allow_404=True
         )
     
+    async def get_competitions(self) -> Dict[str, Any]:
+        """Get current competitions"""
+        return await self._make_request(
+            ApiEndpoint.STATS,
+            "/competitions"
+        )
+    
+    async def get_seasons(self, competition_id: str) -> Dict[str, Any]:
+        """Get MLS seasons"""
+        return await self._make_request(
+            ApiEndpoint.STATS,
+            f"/competitions/{competition_id}/seasons"
+        )
+    
+    async def get_schedule(self, season: str, **kwargs) -> List[MatchSchedule]:
+        """Get schedule"""
+        params = {
+            "per_page": 100,
+            "sort": "planned_kickoff_time:asc,home_team_name:asc"
+        }
+        if kwargs.get("match_date_gte"):
+            params["match_date[gte]"] = kwargs["match_date_gte"]
+        if kwargs.get("match_date_lte"):
+            params["match_date[lte]"] = kwargs["match_date_lte"]
+        if kwargs.get("team_id"):
+            params["team_id"] = kwargs["team_id"]
+        
+        data = await self._make_request(
+            ApiEndpoint.STATS,
+            f"/matches/seasons/{season}",
+            params=params
+        )
+        data = data.get("schedule", None)
+        try:
+            return [MatchSchedule(**match) for match in data]
+        except ValidationError as e:
+            for error in e.errors():
+                if error['type'] == 'missing':
+                    logger.error(error['loc'][0])
+    
+    async def get_match_schedule(self, match_id: str, **kwargs) -> MatchSchedule:
+        """Get schedule object for a single match"""
+        data = await self._make_request(
+            ApiEndpoint.STATS,
+            f"/matches/{match_id}"
+        )
+        try:
+            return MatchSchedule(**data)
+        except ValidationError as e:
+            logger.error('error: ', e)
+            logger.error(data)
+            for error in e.errors():
+                if error['type'] == 'missing':
+                    logger.error(error['loc'][0])
+    
+    async def get_match(self, match_id: str, **kwargs) -> Match_Base:
+        """Get match by Sportec ID"""
+        data = await self._make_request(
+            ApiEndpoint.MATCHES,
+            match_id
+        )
+        try:
+            return Match_Base(**data)
+        except ValidationError as e:
+            for error in e.errors():
+                if error['type'] == 'missing':
+                    logger.error(error['loc'][0])
+        except Exception as e:
+            logger.error(e)
+    
+    async def get_match_stats(self, match_id: str, **kwargs) -> MatchStats:
+        data = await self._make_request(
+            ApiEndpoint.STATS,
+            f"/statistics/clubs/matches/{match_id}"
+        )
+        try:
+            data = data.get("match_statistics_list")[0].get("match_statistics")
+            data = MatchStats(**data)
+            return data
+        except ValidationError as e:
+            logger.error('error: ', e)
+            for error in e.errors():
+                if error['type'] == 'missing':
+                    logger.error(error['loc'][0])
+        except Exception as e:
+            logger.error(e)
+    
+    async def get_match_events(self, match_id: str, **kwargs) -> MatchEventResponse:
+        params = {
+            "per_page": 1000
+        }
+        if kwargs.get('substitutions'):
+            params['substitutions'] = kwargs['substitutions']
+        data = await self._make_request(
+            ApiEndpoint.MATCHES,
+            f"{match_id}/key_events",
+            params=params
+        )
+        try:
+            data = MatchEventResponse(**data)
+            return data
+        except ValidationError as e:
+            logger.error('error: ', e)
+            for error in e.errors():
+                if error['type'] == 'missing':
+                    logger.error(error['loc'][0])
+        except Exception as e:
+            logger.error(e)
+    
+    async def get_detailed_possession(self, match_id: str, **kwargs) -> Any:
+        data = await self._make_request(
+            ApiEndpoint.STATS,
+            f"/statistics/clubs/matches/{match_id}/possession",
+            params={'scope': 'all'}
+        )
+        return data
+    
+    async def get_all_match_data(self, match_id: str, **kwargs) -> ComprehensiveMatchData:
+        results = await asyncio.gather(
+            self.get_match_by_id(match_id),
+            self.get_match(match_id),
+            self.get_match_stats(match_id),
+            self.get_match_events(match_id),
+            return_exceptions=True
+        )
+
+        match_info, match_base, match_stats, match_events = None, None, None, None
+        errors = []
+
+        if isinstance(results[0], Exception):
+            errors.append(f"Failed to get match info: {results[0]}")
+        else:
+            match_info = results[0]
+
+        if isinstance(results[1], Exception):
+            errors.append(f"Failed to get match base: {results[1]}")
+        else:
+            match_base = results[1]
+
+        if isinstance(results[2], Exception):
+            errors.append(f"Failed to get match stats: {results[2]}")
+        else:
+            match_stats = results[2]
+
+        if isinstance(results[3], Exception):
+            errors.append(f"Failed to get match events: {results[3]}")
+        else:
+            match_events = results[3]
+
+        for e in errors:
+            logger.error(e)
+        
+        return ComprehensiveMatchData(
+            match_info=match_info,
+            match_base=match_base,
+            match_stats=match_stats,
+            match_events=match_events,
+            errors=errors
+        )
+
+
     # MLS Next Pro API endpoints
     async def get_nextpro_match_info(self, match_id: int) -> Dict[str, Any]:
         """Get match info for an MLS Next Pro match"""
@@ -464,7 +680,7 @@ class MLSApiClient:
             ApiEndpoint.NEXT_PRO,
             f"matches/{match_id}"
         )
-        return MatchSchedule.model_validate(data)
+        return MatchScheduleDeprecated.model_validate(data)
     
     async def get_nextpro_schedule(
         self,
@@ -472,7 +688,7 @@ class MLSApiClient:
         match_type: Optional[MatchType] = None,
         date_from: Optional[str] = None,
         date_to: Optional[str] = None
-    ) -> List[MatchSchedule]:
+    ) -> List[MatchScheduleDeprecated]:
         """Get schedule from MLS Next Pro API"""
         params = {
             "culture": "en-us"
@@ -491,7 +707,7 @@ class MLSApiClient:
             "matches",
             params=params
         )
-        return [MatchSchedule.model_validate(match) for match in data]
+        return [MatchScheduleDeprecated.model_validate(match) for match in data]
 
 
 # Example usage:
@@ -504,7 +720,7 @@ async def main():
             match_info = await client.get_match_info(match_id)
             
             # Get schedule for a team
-            schedule = await client.get_schedule(
+            schedule = await client.get_schedule_deprecated(
                 club_opta_id=17012,  # St. Louis City SC
                 competition=Competition.MLS,
                 match_type=MatchType.REGULAR,

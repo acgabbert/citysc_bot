@@ -48,30 +48,30 @@ class ThreadManager:
             with open(self.filename, 'r') as f:
                 data = json.load(f)
                 self.threads = {
-                    opta_id: MatchThreads.from_dict(thread_data)
-                    for opta_id, thread_data in data.items()
+                    sportec_id: MatchThreads.from_dict(thread_data)
+                    for sportec_id, thread_data in data.items()
                 }
         except FileNotFoundError:
             self.threads = {}
     
     def save(self) -> None:
         data = {
-            opta_id: thread.to_dict()
-            for opta_id, thread in self.threads.items()
+            sportec_id: thread.to_dict()
+            for sportec_id, thread in self.threads.items()
         }
         with open(self.filename, 'w') as f:
             json.dump(data, f, indent=4)
     
-    def add_threads(self, opta_id: str, thread: MatchThreads) -> None:
-        self.threads[opta_id] = thread
+    def add_threads(self, sportec_id: str, thread: MatchThreads) -> None:
+        self.threads[sportec_id] = thread
         self.save()
     
-    def get_threads(self, opta_id: str) -> Optional[MatchThreads]:
-        return self.threads.get(opta_id)
+    def get_threads(self, sportec_id: str) -> Optional[MatchThreads]:
+        return self.threads.get(sportec_id)
 
-    def update_thread(self, opta_id: str, **kwargs) -> None:
-        if opta_id in self.threads:
-            thread = self.threads[opta_id]
+    def update_thread(self, sportec_id: str, **kwargs) -> None:
+        if sportec_id in self.threads:
+            thread = self.threads[sportec_id]
             for key, value in kwargs.items():
                 if hasattr(thread, key):
                     setattr(thread, key, value)

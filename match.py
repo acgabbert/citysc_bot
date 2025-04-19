@@ -69,9 +69,9 @@ class Match(mls.MlsObject):
         match.update_from_schedule_info(data.get("info"))
         match.update_from_preview(data.get("preview"))
         match.update_from_lineups(data.get("lineups"))
-        match.update_from_feed(data.get("commentary"))
-        match.update_from_feed(data.get("summary"))
-        match.update_from_subs(data.get("subs"))
+        # match.update_from_feed(data.get("commentary"))
+        # match.update_from_feed(data.get("summary"))
+        # match.update_from_subs(data.get("subs"))
         match.update_from_managers(data.get("managers"))
         match.update_from_videos(data.get("videos"))
 
@@ -606,7 +606,7 @@ async def get_full_match_data(opta_id: int) -> Dict[str, Any]:
             'info': client.get_match_info(opta_id),
             'preview': client.get_preview(opta_id),
             'lineups': client.get_lineups(opta_id),
-            'commentary': client.get_match_commentary(opta_id),
+            #'commentary': client.get_match_commentary(opta_id),
             'summary': client.get_summary(opta_id),
             'subs': client.get_subs(opta_id),
             'managers': client.get_managers(opta_id),
@@ -657,7 +657,7 @@ async def get_previous_match(match_obj: Match) -> Match:
     date_from = f'{date_from.year}-{date_from.month}-{date_from.day}'
     date_to = f'{date.year}-{date.month}-{date.day}'
     async with MLSApiClient() as client:
-        sched = await client.get_schedule(team=match_obj.home.opta_id, comp=match_obj.comp_id, date_from=date_from, date_to=date_to)
+        sched = await client.get_schedule_deprecated(team=match_obj.home.opta_id, comp=match_obj.comp_id, date_from=date_from, date_to=date_to)
     
     prev_match = Match(-1)
     for m in sched:

@@ -22,10 +22,11 @@ WORKDIR /app
 RUN useradd -u 1000 -m botuser 
 
 # Create required directories with proper permissions
-RUN mkdir -p assets markdown log png && \
+RUN mkdir -p assets models markdown log png && \
     chown -R 1000:1000 /app && \
     chmod 755 /app/assets && \
     chmod 755 /app/markdown && \
+    chmod 755 /app/models && \
     chmod 755 /app/log && \
     chmod 755 /app/png
 
@@ -43,6 +44,7 @@ RUN playwright install chromium
 
 # Copy the source code
 COPY --chown=1000:1000 *.py ./
+COPY --chown=1000:1000 models/*.py ./models/
 RUN rm -f config*.py
 COPY --chown=1000:1000 *.sh ./
 COPY --chown=1000:1000 *.json ./

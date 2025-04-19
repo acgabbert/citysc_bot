@@ -8,8 +8,9 @@ import asyncpraw
 import asyncio
 import signal
 import subprocess
-from datetime import datetime
+from datetime import datetime, timezone
 from collections import namedtuple
+from typing import Any
 
 import config
 import discord as msg
@@ -129,7 +130,7 @@ def write_json(data, filename):
     """Write json data to filename."""
     try:
         with open(filename, 'w', encoding='utf-8') as f:
-            f.write(json.dumps(data, indent=4, ensure_ascii=False))
+            f.write(json.dumps(data, indent=2, ensure_ascii=False))
     except Exception as e:
         logging.error(f"Error writing file {filename}\n{str(e)}")
     return
@@ -157,71 +158,71 @@ def file_changed(filename):
         return False
 
 
-Names = namedtuple('Names', 'full_name short_name abbrev')
+Names = namedtuple('Names', 'full_name short_name abbrev sportec_id')
 
 # a dict of namedtuples with each club's full/short/abbrev names
 names = {
-    15296: Names('Austin FC', 'Austin', 'ATX'),
-    11091: Names('Atlanta United', 'Atlanta', 'ATL'),
-    1616: Names('CF Montréal', 'Montréal', 'MTL'),
-    436: Names('Colorado Rapids', 'Colorado', 'COL'),
-    16629: Names('Charlotte FC', 'Charlotte', 'CLT'),
-    1903: Names('FC Dallas', 'Dallas', 'DAL'),
-    1207: Names('Chicago Fire FC', 'Chicago', 'CHI'),
-    1897: Names('Houston Dynamo FC', 'Houston', 'HOU'),
-    1230: Names('LA Galaxy', 'LA Galaxy', 'LA'),
-    454: Names('Columbus Crew', 'Columbus', 'CLB'),
-    11690: Names('Los Angeles Football Club', 'LAFC', 'LAFC'),
-    1326: Names('D.C. United', 'D.C.', 'DC'),
-    6977: Names('Minnesota United', 'Minnesota', 'MIN'),
-    11504: Names('FC Cincinnati', 'Cincinnati', 'CIN'),
-    14880: Names('Inter Miami CF', 'Miami', 'MIA'),
-    1581: Names('Portland Timbers', 'Portland', 'POR'),
-    1899: Names('Real Salt Lake', 'Salt Lake', 'RSL'),
-    15154: Names('Nashville SC', 'Nashville', 'NSH'),
-    1131: Names('San Jose Earthquakes', 'San Jose', 'SJ'),
-    928: Names('New England Revolution', 'New England', 'NE'),
-    9668: Names('New York City FC', 'New York City', 'NYC'),
-    3500: Names('Seattle Sounders FC', 'Seattle', 'SEA'),
-    399: Names('New York Red Bulls', 'New York', 'RBNY'),
-    421: Names('Sporting Kansas City', 'Kansas City', 'KC'),
-    6900: Names('Orlando City', 'Orlando', 'ORL'),
-    21280: Names('San Diego FC', 'San Diego', 'SD'),
-    17012: Names('St. Louis City SC', 'St. Louis', 'STL'),
-    1708: Names('Vancouver Whitecaps FC', 'Vancouver', 'VAN'),
-    5513: Names('Philadelphia Union', 'Philadelphia', 'PHI'),
-    2077: Names('Toronto FC', 'Toronto', 'TOR'),
-    14156: Names('Atlanta United 2', 'Atlanta 2', 'ATL2'),
-    20220: Names('Austin FC II', 'Austin II', 'ATX2'),
-    21148: Names('Carolina Core FC', 'Carolina', 'CCFC'),
-    11662: Names('Chattanooga FC', 'Chattanooga', 'CFC'),
-    19193: Names('Chicago Fire FC II', 'Chicago II', 'CHI2'),
-    19194: Names('Colorado Rapids 2', 'Colorado 2', 'COL2'),
-    19195: Names('Columbus Crew 2', 'Columbus 2', 'CLB2'),
-    20222: Names('Crown Legacy FC', 'Crown Legacy FC', 'CLT2'),
-    19196: Names('FC Cincinnati 2', 'Cincinnati 2', 'CIN2'),
-    19197: Names('Houston Dynamo 2', 'Houston 2', 'HOU2'),
-    20223: Names('Huntsville City FC', 'Huntsville', 'HNT'),
-    19198: Names('Inter Miami CF II', 'Inter Miami II', 'MIA2'),
-    12135: Names('Ventura County FC', 'Ventura', 'VCFC'),
-    20221: Names('Los Angeles Football Club 2', 'LAFC2', 'LAFC2'),
-    19199: Names('Minnesota United 2', 'MNUFC2', 'MIN2'),
-    16496: Names('New England Revolution II', 'New England II', 'NE2'),
-    12125: Names('New York Red Bulls II', 'New York II', 'RBNY2'),
-    15140: Names('North Texas SC', 'North Texas', 'NTX'),
-    19200: Names('NYCFC II', 'NYCFC II', 'NYC2'),
-    12133: Names('Orlando City B', 'Orlando City B', 'ORL2'),
-    12131: Names('Philadelphia Union II', 'Philadelphia II', 'PHI2'),
-    12137: Names('Real Monarchs', 'Monarchs', 'SLC'),
-    19201: Names('The Town FC', 'The Town', 'TTFC'),
-    11521: Names('Sporting KC II', 'Sporting KC II', 'SKC2'),
-    19202: Names('St. Louis CITY 2', 'CITY 2', 'STL2'),
-    10970: Names('Tacoma Defiance', 'Tacoma', 'TAC'),
-    12134: Names('TFC II', 'TFC II', 'TOR2'),
-    12136: Names('Timbers2', 'Timbers2', 'POR2'),
-    12142: Names('Whitecaps FC 2', 'Vancouver 2', 'VAN2'),
-    16497: Names('Union Omaha', 'Omaha', 'OMA'),
-    1292: Names('Club América', 'América', 'CA')
+    15296: Names('Austin FC', 'Austin', 'ATX', ''),
+    11091: Names('Atlanta United', 'Atlanta', 'ATL', ''),
+    1616: Names('CF Montréal', 'Montréal', 'MTL', ''),
+    436: Names('Colorado Rapids', 'Colorado', 'COL', ''),
+    16629: Names('Charlotte FC', 'Charlotte', 'CLT', ''),
+    1903: Names('FC Dallas', 'Dallas', 'DAL', ''),
+    1207: Names('Chicago Fire FC', 'Chicago', 'CHI', ''),
+    1897: Names('Houston Dynamo FC', 'Houston', 'HOU', ''),
+    1230: Names('LA Galaxy', 'LA Galaxy', 'LA', ''),
+    454: Names('Columbus Crew', 'Columbus', 'CLB', 'MLS-CLU-00000E'),
+    11690: Names('Los Angeles Football Club', 'LAFC', 'LAFC', ''),
+    1326: Names('D.C. United', 'D.C.', 'DC', ''),
+    6977: Names('Minnesota United', 'Minnesota', 'MIN', ''),
+    11504: Names('FC Cincinnati', 'Cincinnati', 'CIN', ''),
+    14880: Names('Inter Miami CF', 'Miami', 'MIA', ''),
+    1581: Names('Portland Timbers', 'Portland', 'POR', ''),
+    1899: Names('Real Salt Lake', 'Salt Lake', 'RSL', ''),
+    15154: Names('Nashville SC', 'Nashville', 'NSH', ''),
+    1131: Names('San Jose Earthquakes', 'San Jose', 'SJ', ''),
+    928: Names('New England Revolution', 'New England', 'NE', ''),
+    9668: Names('New York City FC', 'New York City', 'NYC', ''),
+    3500: Names('Seattle Sounders FC', 'Seattle', 'SEA', ''),
+    399: Names('New York Red Bulls', 'New York', 'RBNY', ''),
+    421: Names('Sporting Kansas City', 'Kansas City', 'KC', ''),
+    6900: Names('Orlando City', 'Orlando', 'ORL', ''),
+    21280: Names('San Diego FC', 'San Diego', 'SD', ''),
+    17012: Names('St. Louis City SC', 'St. Louis', 'STL', 'MLS-CLU-00001L'),
+    1708: Names('Vancouver Whitecaps FC', 'Vancouver', 'VAN', ''),
+    5513: Names('Philadelphia Union', 'Philadelphia', 'PHI', ''),
+    2077: Names('Toronto FC', 'Toronto', 'TOR', ''),
+    14156: Names('Atlanta United 2', 'Atlanta 2', 'ATL2', ''),
+    20220: Names('Austin FC II', 'Austin II', 'ATX2', ''),
+    21148: Names('Carolina Core FC', 'Carolina', 'CCFC', ''),
+    11662: Names('Chattanooga FC', 'Chattanooga', 'CFC', ''),
+    19193: Names('Chicago Fire FC II', 'Chicago II', 'CHI2', ''),
+    19194: Names('Colorado Rapids 2', 'Colorado 2', 'COL2', ''),
+    19195: Names('Columbus Crew 2', 'Columbus 2', 'CLB2', ''),
+    20222: Names('Crown Legacy FC', 'Crown Legacy FC', 'CLT2', ''),
+    19196: Names('FC Cincinnati 2', 'Cincinnati 2', 'CIN2', ''),
+    19197: Names('Houston Dynamo 2', 'Houston 2', 'HOU2', ''),
+    20223: Names('Huntsville City FC', 'Huntsville', 'HNT', ''),
+    19198: Names('Inter Miami CF II', 'Inter Miami II', 'MIA2', ''),
+    12135: Names('Ventura County FC', 'Ventura', 'VCFC', ''),
+    20221: Names('Los Angeles Football Club 2', 'LAFC2', 'LAFC2', ''),
+    19199: Names('Minnesota United 2', 'MNUFC2', 'MIN2', ''),
+    16496: Names('New England Revolution II', 'New England II', 'NE2', ''),
+    12125: Names('New York Red Bulls II', 'New York II', 'RBNY2', ''),
+    15140: Names('North Texas SC', 'North Texas', 'NTX', ''),
+    19200: Names('NYCFC II', 'NYCFC II', 'NYC2', ''),
+    12133: Names('Orlando City B', 'Orlando City B', 'ORL2', ''),
+    12131: Names('Philadelphia Union II', 'Philadelphia II', 'PHI2', ''),
+    12137: Names('Real Monarchs', 'Monarchs', 'SLC', ''),
+    19201: Names('The Town FC', 'The Town', 'TTFC', ''),
+    11521: Names('Sporting KC II', 'Sporting KC II', 'SKC2', ''),
+    19202: Names('St. Louis CITY 2', 'CITY 2', 'STL2', 'MLS-CLU-00001G'),
+    10970: Names('Tacoma Defiance', 'Tacoma', 'TAC', ''),
+    12134: Names('TFC II', 'TFC II', 'TOR2', ''),
+    12136: Names('Timbers2', 'Timbers2', 'POR2', ''),
+    12142: Names('Whitecaps FC 2', 'Vancouver 2', 'VAN2', ''),
+    16497: Names('Union Omaha', 'Omaha', 'OMA', ''),
+    1292: Names('Club América', 'América', 'CA', '')
 }
 
 
@@ -235,3 +236,41 @@ def get_reddit() -> asyncpraw.Reddit:
     )
     reddit.validate_on_submit = True
     return reddit
+
+def normalize_datetime(v: Any) -> datetime:
+    """
+    Take a datetime string or object and return a UTC datetime.
+    Raises ValueError for invalid formats or types.
+    """
+    if isinstance(v, str):
+        try:
+            dt = datetime.fromisoformat(v.replace('Z', '+00:00'))
+            if dt.tzinfo is not None:
+                dt = dt.astimezone(timezone.utc)
+            else:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return dt
+        except Exception as e:
+            raise ValueError(f"Invalid date format: {v}") from e
+    elif isinstance(v, datetime):
+        if v.tzinfo is not None:
+            return v.astimezone(timezone.utc)
+        return v.replace(tzinfo=timezone.utc)
+    raise ValueError(f"Expected string or datetime, got {type(v)}")
+
+def normalize_bool(v: Any) -> bool:
+    if isinstance(v, bool):
+        return v
+    if isinstance(v, str):
+        v_lower = v.strip().lower()
+        if v_lower in ('true', '1', 'yes', 'on'):
+            return True
+        if v_lower in ('false', '0', 'no', 'off'):
+            return False
+    if isinstance(v, int):
+        if v == 1:
+            return True
+        if v == 0:
+            return False
+    
+    raise ValueError(f"Invalid boolean value: {v!r}")
