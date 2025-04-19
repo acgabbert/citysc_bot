@@ -74,6 +74,7 @@ class Match:
         if self.is_started():
             self.home_goals = data.match_base.match_information.home_team_goals
             self.away_goals = data.match_base.match_information.away_team_goals
+            self.minute_display = data.match_base.match_information.minute_of_play
         
         if data.match_stats is not None:
             for stats in data.match_stats.team_statistics:
@@ -88,7 +89,6 @@ class Match:
         lineups = self.get_starting_lineups()
         self.home_starters = lineups.get(self.home_id, [])
         self.away_starters = lineups.get(self.away_id, [])
-        self.minute_display = data.match_base.match_information.minute_of_play
     
     def update_injuries(self) -> None:
         pass
