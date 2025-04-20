@@ -79,37 +79,58 @@ def generate_lineups(match_obj: Match) -> str:
     starting_lineups = match_obj.get_starting_lineups()
     subs = match_obj.get_subs()
     home_lineup = "Not yet available via mlssoccer.com."
+    home_subs = ""
     away_lineup = "Not yet available via mlssoccer.com."
+    away_subs = ""
     if starting_lineups:
-        home_lineup = generate_team_lineup(starting_lineups[match_obj.home_id], subs.get(match_obj.home_id, []))
-        away_lineup = generate_team_lineup(starting_lineups[match_obj.away_id], subs.get(match_obj.away_id, []))
+        home_lineup = generate_team_lineup(getattr(match_obj.data.match_base.home, "players", []), subs.get(match_obj.home_id, []))
+        away_lineup = generate_team_lineup(getattr(match_obj.data.match_base.away, "players", []), subs.get(match_obj.away_id, []))
         if len(starting_lineups[match_obj.home_id]) < 1:
             home_lineup = "Not yet available via mlssoccer.com."
         if len(starting_lineups[match_obj.away_id]) < 1:
             home_lineup = "Not yet available via mlssoccer.com."
+    if subs:
+        pass
     return "\n".join([
         "### Lineups",
-        f"**{match_obj.home.fullName}**: {home_lineup}",
+        f"**{match_obj.home.fullName}**:",
+        home_lineup,
         "",
-        f"**{match_obj.away.fullName}**: {away_lineup}"
+        home_subs,
+        "",
+        f"**{match_obj.away.fullName}**:",
+        away_lineup,
+        "",
+        away_subs
     ])
 
 def generate_team_lineup(lineup: List[BasePerson], subs: List[SubstitutionEvent]) -> str:
-    retval = []
+    if not lineup:
+        return "Not yet available via mlssoccer.com."
+    starters = []
+    bench = []
     subs_mapping: Dict[str, SubstitutionEvent] = {}
     for s in subs:
         subs_mapping[s.event.player_out_id] = s
     for p in lineup:
         if p.person_id in subs_mapping:
-            retval.append(format_sub_event(subs_mapping.get(p.person_id)))
+            starters.append(format_sub_event(subs_mapping.get(p.person_id)))
+        elif p.starting:
+            starters.append(str(p))
         else:
-            retval.append(str(p))
+            bench.append(str(p))
     
-    return ", ".join(retval)
+    starters = ", ".join(starters)
+    bench = "*Subs:* " + ", ".join(bench)
+    return "\n".join([
+        starters,
+        "",
+        bench
+    ])
 
 def format_sub_event(event: SubstitutionEvent) -> str:
     event_details = event.event
-    return f"{event_details.player_out_first_name} {event_details.player_out_last_name} ({event_details.player_in_first_name} {event_details.player_in_last_name} {event_details.minute_of_play}')"
+    return f"{event_details.player_out_first_name} {event_details.player_out_last_name} (🔄 {event_details.player_in_first_name} {event_details.player_in_last_name} {event_details.minute_of_play}')"
 
 
 def add_stat(match_obj: Match, stat: str, display: str = None, isPercentage=False) -> str:
