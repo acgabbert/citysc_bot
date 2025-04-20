@@ -81,8 +81,8 @@ def generate_lineups(match_obj: Match) -> str:
     home_lineup = "Not yet available via mlssoccer.com."
     away_lineup = "Not yet available via mlssoccer.com."
     if starting_lineups:
-        home_lineup = generate_team_lineup(starting_lineups[match_obj.home_id], subs.get(match_obj.home_id))
-        away_lineup = generate_team_lineup(starting_lineups[match_obj.away_id], subs.get(match_obj.away_id))
+        home_lineup = generate_team_lineup(starting_lineups[match_obj.home_id], subs.get(match_obj.home_id, []))
+        away_lineup = generate_team_lineup(starting_lineups[match_obj.away_id], subs.get(match_obj.away_id, []))
         if len(starting_lineups[match_obj.home_id]) < 1:
             home_lineup = "Not yet available via mlssoccer.com."
         if len(starting_lineups[match_obj.away_id]) < 1:
@@ -96,8 +96,6 @@ def generate_lineups(match_obj: Match) -> str:
 
 def generate_team_lineup(lineup: List[BasePerson], subs: List[SubstitutionEvent]) -> str:
     retval = []
-    if not subs:
-        return retval
     subs_mapping: Dict[str, SubstitutionEvent] = {}
     for s in subs:
         subs_mapping[s.event.player_out_id] = s
