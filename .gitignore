@@ -5,6 +5,7 @@ assets/*
 png/*
 *.log
 log/*
+data/*
 env/*
 .DS_Store
 *.db

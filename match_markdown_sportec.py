@@ -52,8 +52,8 @@ def generate_match_stats(match_obj: Match) -> str:
     home_display = match_obj.home.abbreviation or match_obj.home.shortName or match_obj.home.fullName
     away_display = match_obj.away.abbreviation or match_obj.away.shortName or match_obj.away.fullName
 
-    header = f"{home_display}|{match_obj.home_goals}-{match_obj.away_goals}|{away_display}"
-    header += "\n:-:||:-:|:-:"
+    header = f"| {home_display} | {match_obj.home_goals}-{match_obj.away_goals} | {away_display} |"
+    header += "\n| :---: | :---: | :---: |"
 
     markdown = f"### Match Stats:\n{header}"
     markdown += add_stat(match_obj, 'possession_ratio', 'Ball Possession', True)
@@ -70,7 +70,7 @@ def generate_match_stats(match_obj: Match) -> str:
     markdown += add_stat(match_obj, 'passes_sum', 'Total Passes')
     markdown += add_stat(match_obj, 'passes_from_play_conversion_rate', 'Pass Accuracy', True)
     
-    if markdown.endswith(":-:"):
+    if markdown.endswith(":---:"):
         # Likely no stats to be returned
         return None
     return markdown
@@ -124,8 +124,8 @@ def add_stat(match_obj: Match, stat: str, display: str = None, isPercentage=Fals
         if isinstance(away_stat, float) and isPercentage:
             if away_stat < 1:
                 away_stat *= 100
-        retval = f"\n{home_stat:g}{'%' if isPercentage else ''}"
-        retval += f"|{display}|{away_stat:g}{'%' if isPercentage else ''}"
+        retval = f"\n| {home_stat:g}{'%' if isPercentage else ''}"
+        retval += f" | {display} |{away_stat:g}{'%' if isPercentage else ''} |"
         return retval
     return ""
 

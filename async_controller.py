@@ -37,7 +37,7 @@ fh2.setFormatter(formatter)
 er.setFormatter(formatter)
 
 root = logging.getLogger()
-root.setLevel(logging.DEBUG)
+root.setLevel(logging.INFO)
 root.addHandler(fh)
 root.addHandler(fh2)
 root.addHandler(er)
@@ -60,9 +60,10 @@ class AsyncController:
     def _job_executed(self, event: JobEvent):
         """Log successful job execution"""
         job: Job = self.scheduler.get_job(event.job_id)
-        message = f'Job {job.name} executed successfully'
-        root.info(message)
-        msg.send(message)
+        if job:
+            message = f'Job {job.name} executed successfully'
+            root.info(message)
+            msg.send(message)
     
     def _job_error(self, event: JobEvent):
         """Log job execution errors"""
@@ -96,7 +97,6 @@ class AsyncController:
                     msg.send(f"Checking schedule for team {team}")
                     from_date = date.today() - timedelta(days=2)
                     to_date = date.today() + timedelta(days=2)
-                    root.info('Calling get_schedule with:', MlsSeason.SEASON_2025.value, from_date.isoformat(), to_date.isoformat(), names[team].sportec_id)
                     data = await client.get_schedule(
                         season=MlsSeason.SEASON_2025.value,
                         match_date_gte=from_date.isoformat(),
@@ -116,12 +116,15 @@ class AsyncController:
                     now = time.time()
                     today = time.time() + 86400
                     if match_time.timestamp() < today and datetime.now().date() == local_time.date():
+                        root.info("checking and/or shceduling thread")
                         # Schedule match thread for 30 mins before game
                         thread_time = datetime.fromtimestamp(match_time.timestamp() - 1800)
 
                         if thread_time.timestamp() < now:
-                            self.create_match_thread(match_id, team != 19202)
+                            root.info('whoops. creating thread')
+                            await self.create_match_thread(match_id, team != 19202)
                         else:
+                            root.info('shceduling thread')
                             self.scheduler.add_job(
                                 self.create_match_thread,
                                 'date',
