@@ -8,7 +8,7 @@ import util
 from util import names
 
 INJ_URL = 'https://www.mlssoccer.com/news/mlssoccer-com-injury-report'
-INJ_FILE = 'injuries.json'
+INJ_FILE = 'data/injuries.json'
 
 class MlsInjuries:
     date_format = '%m/%d/%Y, %H:%M'

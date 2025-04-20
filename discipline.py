@@ -11,7 +11,7 @@ from util import names
 logger = logging.getLogger(__name__)
 
 DISC_URL = 'https://www.mlssoccer.com/news/mls-disciplinary-summary'
-DISC_FILE = 'discipline.json'
+DISC_FILE = 'data/discipline.json'
 YELLOWS_TITLE = 'Yellow Accumulation'
 
 class MlsDiscipline:

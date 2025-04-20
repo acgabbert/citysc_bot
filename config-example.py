@@ -38,7 +38,7 @@ DISCORD_APP_ID = ''
 DISCORD_TOKEN = ''
 MLS_BOT_WEBHOOK = 'https://discord.com/api/webhooks/'
 CSS_PATH = 'markdown/markdown.css'
-THREADS_JSON = 'threads.json'
+THREADS_JSON = 'data/threads.json'
 
 # More reddit config - widgets
 WIDGETS = {
