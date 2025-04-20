@@ -89,7 +89,7 @@ def generate_lineups(match_obj: Match) -> str:
             home_lineup = "Not yet available via mlssoccer.com."
     return "\n".join([
         "### Lineups",
-        f"**{match_obj.home.fullName}**: {home_lineup}"
+        f"**{match_obj.home.fullName}**: {home_lineup}",
         "",
         f"**{match_obj.away.fullName}**: {away_lineup}"
     ])
@@ -125,7 +125,7 @@ def add_stat(match_obj: Match, stat: str, display: str = None, isPercentage=Fals
             if away_stat < 1:
                 away_stat *= 100
         retval = f"\n| {home_stat:g}{'%' if isPercentage else ''}"
-        retval += f" | {display} |{away_stat:g}{'%' if isPercentage else ''} |"
+        retval += f" | {display} | {away_stat:g}{'%' if isPercentage else ''} |"
         return retval
     return ""
 
