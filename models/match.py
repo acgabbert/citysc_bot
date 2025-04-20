@@ -23,7 +23,8 @@ class Match_Sport(BaseModel):
     venue: MatchVenue
     season: Season
     competition: Competition
-    broadcasters: Optional[List[Broadcaster]]
+    broadcasters: Optional[List[Broadcaster]] = []
+    matchDate: Optional[UtcDatetime] = None
     appleStreamURL: Optional[str] = None
     appleSubscriptionTier: Optional[str] = None
     roundName: Optional[str] = None

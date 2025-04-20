@@ -5,12 +5,13 @@ assets/*
 png/*
 *.log
 log/*
+data/*
 env/*
 .DS_Store
 *.db
 mls_test.db
 __pycache__
-config.json
+*.json
 scripts/*
 .env
 *.pyc

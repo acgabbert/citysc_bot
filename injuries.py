@@ -1,21 +1,22 @@
-import os
+import re
+from typing import Dict
 import requests
 from datetime import datetime
 from bs4 import BeautifulSoup
 
-import discord as msg
 import util
 from util import names
 
 INJ_URL = 'https://www.mlssoccer.com/news/mlssoccer-com-injury-report'
-INJ_FILE = 'injuries.json'
+INJ_FILE = 'data/injuries.json'
 
 class MlsInjuries:
     date_format = '%m/%d/%Y, %H:%M'
 
-    def __init__(self, last_update, injuries):
+    def __init__(self, last_update: datetime, injuries: Dict, matchday: int = None):
         self.last_update = last_update
         self.injuries = injuries
+        self.matchday = matchday
     
 
     def to_dict(self):
@@ -42,15 +43,16 @@ def get_injury_content() -> BeautifulSoup:
     return BeautifulSoup(data.text, 'html.parser')
 
 
-def populate_injuries(soup):
+def populate_injuries(soup: BeautifulSoup) -> MlsInjuries:
     last_update = parse_datetime(soup)
     injury_obj = parse_injuries(soup)
     injury_obj = match_teams(injury_obj)
-    injuries_obj = MlsInjuries(last_update, injury_obj)
+    matchday_int = parse_matchday(soup)
+    injuries_obj = MlsInjuries(last_update, injury_obj, matchday_int)
     return injuries_obj
 
 
-def parse_datetime(soup):
+def parse_datetime(soup: BeautifulSoup) -> datetime:
     """Returns a datetime object for when the article was last updated"""
     last_update = soup.find('div', class_='oc-c-article__date')
     last_update = last_update.find('p')
@@ -58,7 +60,37 @@ def parse_datetime(soup):
     return last_update
 
 
-def parse_injuries(soup):
+def parse_matchday(soup: BeautifulSoup) -> int:
+    pattern = re.compile(r"UPDATED\s+THROUGH:?\s+Matchday\s+(\d+)")
+    matchday_number = None
+    found_elements = soup.find_all(string=pattern)
+    if found_elements:
+        print(f"Found {len(found_elements)} matching elements.")
+        first_match_text = found_elements[0].strip()
+        match = pattern.search(first_match_text)
+        if match:
+            try:
+                # group(1) corresponds to the first capturing group (\d+)
+                matchday_number_str = match.group(1)
+                matchday_number = int(matchday_number_str)
+                print(f"Found text: '{first_match_text}'")
+                print(f"Extracted Matchday Number: {matchday_number}")
+            except ValueError:
+                print(f"Found text '{first_match_text}', but could not convert '{matchday_number_str}' to an integer.")
+            except IndexError:
+                print(f"Found text '{first_match_text}', but couldn't extract the number group.")
+        else:
+            print(f"Found element with text '{first_match_text}', but regex couldn't extract number.")
+
+    else:
+        print("No text matching the pattern 'UPDATED THROUGH: Matchday [number]' found.")
+
+    # You can now use the variable 'matchday_number' which holds the integer (or None if not found/extracted)
+    if matchday_number is not None:
+        print(f"\nThe extracted number is: {matchday_number}")
+    return matchday_number
+
+def parse_injuries(soup: BeautifulSoup) -> Dict:
     """Returns a dict with team names as key, injury list as value"""
     tags = soup.find_all('div', class_='d3-l-col__col-12')
 
@@ -84,7 +116,7 @@ def parse_injuries(soup):
     return injury_list
 
 
-def match_teams(injury_obj):
+def match_teams(injury_obj: Dict) -> Dict:
     """Returns a dict with team opta ID as key, injury list as value"""
     teams = names.items()
     opta_injuries = {}
@@ -106,21 +138,12 @@ def main():
     retval = False
     soup = get_injury_content()
     inj_obj = populate_injuries(soup)
-    old_inj = {}
-    if os.path.exists(INJ_FILE):
-        old_inj = util.read_json(INJ_FILE)
-    newest_inj = {'updated': '', 'injuries': {}}
+    newest_inj = {'matchday': inj_obj.matchday if inj_obj.matchday else "Unknown", 'injuries': {}}
     new_inj = inj_obj.to_dict()
-    newest_inj = {'updated': new_inj['updated'], 'injuries': {}}
-    # have learned you can't necessarily rely on the updated time from the website
     for key in new_inj['injuries']:
         new_key = str(key)
         newest_inj['injuries'][new_key] = new_inj['injuries'][key]
-    if newest_inj != old_inj:
-        newest_inj['updated'] = datetime.now().strftime('%m/%d/%Y %H:%M:%S')
-        msg.send('injuries.json changed.')
-        retval = True
-    util.write_json(new_inj, INJ_FILE)
+    util.write_json(newest_inj, INJ_FILE)
     return retval
 
 

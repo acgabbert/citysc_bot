@@ -147,7 +147,7 @@ async def match_thread(
                 logger.error(message)
                 msg.send(message, tag=True)
             
-            if match_obj.is_final:
+            if match_obj.is_final():
                 msg.send('Match is finished, final update made', tag=True)
                 if post and not post_thread:
                     # post a post-match thread before exiting the loop

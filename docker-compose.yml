@@ -7,6 +7,7 @@ services:
       - ${BOT_BASE_PATH:-/opt/citysc_bot}/markdown:/app/markdown
       - ${BOT_BASE_PATH:-/opt/citysc_bot}/log:/app/log
       - ${BOT_BASE_PATH:-/opt/citysc_bot}/png:/app/png
+      - ${BOT_BASE_PATH:-/opt/citysc_bot}/data:/app/data
     environment:
       - TZ=America/Chicago
       - INIT_DIR=${BOT_BASE_PATH:-/opt/citysc_bot}

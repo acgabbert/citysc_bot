@@ -11,7 +11,7 @@ def generate_match_header(match_obj: Match, pre: bool = False) -> str:
     away = match_obj.data.match_info.away
     joiner_string = "vs." if pre else match_obj.get_score()
     
-    result_string = match_obj.get_result_type() or match_obj.minute_display or ""
+    result_string = match_obj.get_result_type() or f"{match_obj.minute_display}'" or ""
     result_string = f"{result_string}: " if len(result_string) > 0 else result_string
     header_parts = [f"## {result_string}{home.fullName} {joiner_string} {away.fullName}"]
 
@@ -30,15 +30,15 @@ def generate_match_info(match_obj: Match) -> Optional[str]:
         f"- **Competition:** {match_obj.get_comp().name}",
         f"- **Date:** {date}",
         f"- **Time:** {time_str}",
-        f"- **Venue:** {match_obj.data.match_info.venue.name}"
+        f"- **Venue:** {match_obj.data.match_info.venue.name}",
+        "",
+        f"TV/Streaming: {generate_broadcasters(match_obj)}"
     ]
-
-    tv_streaming = "No data via mlssoccer.com."
     return "\n".join(info_lines)
 
 def generate_scorers(match_obj: Match) -> List[str]:
     """Generate scorer strings for a match object"""
-
+    pass
 
 def generate_match_footer(match_obj: Match) -> str:
     footer = "Last Updated: "
@@ -52,8 +52,8 @@ def generate_match_stats(match_obj: Match) -> str:
     home_display = match_obj.home.abbreviation or match_obj.home.shortName or match_obj.home.fullName
     away_display = match_obj.away.abbreviation or match_obj.away.shortName or match_obj.away.fullName
 
-    header = f"{home_display}|{match_obj.home_goals}-{match_obj.away_goals}|{away_display}"
-    header += "\n:-:||:-:|:-:"
+    header = f"| {home_display} | {match_obj.home_goals}-{match_obj.away_goals} | {away_display} |"
+    header += "\n| :---: | :---: | :---: |"
 
     markdown = f"### Match Stats:\n{header}"
     markdown += add_stat(match_obj, 'possession_ratio', 'Ball Possession', True)
@@ -70,40 +70,67 @@ def generate_match_stats(match_obj: Match) -> str:
     markdown += add_stat(match_obj, 'passes_sum', 'Total Passes')
     markdown += add_stat(match_obj, 'passes_from_play_conversion_rate', 'Pass Accuracy', True)
     
+    if markdown.endswith(":---:"):
+        # Likely no stats to be returned
+        return None
     return markdown
 
 def generate_lineups(match_obj: Match) -> str:
     starting_lineups = match_obj.get_starting_lineups()
     subs = match_obj.get_subs()
-    home_lineup = generate_team_lineup(starting_lineups[match_obj.home_id], subs.get(match_obj.home_id))
-    away_lineup = generate_team_lineup(starting_lineups[match_obj.away_id], subs.get(match_obj.away_id))
-    if len(starting_lineups[match_obj.home_id]) < 1:
-        home_lineup = "Not yet available via mlssoccer.com."
-    if len(starting_lineups[match_obj.away_id]) < 1:
-        away_lineup = "Not yet available via mlssoccer.com."
+    home_lineup = "Not yet available via mlssoccer.com."
+    home_subs = ""
+    away_lineup = "Not yet available via mlssoccer.com."
+    away_subs = ""
+    if starting_lineups:
+        home_lineup = generate_team_lineup(getattr(match_obj.data.match_base.home, "players", []), subs.get(match_obj.home_id, []))
+        away_lineup = generate_team_lineup(getattr(match_obj.data.match_base.away, "players", []), subs.get(match_obj.away_id, []))
+        if len(starting_lineups[match_obj.home_id]) < 1:
+            home_lineup = "Not yet available via mlssoccer.com."
+        if len(starting_lineups[match_obj.away_id]) < 1:
+            home_lineup = "Not yet available via mlssoccer.com."
+    if subs:
+        pass
     return "\n".join([
         "### Lineups",
-        f"**{match_obj.home.fullName}**: {home_lineup}"
+        f"**{match_obj.home.fullName}**:",
+        home_lineup,
         "",
-        f"**{match_obj.away.fullName}**: {away_lineup}"
+        home_subs,
+        "",
+        f"**{match_obj.away.fullName}**:",
+        away_lineup,
+        "",
+        away_subs
     ])
 
 def generate_team_lineup(lineup: List[BasePerson], subs: List[SubstitutionEvent]) -> str:
-    retval = []
+    if not lineup:
+        return "Not yet available via mlssoccer.com."
+    starters = []
+    bench = []
     subs_mapping: Dict[str, SubstitutionEvent] = {}
     for s in subs:
         subs_mapping[s.event.player_out_id] = s
     for p in lineup:
         if p.person_id in subs_mapping:
-            retval.append(format_sub_event(subs_mapping.get(p.person_id)))
+            starters.append(format_sub_event(subs_mapping.get(p.person_id)))
+        elif p.starting:
+            starters.append(str(p))
         else:
-            retval.append(str(p))
+            bench.append(str(p))
     
-    return ", ".join(retval)
+    starters = ", ".join(starters)
+    bench = "*Subs:* " + ", ".join(bench)
+    return "\n".join([
+        starters,
+        "",
+        bench
+    ])
 
 def format_sub_event(event: SubstitutionEvent) -> str:
     event_details = event.event
-    return f"{event_details.player_out_first_name} {event_details.player_out_last_name} ({event_details.player_in_first_name} {event_details.player_in_last_name} {event_details.minute_of_play}')"
+    return f"{event_details.player_out_first_name} {event_details.player_out_last_name} (🔄 {event_details.player_in_first_name} {event_details.player_in_last_name} {event_details.minute_of_play}')"
 
 
 def add_stat(match_obj: Match, stat: str, display: str = None, isPercentage=False) -> str:
@@ -118,10 +145,25 @@ def add_stat(match_obj: Match, stat: str, display: str = None, isPercentage=Fals
         if isinstance(away_stat, float) and isPercentage:
             if away_stat < 1:
                 away_stat *= 100
-        retval = f"\n{home_stat:g}{'%' if isPercentage else ''}"
-        retval += f"|{display}|{away_stat:g}{'%' if isPercentage else ''}"
+        retval = f"\n| {home_stat:g}{'%' if isPercentage else ''}"
+        retval += f" | {display} | {away_stat:g}{'%' if isPercentage else ''} |"
         return retval
     return ""
+
+def generate_broadcasters(match_obj: Match) -> str:
+    broadcasters = match_obj.get_broadcasters()
+    if not broadcasters:
+        return "No data via mlssoccer.com."
+
+    retval = []
+
+    for b in broadcasters:
+        disp = b.broadcasterName
+        if "Apple" in disp and match_obj.data.match_info.appleStreamURL:
+            disp = f"[{disp}]({match_obj.data.match_info.appleStreamURL})"
+        retval.append(disp)
+    
+    return ", ".join(retval)
 
 def generate_previous_matchups(match_obj: Match) -> str:
     return None
@@ -171,7 +213,7 @@ def match_thread(match_obj: Match):
     title = f'Match Thread: {home} vs. {away} ({comp}) [{date}]'
     
     markdown_components = [
-        generate_match_header(match_obj, pre=True),
+        generate_match_header(match_obj),
         generate_lineups(match_obj),
         generate_match_stats(match_obj),
         generate_match_footer(match_obj)
@@ -196,7 +238,8 @@ def post_match_thread(match_obj: Match):
     title = f'Post-Match Thread: {home} vs. {away} ({comp}) [{date}]'
 
     markdown_components = [
-        generate_match_header(match_obj, pre=True),
+        generate_match_header(match_obj),
+        generate_lineups(match_obj),
         generate_match_stats(match_obj),
         generate_match_footer(match_obj)
     ]

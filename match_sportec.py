@@ -1,5 +1,6 @@
 from collections import defaultdict
 from datetime import datetime
+import json
 import logging
 import sys
 from typing import Dict, List, Optional, Tuple
@@ -124,7 +125,7 @@ class Match:
         """
         Get the scheduled date and time of the match (local).
         """
-        return self.data.match_base.match_information.planned_kickoff_time.astimezone()
+        return self.data.match_info.matchDate.astimezone()
     
     def get_local_date_string(self) -> str:
         """
@@ -198,11 +199,13 @@ class Match:
         """
         return self.data.match_events.events
 
-    def get_broadcasters(self) -> List[Broadcaster] | None:
+    def get_broadcasters(self) -> List[Broadcaster]:
         """
         Get broadcasters for a match
         """
-        return self.data.match_info.broadcasters
+        if not self.data.match_info:
+            return []
+        return getattr(self.data.match_info, 'broadcasters', [])
 
     def get_goalscorers(self) -> Dict[str, List[str]]:
         """
@@ -298,7 +301,7 @@ class Match:
         """
         Get substitution events, ordered by team.
         """
-        if not self.data.match_events.events:
+        if not self.data.match_events or not self.data.match_events.events:
             return {}
         subs_by_team = {
             self.data.match_base.home.team_id: [],
@@ -332,6 +335,8 @@ class Match:
         """
         Get result type if the match is finished.
         """
+        if not self.data.match_events:
+            return ""
         result = "FT"
         # check if any events are in extra time
         penalties = any('penalty' in event_obj.event.game_section.lower() for event_obj in self.data.match_events.events)
@@ -346,3 +351,14 @@ class Match:
             return result
         else:
             return ""
+    
+    def get_data_string(self) -> str:
+        retval = ""
+        if self.data.match_events:
+            # TODO how can we consolidate this more...
+            # don't care about: 
+            # - kickoff events
+            # - certain fields (team ID, player ID, player alias)
+            retval = "\n".join([e.model_dump_json(indent=1) for e in self.get_events()])
+        
+        return retval
