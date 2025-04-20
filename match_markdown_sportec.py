@@ -11,7 +11,7 @@ def generate_match_header(match_obj: Match, pre: bool = False) -> str:
     away = match_obj.data.match_info.away
     joiner_string = "vs." if pre else match_obj.get_score()
     
-    result_string = match_obj.get_result_type() or match_obj.minute_display or ""
+    result_string = match_obj.get_result_type() or f"{match_obj.minute_display}'" or ""
     result_string = f"{result_string}: " if len(result_string) > 0 else result_string
     header_parts = [f"## {result_string}{home.fullName} {joiner_string} {away.fullName}"]
 
@@ -30,10 +30,10 @@ def generate_match_info(match_obj: Match) -> Optional[str]:
         f"- **Competition:** {match_obj.get_comp().name}",
         f"- **Date:** {date}",
         f"- **Time:** {time_str}",
-        f"- **Venue:** {match_obj.data.match_info.venue.name}"
+        f"- **Venue:** {match_obj.data.match_info.venue.name}",
+        "",
+        f"TV/Streaming: {generate_broadcasters(match_obj)}"
     ]
-
-    tv_streaming = "No data via mlssoccer.com."
     return "\n".join(info_lines)
 
 def generate_scorers(match_obj: Match) -> List[str]:
@@ -149,6 +149,21 @@ def add_stat(match_obj: Match, stat: str, display: str = None, isPercentage=Fals
         retval += f" | {display} | {away_stat:g}{'%' if isPercentage else ''} |"
         return retval
     return ""
+
+def generate_broadcasters(match_obj: Match) -> str:
+    broadcasters = match_obj.get_broadcasters()
+    if not broadcasters:
+        return "No data via mlssoccer.com."
+
+    retval = []
+
+    for b in broadcasters:
+        disp = b.broadcasterName
+        if "Apple" in disp and match_obj.data.match_info.appleStreamURL:
+            disp = f"[{disp}]({match_obj.data.match_info.appleStreamURL})"
+        retval.append(disp)
+    
+    return ", ".join(retval)
 
 def generate_previous_matchups(match_obj: Match) -> str:
     return None

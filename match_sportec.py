@@ -198,11 +198,13 @@ class Match:
         """
         return self.data.match_events.events
 
-    def get_broadcasters(self) -> List[Broadcaster] | None:
+    def get_broadcasters(self) -> List[Broadcaster]:
         """
         Get broadcasters for a match
         """
-        return self.data.match_info.broadcasters
+        if not self.data.match_info:
+            return []
+        return getattr(self.data.match_info, 'broadcasters', [])
 
     def get_goalscorers(self) -> Dict[str, List[str]]:
         """
