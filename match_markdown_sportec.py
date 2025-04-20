@@ -71,8 +71,7 @@ def generate_match_stats(match_obj: Match) -> str:
     markdown += add_stat(match_obj, 'passes_from_play_conversion_rate', 'Pass Accuracy', True)
     
     if markdown.endswith(":-:"):
-        # Likely no stats other than 
-        print("returning no stats")
+        # Likely no stats to be returned
         return None
     return markdown
 
@@ -97,6 +96,8 @@ def generate_lineups(match_obj: Match) -> str:
 
 def generate_team_lineup(lineup: List[BasePerson], subs: List[SubstitutionEvent]) -> str:
     retval = []
+    if not subs:
+        return retval
     subs_mapping: Dict[str, SubstitutionEvent] = {}
     for s in subs:
         subs_mapping[s.event.player_out_id] = s
