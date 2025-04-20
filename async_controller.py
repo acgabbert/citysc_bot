@@ -120,7 +120,12 @@ class AsyncController:
                         thread_time = datetime.fromtimestamp(match_time.timestamp() - 1800)
 
                         if thread_time.timestamp() < now:
-                            self.create_match_thread(match_id, team != 19202)
+                            # We probably missed the match thread
+                            try:
+                                await thread.match_thread(match_id, self.subreddit, post=(team != 19202))
+                            except Exception as e:
+                                root.error(f"Error creating match thread: {str(e)}")
+                                msg.send(f"Error creating match thread for {match_id}: {str(e)}")
                         else:
                             self.scheduler.add_job(
                                 self.create_match_thread,
