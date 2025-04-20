@@ -213,7 +213,7 @@ def match_thread(match_obj: Match):
     title = f'Match Thread: {home} vs. {away} ({comp}) [{date}]'
     
     markdown_components = [
-        generate_match_header(match_obj, pre=True),
+        generate_match_header(match_obj),
         generate_lineups(match_obj),
         generate_match_stats(match_obj),
         generate_match_footer(match_obj)
@@ -238,7 +238,8 @@ def post_match_thread(match_obj: Match):
     title = f'Post-Match Thread: {home} vs. {away} ({comp}) [{date}]'
 
     markdown_components = [
-        generate_match_header(match_obj, pre=True),
+        generate_match_header(match_obj),
+        generate_lineups(match_obj),
         generate_match_stats(match_obj),
         generate_match_footer(match_obj)
     ]

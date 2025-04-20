@@ -1,5 +1,6 @@
 from collections import defaultdict
 from datetime import datetime
+import json
 import logging
 import sys
 from typing import Dict, List, Optional, Tuple
@@ -350,3 +351,14 @@ class Match:
             return result
         else:
             return ""
+    
+    def get_data_string(self) -> str:
+        retval = ""
+        if self.data.match_events:
+            # TODO how can we consolidate this more...
+            # don't care about: 
+            # - kickoff events
+            # - certain fields (team ID, player ID, player alias)
+            retval = "\n".join([e.model_dump_json(indent=1) for e in self.get_events()])
+        
+        return retval
