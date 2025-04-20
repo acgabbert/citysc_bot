@@ -118,19 +118,22 @@ class AsyncController:
                     if match_time.timestamp() < today and datetime.now().date() == local_time.date():
                         # Schedule match thread for 30 mins before game
                         thread_time = datetime.fromtimestamp(match_time.timestamp() - 1800)
-                        
-                        self.scheduler.add_job(
-                            self.create_match_thread,
-                            'date',
-                            run_date=thread_time,
-                            args=[match_id, team != 19202],  # post-match thread only if not CITY2
-                            name=f'match_thread_{match_id}',
-                            replace_existing=True
-                        )
-                        
-                        message = f'Scheduled match thread for {thread_time.strftime("%H:%M")}. Team {team}, Opta ID {match_id}'
-                        root.info(message)
-                        msg.send(message)
+
+                        if thread_time.timestamp() < now:
+                            self.create_match_thread(match_id, team != 19202)
+                        else:
+                            self.scheduler.add_job(
+                                self.create_match_thread,
+                                'date',
+                                run_date=thread_time,
+                                args=[match_id, team != 19202],  # post-match thread only if not CITY2
+                                name=f'match_thread_{match_id}',
+                                replace_existing=True
+                            )
+                            
+                            message = f'Scheduled match thread for {thread_time.strftime("%H:%M")}. Team {team}, Opta ID {match_id}'
+                            root.info(message)
+                            msg.send(message)
                         
                         current_hour = datetime.now().hour
                         # Schedule pre-match thread if not CITY2
