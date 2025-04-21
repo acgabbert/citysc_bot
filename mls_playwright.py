@@ -7,7 +7,7 @@ import discord as msg
 
 logger = logging.getLogger(__name__)
 
-standings_url = 'https://www.mlssoccer.com/standings/2025/conference#season=2025&live=false'
+standings_url = 'https://www.mlssoccer.com/standings/#season=MLS-SEA-0001K9&live=false'
 schedule_url = 'https://www.mlssoccer.com/schedule/scores#competition=all&club=MLS-CLU-00001L&date='
 schedule_no_matches = 'mls-c-schedule__no-results-text'
 
@@ -33,18 +33,15 @@ async def get_page(browser: Browser, url: str, width=375, height=2800) -> Page:
     except Exception as e:
         logger.debug(f"Cookie banner handling error: {e}")
     
-    # Wait for loading states to complete
-    await page.wait_for_selector('div[data-testid="loading"]', state='hidden')
-    for loading_class in [
-        'img-responsive mls-o-loading mls-o-loading--glow',
-        'mls-o-loading mls-o-loading--glow mls-o-loading--line mls-o-loading--5rem',
-        'mls-o-loading mls-o-loading--glow mls-o-loading--line mls-o-loading--4rem',
-        'mls-o-loading mls-o-loading--glow mls-o-loading--line mls-o-loading--2rem',
-        'mls-o-loading mls-o-loading--glow mls-o-loading--table-cell',
-        'mls-o-loading mls-o-loading--glow mls-o-loading--50 mls-o-loading--table-cell'
-    ]:
-        await page.wait_for_selector(f'.{loading_class}', state='hidden', timeout=10000)
-    
+    try:
+        # 'networkidle' waits until there are no network connections for 500 ms.
+        logger.debug("Waiting for network idle...")
+        await page.wait_for_load_state('networkidle', timeout=10000)
+        logger.debug("Network is idle.")
+    except Exception as e:
+        logger.warning(f"Timeout or error waiting for network idle: {e}")
+        # Decide if you want to proceed anyway or raise the error
+
     return page
 
 async def get_screenshot(url: str, outer_selector: str, inner_selector: str = None, title: str = None) -> str:

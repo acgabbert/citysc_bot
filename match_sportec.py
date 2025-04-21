@@ -353,12 +353,74 @@ class Match:
             return ""
     
     def get_data_string(self) -> str:
-        retval = ""
+        retval = []
         if self.data.match_events:
             # TODO how can we consolidate this more...
             # don't care about: 
             # - kickoff events
             # - certain fields (team ID, player ID, player alias)
-            retval = "\n".join([e.model_dump_json(indent=1) for e in self.get_events()])
+            events = []
+            for e in self.data.match_events.events:
+                if e.type in ['kick_off']:
+                    continue
+                include_events = [
+                    "card_color",
+                    "card_rating",
+                    "final_result",
+                    "minute_of_play",
+                    "player_first_name",
+                    "player_last_name",
+                    "team_name",
+                    "team_role",
+                    "foul_type",
+                    "fouled_first_name",
+                    "fouled_last_name",
+                    "fouler_first_name",
+                    "fouler_last_name",
+                    "team_fouled_name",
+                    "team_fouler_name",
+                    "side",
+                    "assist_player_first_name",
+                    "assist_player_last_name",
+                    "inside_box",
+                    "distance_to_goal",
+                    "shot_result",
+                    "type_of_shot",
+                    "xG",
+                ]
+                event = {"type": e.type, "sub_type": e.sub_type, "event": e.event.model_dump(include=include_events)}
+                events.append(event)
+            retval.append({"match_events": events})
         
-        return retval
+        if self.data.match_stats:
+            stats = []
+            for team in self.data.match_stats.team_statistics:
+                include_stats = [
+                    "team_name",
+                    "team_role",
+                    "counter_attacks",
+                    "substitutions_in",
+                    "substitutions_out",
+                    "offsides",
+                    "fouls_against_opponent",
+                    "goals",
+                    "shots_at_goal_sum",
+                    "assists",
+                    "passes_sum",
+                    "crosses_sum",
+                    "own_goals",
+                    "defensive_clearances",
+                    "penalties_successful",
+                    "penalties_not_successful",
+                    "corner_kicks_sum",
+                    "free_kicks_sum",
+                    "xG",
+                    "distance_covered",
+                    "goal_opportunities",
+                    "chances",
+                    "sitters"
+                ]
+                stats.append(team.model_dump(include=include_stats))
+            retval.append({"match_stats": stats})
+        
+        return json.dumps(retval, ensure_ascii=False, indent=1)
