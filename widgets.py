@@ -179,9 +179,9 @@ async def main():
     #s_changed = standings()
     if sub:
         print(f'updating widget for sub {sub}')
-        await update_image_widget('Western Conference', sub)
+        await update_image_widget('WESTERN CONFERENCE', sub)
     else:
-        await update_image_widget('Western Conference', SUB)
+        await update_image_widget('WESTERN CONFERENCE', SUB)
     if sub:
         await update_image_widget('This Week', sub)
     else:
