@@ -57,6 +57,7 @@ async def get_screenshot(url: str, outer_selector: str, inner_selector: str = No
             if inner_selector:
                 titles = await page.query_selector_all(inner_selector)
                 title = await titles[i].text_content()
+                title = str(title).title()
             
             screenshot = await element.screenshot()
             filename = write_screenshot(screenshot, title)
