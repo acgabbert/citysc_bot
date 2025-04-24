@@ -10,7 +10,7 @@ from apscheduler.triggers.cron import CronTrigger
 from apscheduler.job import Job
 from datetime import datetime, date, timedelta
 
-from api_client import MLSApiClient
+from api_client import MLSApiClient, MLSApiClientError
 import discipline
 import discord as msg
 import injuries
@@ -124,7 +124,7 @@ class AsyncController:
                             root.info('whoops. creating thread')
                             await self.create_match_thread(match_id, team != 19202)
                         else:
-                            root.info('shceduling thread')
+                            root.info('scheduling thread')
                             self.scheduler.add_job(
                                 self.create_match_thread,
                                 'date',
@@ -194,6 +194,9 @@ class AsyncController:
                     root.info(message)
                     msg.send(message)
             
+            except MLSApiClientError as e:
+                root.exception(f"Error fetching data for team {team}: {str(e)}")
+                msg.send(f"Error fetching data for team {team}: {str(e)}")
             except Exception as e:
                 root.exception(f"Error in daily setup for team {team}: {str(e)}")
                 msg.send(f"Error in daily setup for team {team}: {str(e)}", True)
