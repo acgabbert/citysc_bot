@@ -242,12 +242,17 @@ class MLSApiClient:
                             caller_name = inspect.stack()[2].function
                             # Extract match_id
                             id = ''
-                            match = re.search(r"MLS-(?:MAT|CLU)-\w+", url)
+                            id_pattern = re.compile(r"MLS-(?:MAT|CLU)-\w+")
+                            match = id_pattern.search(url)
                             if match:
                                 id = match.group(0)
-                            else:
-                                raise Exception("No match or club ID found in URL.")
-                            filename = f"assets/{caller_name.split('get_')[1]}_{id}.json"
+                            elif params:
+                                for key in params.keys():
+                                    match = id_pattern.search(str(params[key]))
+                                    if match:
+                                        id = match.group(0)
+                                        break
+                            filename = f"assets/{caller_name.split('get_')[1]}{f"_{id}" if id else ""}.json"
                             util.write_json(response_data, filename)
                         except Exception as e:
                             logger.error(f"Failed to log response: {str(e)}")

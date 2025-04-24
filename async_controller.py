@@ -95,8 +95,8 @@ class AsyncController:
                 async with MLSApiClient() as client:
                     # Get schedule data
                     msg.send(f"Checking schedule for team {team}")
-                    from_date = date.today() - timedelta(days=2)
-                    to_date = date.today() + timedelta(days=2)
+                    from_date = date.today() - timedelta(days=5)
+                    to_date = date.today() + timedelta(days=5)
                     data = await client.get_schedule(
                         season=MlsSeason.SEASON_2025.value,
                         match_date_gte=from_date.isoformat(),
