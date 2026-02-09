@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 import enum
 from typing import Annotated
 
@@ -11,6 +11,7 @@ class MlsSeason(enum.Enum):
     Enum representing MLS Seasons with their unique season IDs.
     The enum member name is SEASON_YYYY and the value is the season_id.
     """
+    SEASON_2026 = "MLS-SEA-0001KA"
     SEASON_2025 = "MLS-SEA-0001K9"
     SEASON_2024 = "MLS-SEA-0001K8"
     SEASON_2023 = "MLS-SEA-0001K7"
@@ -90,6 +91,15 @@ class MlsCompetition(enum.Enum):
     def value(self):
         """Returns the competition_id as the primary value."""
         return self.competition_id
+
+def get_current_season() -> str:
+    """Get the MLS season ID for the current year."""
+    year = date.today().year
+    member_name = f"SEASON_{year}"
+    try:
+        return MlsSeason[member_name].value
+    except KeyError:
+        raise ValueError(f"No MLS season found for year {year}. Add SEASON_{year} to MlsSeason enum.")
 
 UtcDatetime = Annotated[datetime, AfterValidator(normalize_datetime)]
 FlexibleBool = Annotated[bool, BeforeValidator(normalize_bool)]

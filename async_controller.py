@@ -17,7 +17,7 @@ import injuries
 import match_thread as thread
 import mls_schedule
 import mls_playwright
-from models.constants import MlsSeason
+from models.constants import get_current_season
 from thread_manager import ThreadManager
 import widgets
 from config import FEATURE_FLAGS, SUB, TEAMS, THREADS_JSON
@@ -98,7 +98,7 @@ class AsyncController:
                     from_date = date.today() - timedelta(days=5)
                     to_date = date.today() + timedelta(days=5)
                     data = await client.get_schedule(
-                        season=MlsSeason.SEASON_2025.value,
+                        season=get_current_season(),
                         match_date_gte=from_date.isoformat(),
                         match_date_lte=to_date.isoformat(),
                         team_id=names[team].sportec_id
@@ -173,7 +173,7 @@ class AsyncController:
                                     msg.send(error_msg, tag=True)
                     
                     # If match has started but not likely finished (within last 3 hours)
-                    elif match_time.timestamp() > now + 1800 and now - match_time.timestamp() < 10800: 
+                    elif match_time.timestamp() < now and now - match_time.timestamp() < 10800:
                         threads = file_manager.get_threads(str(match_id))
                         if threads and threads.match and not threads.post:
                             # Resume match thread updates

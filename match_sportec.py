@@ -296,6 +296,7 @@ class Match:
         """
         if not self.data.match_events.events:
             return []
+        return [str(event) for event in self.data.match_events.events]
 
     def get_subs(self) -> Dict[str, List[SubstitutionEvent]]:
         """
@@ -319,9 +320,6 @@ class Match:
         """
         Get a score string, including penalties if applicable.
         """
-        result = ""
-        if self.data.match_base.match_information.result:
-            result = f"{self.data.match_info.home.fullName} {self.data.match_base.match_information.result} {self.data.match_info.away.fullName}"
         home_goals = self.data.match_base.match_information.home_team_goals
         away_goals = self.data.match_base.match_information.away_team_goals
         result = f"{home_goals}-{away_goals}"

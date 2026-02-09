@@ -91,7 +91,7 @@ class MatchScheduleDeprecated(BaseModel):
     
     @model_validator(mode='after')
     def validate_model(self) -> 'MatchScheduleDeprecated':
-        if self.appleStreamURL and not self.appleStreamURL:
+        if self.appleSubscriptionTier and not self.appleStreamURL:
             raise ValueError("appleStreamURL must be set if appleSubscriptionTier is set")
         return self
 
@@ -455,6 +455,7 @@ class MLSApiClient:
             for error in e.errors():
                 if error['type'] == 'missing':
                     logger.error(error['loc'][0])
+            raise
     
     async def get_match_by_id(self, id: str) -> Match_Sport:
         """Get single match info from the sport API by Sportec ID"""
@@ -468,6 +469,7 @@ class MLSApiClient:
             for error in e.errors():
                 if error['type'] == 'missing':
                     logger.error(error['loc'][0])
+            raise
 
     async def get_standings(
         self,
@@ -556,6 +558,7 @@ class MLSApiClient:
             for error in e.errors():
                 if error['type'] == 'missing':
                     logger.error(error['loc'][0])
+            raise
     
     async def get_match_schedule(self, match_id: str, **kwargs) -> MatchSchedule:
         """Get schedule object for a single match"""
@@ -571,6 +574,7 @@ class MLSApiClient:
             for error in e.errors():
                 if error['type'] == 'missing':
                     logger.error(error['loc'][0])
+            raise
     
     async def get_match(self, match_id: str, **kwargs) -> Match_Base:
         """Get match by Sportec ID"""
@@ -584,8 +588,7 @@ class MLSApiClient:
             for error in e.errors():
                 if error['type'] == 'missing':
                     logger.error(error['loc'][0])
-        except Exception as e:
-            logger.error(e)
+            raise
     
     async def get_match_stats(self, match_id: str, **kwargs) -> MatchStats:
         data = await self._make_request(
@@ -601,8 +604,7 @@ class MLSApiClient:
             for error in e.errors():
                 if error['type'] == 'missing':
                     logger.error(error['loc'][0])
-        except Exception as e:
-            logger.error(e)
+            raise
     
     async def get_match_events(self, match_id: str, **kwargs) -> MatchEventResponse:
         params = {
@@ -623,8 +625,7 @@ class MLSApiClient:
             for error in e.errors():
                 if error['type'] == 'missing':
                     logger.error(error['loc'][0])
-        except Exception as e:
-            logger.error(e)
+            raise
     
     async def get_detailed_possession(self, match_id: str, **kwargs) -> Any:
         data = await self._make_request(

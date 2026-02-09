@@ -9,9 +9,8 @@ class EventDetails(BaseModel):
     model_config = ConfigDict(extra="allow", strict=False)
     
     event_id: int
-    event_time: UtcDatetime
     minute_of_play: Optional[str] = None
-    event_time: Optional[str] = None
+    event_time: Optional[UtcDatetime] = None
     game_section: Optional[str] = None
     player_first_name: Optional[str] = None
     player_last_name: Optional[str] = None
@@ -63,7 +62,7 @@ class ShotEventDetails(EventDetails):
             case "leftLeg":
                 shot_description += "left-footed shot"
             case "rightLeg":
-                shot_description += "left-footed shot"
+                shot_description += "right-footed shot"
             case "head":
                 shot_description += "headed shot"
         
