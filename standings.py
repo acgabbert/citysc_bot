@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import mls_api as mls
 import util
 from club import Club
@@ -5,7 +7,7 @@ from club import Club
 BASE_URL = 'https://sportapi.mlssoccer.com/api/standings/live?&isLive=true'
 PARAMS = {
     'isLive': 'true',
-    'seasonId': 2023,
+    'seasonId': datetime.now().year,
     'competitionId': 98
 }
 SEASON = '&seasonId='
@@ -15,7 +17,7 @@ def get_standings(**kwargs):
     """Get standings."""
     url = BASE_URL
     comp = COMP + mls.MLS[-2:]
-    season = SEASON + '2023'
+    season = SEASON + str(datetime.now().year)
     for key, value in kwargs.items():
         if key == 'comp':
             comp = COMP + str(value)

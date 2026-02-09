@@ -88,7 +88,7 @@ def generate_lineups(match_obj: Match) -> str:
         if len(starting_lineups[match_obj.home_id]) < 1:
             home_lineup = "Not yet available via mlssoccer.com."
         if len(starting_lineups[match_obj.away_id]) < 1:
-            home_lineup = "Not yet available via mlssoccer.com."
+            away_lineup = "Not yet available via mlssoccer.com."
     if subs:
         pass
     return "\n".join([
