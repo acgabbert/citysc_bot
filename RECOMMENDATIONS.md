@@ -4,85 +4,19 @@ This document is a prioritized audit of the `citysc_bot` codebase -- a Reddit ma
 
 ---
 
-## Tier 1: Bugs & Correctness Issues
+## ~~Tier 1: Bugs & Correctness Issues~~ (All resolved)
 
-These are things that are broken or will produce wrong behavior at runtime.
+All 9 issues in this tier have been fixed.
 
-### 1.1 Hardcoded season ID will break every year
-**Files:** `async_controller.py:101`, `models/constants.py:14`, `standings.py:8`
-
-`daily_setup()` hardcodes `MlsSeason.SEASON_2025.value`. When the 2026 season starts, the bot will silently query the wrong season. `standings.py` still hardcodes `seasonId: 2023`.
-
-**Fix:** Derive the current season dynamically from the current date, or add a `CURRENT_SEASON` setting to `config.py`.
-
-### 1.2 Logic bug in `async_controller.py:176` — match-resume condition is inverted
-```python
-elif match_time.timestamp() > now + 1800 and now - match_time.timestamp() < 10800:
-```
-The first condition (`match_time > now + 1800`) means the match hasn't started yet, but the intention is to detect a match that *has* started. This branch will never be true. It should be:
-```python
-elif match_time.timestamp() < now and now - match_time.timestamp() < 10800:
-```
-
-### 1.3 `ShotEventDetails.__str__` has a copy-paste bug
-**File:** `models/event.py:66`
-```python
-case "rightLeg":
-    shot_description += "left-footed shot"  # should be "right-footed shot"
-```
-
-### 1.4 `EventDetails` has a duplicate field declaration
-**File:** `models/event.py:12-14`
-```python
-event_id: int
-event_time: UtcDatetime   # first declaration
-minute_of_play: Optional[str] = None
-event_time: Optional[str] = None  # second — shadows the first
-```
-The second `event_time` overrides the first (which expected a `UtcDatetime`). This means the validated datetime is discarded. Pick one type and keep only that field.
-
-### 1.5 `MatchScheduleDeprecated` validator is a no-op
-**File:** `api_client.py:94`
-```python
-if self.appleStreamURL and not self.appleStreamURL:  # always False
-```
-The condition checks if `appleStreamURL` is both truthy and falsy simultaneously. It should probably be:
-```python
-if self.appleSubscriptionTier and not self.appleStreamURL:
-```
-
-### 1.6 Several API methods silently return `None` on validation errors
-**Files:** `api_client.py:456-458`, `api_client.py:469-470`, `api_client.py:554-558`, `api_client.py:569-573`, `api_client.py:584-588`, `api_client.py:600-605`, `api_client.py:622-627`
-
-When `ValidationError` is caught the code logs the error but falls through to an implicit `return None`. Callers like `get_all_match_data` then pass `None` into `ComprehensiveMatchData`, which can cascade into `AttributeError` or `TypeError` exceptions later.
-
-**Fix:** Either raise the exception, or return a documented sentinel / empty result.
-
-### 1.7 `match_sportec.py:get_feed()` returns `None` instead of an empty list
-**File:** `match_sportec.py:293-298`
-```python
-def get_feed(self) -> List[str]:
-    if not self.data.match_events.events:
-        return []
-    # missing return statement — falls through to None
-```
-The method has an early return for no events, but when events *do* exist it doesn't return anything.
-
-### 1.8 `match_sportec.py:get_score()` silently overwrites result
-**File:** `match_sportec.py:322-327`
-```python
-if self.data.match_base.match_information.result:
-    result = f"..."  # set result with full team names
-home_goals = ...
-result = f"{home_goals}-{away_goals}"  # immediately overwritten
-```
-The first `result` assignment (with team names) is always overwritten by the second. The team-name variant should either use `return` or be removed.
-
-### 1.9 `match_markdown_sportec.py:91` — wrong variable assigned on away lineup miss
-```python
-if len(starting_lineups[match_obj.away_id]) < 1:
-    home_lineup = "Not yet available via mlssoccer.com."  # should be away_lineup
-```
+- [x] **1.1** Hardcoded season ID — Added `get_current_season()` helper to `models/constants.py`; updated `async_controller.py` and `standings.py`.
+- [x] **1.2** Inverted match-resume condition — Fixed condition in `async_controller.py:176`.
+- [x] **1.3** Copy-paste "left-footed" for rightLeg — Fixed in `models/event.py`.
+- [x] **1.4** Duplicate `event_time` field — Consolidated to single `Optional[UtcDatetime]` in `models/event.py`.
+- [x] **1.5** No-op validator (`x and not x`) — Fixed to check `appleSubscriptionTier` in `api_client.py`.
+- [x] **1.6** Silent `None` returns on ValidationError — Added `raise` after logging in 7 API methods in `api_client.py`.
+- [x] **1.7** `get_feed()` missing return — Added return statement in `match_sportec.py`.
+- [x] **1.8** `get_score()` dead code overwrite — Removed unreachable team-name assignment in `match_sportec.py`.
+- [x] **1.9** Wrong variable on away lineup miss — Fixed to assign `away_lineup` in `match_markdown_sportec.py`.
 
 ---
 
@@ -263,7 +197,7 @@ This skips stats for playoffs, Leagues Cup, US Open Cup, etc. If this is intenti
 
 | Tier | Category | Count |
 |------|----------|-------|
-| 1 | Bugs & Correctness | 9 |
+| ~~1~~ | ~~Bugs & Correctness~~ | ~~9~~ (done) |
 | 2 | Reliability & Robustness | 6 |
 | 3 | Code Quality & Maintainability | 7 |
 | 4 | Tests & Observability | 3 |
