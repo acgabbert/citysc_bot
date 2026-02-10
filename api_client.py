@@ -405,36 +405,6 @@ class MLSApiClient:
         )
 
     # Sport API endpoints
-    async def get_schedule_deprecated(
-        self,
-        club_opta_id: Optional[int] = None,
-        competition: Optional[Competition] = None,
-        match_type: Optional[MatchType] = None,
-        date_from: Optional[str] = None,
-        date_to: Optional[str] = None
-    ) -> List[MatchScheduleDeprecated]:
-        """Get schedule from sport API"""
-        params = {
-            "culture": "en-us"
-        }
-        if club_opta_id:
-            params["clubOptaId"] = club_opta_id
-        if competition:
-            params["competition"] = competition.value
-        if match_type:
-            params["matchType"] = match_type.value
-        if date_from:
-            params["dateFrom"] = date_from
-        if date_to:
-            params["dateTo"] = date_to
-
-        data = await self._make_request(
-            ApiEndpoint.SPORT,
-            "/matches",
-            params=params
-        )
-        return [MatchScheduleDeprecated.model_validate(match) for match in data]
-
     async def get_match_info(self, match_id: int) -> Dict[str, Any]:
         """Get match info from sport API"""
         return await self._make_request(
@@ -720,26 +690,12 @@ class MLSApiClient:
 async def main():
     async with MLSApiClient() as client:
         try:
-            # Get match data from both APIs
             match_id = 2261385
             match_stats = await client.get_match_stats(match_id)
             match_info = await client.get_match_info(match_id)
-            
-            # Get schedule for a team
-            schedule = await client.get_schedule_deprecated(
-                club_opta_id=17012,  # St. Louis City SC
-                competition=Competition.MLS,
-                match_type=MatchType.REGULAR,
-                date_from="2025-02-15",
-                date_to="2025-11-23"
-            )
-            
-            # Get standings
-            #standings = await client.get_standings(2025)
-            
+
             print(f"Match info: {match_info}")
-            print(f"Schedule: Found {len(schedule)} matches")
-            
+
         except MLSApiError as e:
             logger.error(f"API error: {e}")
 
