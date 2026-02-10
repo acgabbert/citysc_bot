@@ -1,11 +1,14 @@
+import logging
 import re
-from typing import Dict
+from typing import Dict, Optional
 import requests
 from datetime import datetime
 from bs4 import BeautifulSoup
 
 import util
 from util import names
+
+root = logging.getLogger('root')
 
 INJ_URL = 'https://www.mlssoccer.com/news/mlssoccer-com-injury-report'
 INJ_FILE = 'data/injuries.json'
@@ -21,7 +24,7 @@ class MlsInjuries:
 
     def to_dict(self):
         retval = {}
-        retval['updated'] = self.last_update.strftime(self.date_format)
+        retval['updated'] = self.last_update.strftime(self.date_format) if self.last_update else 'Unknown'
         retval['injuries'] = self.injuries
         return retval
     
@@ -52,12 +55,21 @@ def populate_injuries(soup: BeautifulSoup) -> MlsInjuries:
     return injuries_obj
 
 
-def parse_datetime(soup: BeautifulSoup) -> datetime:
+def parse_datetime(soup: BeautifulSoup) -> Optional[datetime]:
     """Returns a datetime object for when the article was last updated"""
     last_update = soup.find('div', class_='oc-c-article__date')
-    last_update = last_update.find('p')
-    last_update = datetime.strptime(last_update['data-datetime'], '%m/%d/%Y %H:%M:%S')
-    return last_update
+    if not last_update:
+        root.warning('Could not find article date element on injury report page')
+        return None
+    p_tag = last_update.find('p')
+    if not p_tag or not p_tag.get('data-datetime'):
+        root.warning('Could not find datetime data in article date element')
+        return None
+    try:
+        return datetime.strptime(p_tag['data-datetime'], '%m/%d/%Y %H:%M:%S')
+    except (ValueError, KeyError) as e:
+        root.warning(f'Could not parse injury report datetime: {e}')
+        return None
 
 
 def parse_matchday(soup: BeautifulSoup) -> int:
@@ -103,14 +115,14 @@ def parse_injuries(soup: BeautifulSoup) -> Dict:
         # if class mls-c-ranking-header__title in contents, then it's the name of a club
         # if <ul> in contents, then it's a list of injured players
         # there is a d3-l-col__col-12 within the outer d3-l-col__col-12 for a team name
-        if name and tag.next_sibling.next_sibling:
+        sibling = tag.next_sibling.next_sibling if tag.next_sibling else None
+        if name and sibling:
             content = name.stripped_strings
             for string in content:
                 if '\n' not in string:
                     team_name = string
-            injuries = tag.next_sibling.next_sibling
-            injuries = injuries.find_all('li')
-            for inj in injuries:
+            injury_items = sibling.find_all('li')
+            for inj in injury_items:
                 team_injuries.append(inj.text)
         injury_list[team_name] = team_injuries
     return injury_list
