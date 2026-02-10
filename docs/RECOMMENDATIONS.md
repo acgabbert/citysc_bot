@@ -20,60 +20,24 @@ All 9 issues in this tier have been fixed.
 
 ---
 
-## Tier 2: Reliability & Robustness
+## ~~Tier 2: Reliability & Robustness~~ (All resolved)
 
-### 2.1 `discord.py` uses synchronous `requests.post` in an async application
-**File:** `discord.py:17`
-
-Every Discord notification blocks the event loop. During a live match the bot sends dozens of Discord messages; each one stalls the entire scheduler and API polling. This is the single biggest performance bottleneck in the codebase.
-
-**Fix:** Replace with `aiohttp` (already a dependency) and make `send()` async, or at minimum run it in an executor:
-```python
-await asyncio.get_event_loop().run_in_executor(None, msg.send, message)
-```
-
-### 2.2 `injuries.py` and `discipline.py` use synchronous `requests.get`
-**Files:** `injuries.py:41`, `discipline.py:45`
-
-Same issue — these block the event loop when called from the async scheduler.
-
-### 2.3 New `MLSApiClient` session is created on every `Match.refresh()` call
-**File:** `match_sportec.py:57-60`
-
-During a live match, `refresh()` is called every 60 seconds. Each call creates a brand-new `MLSApiClient` context manager, opening 6 `aiohttp` sessions and then closing them. This is wasteful and risks connection-pool exhaustion.
-
-**Fix:** Pass the client into `Match` and keep it alive for the duration of the match, or create a module-level singleton.
-
-### 2.4 No timeout or retry on web-scraping requests
-**Files:** `injuries.py:41`, `discipline.py:45-48`
-
-`requests.get()` is called with no timeout, no retry, and no error handling. If mlssoccer.com is slow or down, the call hangs indefinitely and blocks the scheduler.
-
-### 2.5 `ThreadManager` file I/O has no locking
-**File:** `thread_manager.py:57-63`
-
-`save()` does an open-write-close without any file lock. If two async tasks trigger saves concurrently (unlikely but possible during catch-up logic), the file can be corrupted.
-
-### 2.6 No null-safety in `_process_data`
-**File:** `match_sportec.py:69-73`
-
-`_process_data` unconditionally accesses `data.match_info.home`, `data.match_info.competition`, etc. If `match_info` is `None` (which is possible per `ComprehensiveMatchData`), this crashes with `AttributeError`.
+- [x] **2.1** Sync `discord.py` — Added `async_send()` using aiohttp for async callers; sync `send()` retained for APScheduler callbacks.
+- [x] **2.2** Sync `injuries.py`/`discipline.py` — These run as APScheduler thread pool jobs (not on the event loop), so sync is correct by design.
+- [x] **2.3** Session per `refresh()` — `Match.create()` and `Match.refresh()` now accept optional `client` param for session reuse.
+- [x] **2.4** No timeout/retry on scraping — Added 30s timeout and 3x retry to `injuries.py` and `discipline.py`.
+- [x] **2.5** `ThreadManager` no locking — Added atomic writes (tempfile + `os.replace`) and `asyncio.Lock`.
+- [x] **2.6** No null-safety in `_process_data` — Added guards for `match_info` and `match_base` being `None`.
 
 ---
 
 ## Tier 3: Code Quality & Maintainability
 
-### 3.1 Large amount of dead/legacy code
-The following modules appear to be superseded by the `*_sportec` versions but are still imported and partially used:
-- `match.py` (legacy `Match` class, used only by `widgets.py`)
-- `match_markdown.py` (legacy markdown, not used by the async controller)
-- `mls_api.py` (legacy sync API client, used only by `standings.py` and `widgets.py`)
-- `club.py`, `player.py`, `match_constants.py` (legacy data classes)
-
-This creates confusion about which code path is canonical. Consider removing or deprecating these files and migrating `widgets.py` and `standings.py` to the new API client.
+### ~~3.1 Large amount of dead/legacy code~~ (Resolved)
+Deleted 8 legacy modules (`match.py`, `match_markdown.py`, `mls_api.py`, `match_constants.py`, `club.py`, `player.py`, `widget_markdown.py`, `standings.py`). Cleaned up `widgets.py`, `mls_schedule.py`, `models/club.py`, and `api_client.py` to remove all dead imports, functions, and constants.
 
 ### 3.2 `print()` statements scattered throughout production code
-**Files:** `injuries.py:68-90`, `match_markdown_sportec.py:140`, `match.py:576`, `reddit_client.py:231`, `discipline.py` (various)
+**Files:** `injuries.py:68-90`, `match_markdown_sportec.py:140`, `reddit_client.py:231`, `discipline.py` (various)
 
 These go to stdout (captured in Docker logs) but provide no log-level filtering. Replace with `logger.debug()` or `logger.info()`.
 
@@ -138,7 +102,7 @@ All logging is to rotating files and Discord. Consider adding:
 ### 5.1 Implement `update_injuries()` and `update_discipline()` in `match_sportec.Match`
 **File:** `match_sportec.py:94-98`
 
-Both methods are stubs (`pass`). The legacy `match.py` has working implementations that read from the JSON files. Port this logic to the new Match class.
+Both methods are stubs (`pass`). Port logic to read from the injury/discipline JSON files into the new Match class.
 
 ### 5.2 Implement `generate_injuries()`, `generate_discipline()`, and `generate_previous_matchups()`
 **File:** `match_markdown_sportec.py:168-175`
@@ -164,14 +128,14 @@ The project has no `README.md`. A basic README with setup instructions, architec
 ## Tier 6: Low-Priority Cleanup
 
 ### 6.1 `widgets.py:main()` has repetitive conditional logic
-Lines 180-192 repeat the `if sub: ... else: ...` pattern three times. Refactor to:
+Lines 82-94 repeat the `if sub: ... else: ...` pattern three times. Refactor to:
 ```python
 target_sub = sub or SUB
 for name in ['Western Conference', 'This Week', 'Next Week']:
     await update_image_widget(name, target_sub)
 ```
 
-### 6.2 `widgets.py:144` — bare `except:` clause
+### 6.2 `widgets.py:71` — bare `except:` clause
 ```python
 except:
     msg.send(f'Failed to update widget {image_path}.')
@@ -198,8 +162,8 @@ This skips stats for playoffs, Leagues Cup, US Open Cup, etc. If this is intenti
 | Tier | Category | Count |
 |------|----------|-------|
 | ~~1~~ | ~~Bugs & Correctness~~ | ~~9~~ (done) |
-| 2 | Reliability & Robustness | 6 |
-| 3 | Code Quality & Maintainability | 7 |
+| ~~2~~ | ~~Reliability & Robustness~~ | ~~6~~ (done) |
+| 3 | Code Quality & Maintainability | 6 (1 done) |
 | 4 | Tests & Observability | 3 |
 | 5 | Feature Gaps | 6 |
 | 6 | Low-Priority Cleanup | 4 |
