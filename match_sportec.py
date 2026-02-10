@@ -41,24 +41,30 @@ class Match:
     def __init__(self, sportec_id: str):
         self.sportec_id = sportec_id
     
+    async def _fetch_data(self, client: Optional[MLSApiClient] = None) -> ComprehensiveMatchData:
+        if client is not None:
+            data = await client.get_all_match_data(self.sportec_id)
+        else:
+            async with MLSApiClient() as new_client:
+                data = await new_client.get_all_match_data(self.sportec_id)
+        if data.errors:
+            logger.error("\n".join(data.errors))
+        return data
+
     @classmethod
-    async def create(cls, sportec_id: str):
+    async def create(cls, sportec_id: str, client: Optional[MLSApiClient] = None):
         match = cls(sportec_id)
-        async with MLSApiClient() as client:
-            data = await client.get_all_match_data(match.sportec_id)
-            if data.errors:
-                logger.error("\n".join(data.errors))
+        data = await match._fetch_data(client)
+        if data.match_info is None:
+            raise ValueError(f"Failed to fetch match_info for {sportec_id}")
         match.data = data
         match._process_data(data)
         match.update_injuries()
         match.update_discipline()
         return match
-    
-    async def refresh(self):
-        async with MLSApiClient() as client:
-            data = await client.get_all_match_data(self.sportec_id)
-            if data.errors:
-                logger.error("\n".join(data.errors))
+
+    async def refresh(self, client: Optional[MLSApiClient] = None):
+        data = await self._fetch_data(client)
         self.data = data
         self._process_data(data)
     
@@ -66,13 +72,16 @@ class Match:
         """
         Process comprehensive match data for easier access from other functions.
         """
+        if data.match_info is None:
+            logger.warning("match_info is None, skipping _process_data")
+            return
         self.home = data.match_info.home
         self.home_id = self.home.sportecId
         self.away = data.match_info.away
         self.away_id = self.away.sportecId
         self.competition = data.match_info.competition.shortName or data.match_info.competition.name
         self.slug = data.match_info.slug
-        if self.is_started():
+        if self.is_started() and data.match_base is not None:
             self.home_goals = data.match_base.match_information.home_team_goals
             self.away_goals = data.match_base.match_information.away_team_goals
             self.minute_display = data.match_base.match_information.minute_of_play

@@ -76,25 +76,25 @@ class AsyncController:
         """Create a match thread in an async context"""
         message = f'Posting match thread for {sportec_id} on subreddit {self.subreddit}'
         root.info(message)
-        msg.send(message, tag=True)
-        
+        await msg.async_send(message, tag=True)
+
         try:
             await thread.match_thread(sportec_id, self.subreddit, post=post)
         except Exception as e:
             root.error(f"Error creating match thread: {str(e)}")
-            msg.send(f"Error creating match thread for {sportec_id}: {str(e)}")
+            await msg.async_send(f"Error creating match thread for {sportec_id}: {str(e)}")
     
     async def daily_setup(self):
         """Check for upcoming matches and schedule threads"""
         message = "Running daily setup..."
         root.info(message)
-        msg.send(message)
-        
+        await msg.async_send(message)
+
         for team in TEAMS:
             try:
                 async with MLSApiClient() as client:
                     # Get schedule data
-                    msg.send(f"Checking schedule for team {team}")
+                    await msg.async_send(f"Checking schedule for team {team}")
                     from_date = date.today() - timedelta(days=5)
                     to_date = date.today() + timedelta(days=5)
                     data = await client.get_schedule(
@@ -110,7 +110,7 @@ class AsyncController:
                 
                 if match_id is not None:
                     local_time = match_time.astimezone()
-                    msg.send(f'Match coming up: {match_id}, {local_time}')
+                    await msg.async_send(f'Match coming up: {match_id}, {local_time}')
 
                     # Check if match is within next 24 hours
                     now = time.time()
@@ -136,7 +136,7 @@ class AsyncController:
                             
                             message = f'Scheduled match thread for {thread_time.strftime("%H:%M")}. Team {team}, Opta ID {match_id}'
                             root.info(message)
-                            msg.send(message)
+                            await msg.async_send(message)
                         
                         current_hour = datetime.now().hour
                         # Schedule pre-match thread if not CITY2
@@ -154,7 +154,7 @@ class AsyncController:
                             
                             message = f'Scheduled pre-match thread for {pre_match_time.strftime("%H:%M")}. Team {team}, Opta ID {match_id}'
                             root.info(message)
-                            msg.send(message)
+                            await msg.async_send(message)
 
                         # catch up if no pre-match thread posted yet
                         if current_hour >= 4 and current_hour < 9 and team != 19202:
@@ -163,14 +163,14 @@ class AsyncController:
                                 # immediately create match_thread
                                 message = f"No pre-match found, creating catch-up thread for {match_id}"
                                 root.info(message)
-                                msg.send(message, True)
+                                await msg.async_send(message, True)
                                 try:
                                     await thread.pre_match_thread(match_id, self.subreddit)
                                 except Exception as e:
                                     error_msg = f"Error creating pre-match thread: {str(e)}"
                                     root.error(error_msg)
                                     root.error(traceback.format_exc())
-                                    msg.send(error_msg, tag=True)
+                                    await msg.async_send(error_msg, tag=True)
                     
                     # If match has started but not likely finished (within last 3 hours)
                     elif match_time.timestamp() < now and now - match_time.timestamp() < 10800:
@@ -182,24 +182,24 @@ class AsyncController:
                             except Exception as e:
                                 error_msg = f"Error catching up on match thread: {str(e)}"
                                 root.error(error_msg)
-                                msg.send(error_msg, tag=True)
+                                await msg.async_send(error_msg, tag=True)
 
                     else:
                         message = f'No matches today for {team}.'
                         root.info(message)
-                        msg.send(message)
-                    
+                        await msg.async_send(message)
+
                 else:
                     message = f'No matches today for {team}.'
                     root.info(message)
-                    msg.send(message)
-            
+                    await msg.async_send(message)
+
             except MLSApiClientError as e:
                 root.exception(f"Error fetching data for team {team}: {str(e)}")
-                msg.send(f"Error fetching data for team {team}: {str(e)}")
+                await msg.async_send(f"Error fetching data for team {team}: {str(e)}")
             except Exception as e:
                 root.exception(f"Error in daily setup for team {team}: {str(e)}")
-                msg.send(f"Error in daily setup for team {team}: {str(e)}", True)
+                await msg.async_send(f"Error in daily setup for team {team}: {str(e)}", True)
     
     def setup_jobs(self):
         """Setup all scheduled jobs based on feature flags"""
@@ -253,21 +253,21 @@ class AsyncController:
         """Main run loop"""
         message = f'Started controller at {time.time()}. Subreddit {self.subreddit}\n{str(FEATURE_FLAGS)}'
         root.info(message)
-        msg.send(message, tag=True)
-        
+        await msg.async_send(message, tag=True)
+
         try:
             self.setup_jobs()
             self.scheduler.start()
-            
+
             # Keep running until interrupted
             while True:
                 await asyncio.sleep(300)
-                
+
         except (KeyboardInterrupt, asyncio.CancelledError):
             message = "Received interrupt "
             root.info(message)
             msg.send(message)
-            
+
         finally:
             message = "Shutting down scheduler..."
             root.info(message)

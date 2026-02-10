@@ -40,10 +40,16 @@ class MlsInjuries:
 
 
 
-def get_injury_content() -> BeautifulSoup:
-    data = requests.get(INJ_URL)
-    data.encoding = 'utf-8'
-    return BeautifulSoup(data.text, 'html.parser')
+def get_injury_content() -> Optional[BeautifulSoup]:
+    for attempt in range(1, 4):
+        try:
+            data = requests.get(INJ_URL, timeout=30)
+            data.encoding = 'utf-8'
+            return BeautifulSoup(data.text, 'html.parser')
+        except requests.RequestException as e:
+            root.warning(f"Attempt {attempt}/3 fetching injury report failed: {e}")
+    root.error("All 3 attempts to fetch injury report failed")
+    return None
 
 
 def populate_injuries(soup: BeautifulSoup) -> MlsInjuries:
@@ -149,6 +155,9 @@ def match_teams(injury_obj: Dict) -> Dict:
 def main():
     retval = False
     soup = get_injury_content()
+    if soup is None:
+        root.error("Could not fetch injury content, skipping update")
+        return retval
     inj_obj = populate_injuries(soup)
     newest_inj = {'matchday': inj_obj.matchday if inj_obj.matchday else "Unknown", 'injuries': {}}
     new_inj = inj_obj.to_dict()

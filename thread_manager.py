@@ -1,7 +1,10 @@
 
 
+import asyncio
 from dataclasses import dataclass, field
 import json
+import os
+import tempfile
 from typing import Dict, Optional
 
 
@@ -35,13 +38,19 @@ class MatchThreads():
         if self.stream_link:
             result["stream-link"] = self.stream_link
         return result
-    
+
 class ThreadManager:
     """Manages match thread data persistence"""
     def __init__(self, filename: str):
         self.filename = filename
         self.threads: Dict[str, MatchThreads] = {}
+        self._lock: Optional[asyncio.Lock] = None
         self.load()
+
+    def _get_lock(self) -> asyncio.Lock:
+        if self._lock is None:
+            self._lock = asyncio.Lock()
+        return self._lock
 
     def load(self) -> None:
         try:
@@ -53,26 +62,37 @@ class ThreadManager:
                 }
         except FileNotFoundError:
             self.threads = {}
-    
-    def save(self) -> None:
-        data = {
-            sportec_id: thread.to_dict()
-            for sportec_id, thread in self.threads.items()
-        }
-        with open(self.filename, 'w') as f:
-            json.dump(data, f, indent=4)
-    
-    def add_threads(self, sportec_id: str, thread: MatchThreads) -> None:
+
+    async def save(self) -> None:
+        async with self._get_lock():
+            data = {
+                sportec_id: thread.to_dict()
+                for sportec_id, thread in self.threads.items()
+            }
+            dir_name = os.path.dirname(os.path.abspath(self.filename))
+            fd, tmp_path = tempfile.mkstemp(dir=dir_name, suffix='.tmp')
+            try:
+                with os.fdopen(fd, 'w') as f:
+                    json.dump(data, f, indent=4)
+                os.replace(tmp_path, self.filename)
+            except BaseException:
+                try:
+                    os.unlink(tmp_path)
+                except OSError:
+                    pass
+                raise
+
+    async def add_threads(self, sportec_id: str, thread: MatchThreads) -> None:
         self.threads[sportec_id] = thread
-        self.save()
-    
+        await self.save()
+
     def get_threads(self, sportec_id: str) -> Optional[MatchThreads]:
         return self.threads.get(sportec_id)
 
-    def update_thread(self, sportec_id: str, **kwargs) -> None:
+    async def update_thread(self, sportec_id: str, **kwargs) -> None:
         if sportec_id in self.threads:
             thread = self.threads[sportec_id]
             for key, value in kwargs.items():
                 if hasattr(thread, key):
                     setattr(thread, key, value)
-            self.save()
+            await self.save()

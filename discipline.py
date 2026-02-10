@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import re
 import logging
 import unicodedata
+from typing import Optional
 
 import util
 from util import names
@@ -42,10 +43,16 @@ class MlsDiscipline:
 
 
 
-def get_discipline_content() -> BeautifulSoup:
-    data = requests.get(DISC_URL)
-    data.encoding = 'utf-8'
-    return BeautifulSoup(data.text, 'html.parser')
+def get_discipline_content() -> Optional[BeautifulSoup]:
+    for attempt in range(1, 4):
+        try:
+            data = requests.get(DISC_URL, timeout=30)
+            data.encoding = 'utf-8'
+            return BeautifulSoup(data.text, 'html.parser')
+        except requests.RequestException as e:
+            logger.warning(f"Attempt {attempt}/3 fetching discipline report failed: {e}")
+    logger.error("All 3 attempts to fetch discipline report failed")
+    return None
 
 
 def populate_discipline(soup):
@@ -143,6 +150,9 @@ def match_teams(disc_obj):
 
 def main():
     soup = get_discipline_content()
+    if soup is None:
+        logger.error("Could not fetch discipline content, skipping update")
+        return False
     disc_obj = populate_discipline(soup)
     util.write_json(disc_obj.to_dict(), DISC_FILE)
     return util.file_changed(DISC_FILE)
