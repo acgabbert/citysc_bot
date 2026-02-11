@@ -105,8 +105,9 @@ class AsyncController:
                     )
                 
                 # Check for upcoming matches
-                # use a starting time of 3 hours ago to check for ongoing matches as well
-                match_id, match_time = mls_schedule.check_pre_match_sched(data, date_from=int(time.time()) - 10800)
+                # use a starting time of 5 hours ago to check for ongoing matches
+                # (covers extra time, penalties, and restart delays)
+                match_id, match_time = mls_schedule.check_pre_match_sched(data, date_from=int(time.time()) - 18000)
                 
                 if match_id is not None:
                     local_time = match_time.astimezone()
@@ -172,8 +173,9 @@ class AsyncController:
                                     root.error(traceback.format_exc())
                                     await msg.async_send(error_msg, tag=True)
                     
-                    # If match has started but not likely finished (within last 3 hours)
-                    elif match_time.timestamp() < now and now - match_time.timestamp() < 10800:
+                    # If match has started but not likely finished (within last 5 hours)
+                    # 5h covers extra time, penalties, and container restart delays
+                    elif match_time.timestamp() < now and now - match_time.timestamp() < 18000:
                         threads = file_manager.get_threads(str(match_id))
                         if threads and threads.match and not threads.post:
                             # Resume match thread updates

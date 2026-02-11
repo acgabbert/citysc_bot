@@ -30,14 +30,21 @@ file_manager = ThreadManager(config.THREADS_JSON)
 
 async def pre_match_thread(sportec_id: str, sub: str = prod_sub):
     """Post a pre-match/matchday thread.
-    
+
     Args:
         sportec_id: Sportec ID for the match
         sub: Subreddit to post to
-        
+
     Returns:
-        The created pre-match thread
+        The created pre-match thread, or None if one already exists
     """
+    # Check for existing pre-match thread to prevent duplicates on restart
+    existing = file_manager.get_threads(str(sportec_id))
+    if existing and existing.pre:
+        logger.info(f'Pre-match thread already exists for {sportec_id}: {existing.pre}')
+        await msg.async_send(f'Pre-match thread already exists for {sportec_id}, skipping creation')
+        return None
+
     if '/r/' in sub:
         sub = sub.split('/r/')[1]
     # get a match object
@@ -176,8 +183,13 @@ async def post_match_thread(
         sub: Subreddit to post to
         thread: Match thread to unsticky
     """
-    # get reddit ids of any threads that may already exist for this match
+    # Check for existing post-match thread to prevent duplicates on restart
     threads = file_manager.get_threads(sportec_id)
+    if threads and threads.post:
+        logger.info(f'Post-match thread already exists for {sportec_id}: {threads.post}')
+        await msg.async_send(f'Post-match thread already exists for {sportec_id}, skipping creation')
+        return
+
     if thread is None and threads and threads.match:
         thread = threads.match
 
