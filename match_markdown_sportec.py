@@ -10,16 +10,22 @@ def generate_match_header(match_obj: Match, pre: bool = False) -> str:
     home = match_obj.data.match_info.home
     away = match_obj.data.match_info.away
     joiner_string = "vs." if pre else match_obj.get_score()
-    
-    result_string = match_obj.get_result_type() or f"{match_obj.minute_display}'" or ""
-    result_string = f"{result_string}: " if len(result_string) > 0 else result_string
-    header_parts = [f"## {result_string}{home.fullName} {joiner_string} {away.fullName}"]
+
+    result_string = ""
+    if not pre:
+        result_type = match_obj.get_result_type()
+        if result_type:
+            result_string = result_type
+        elif match_obj.minute_display is not None:
+            result_string = f"{match_obj.minute_display}'"
+
+    prefix = f"{result_string}: " if result_string else ""
+    header_parts = [f"## {prefix}{home.fullName} {joiner_string} {away.fullName}"]
 
     if pre:
         header_parts.append(generate_match_info(match_obj))
-        return "\n".join(header_parts)
-    
-    return "\n".join(header_parts)    
+
+    return "\n".join(header_parts)
 
 def generate_match_info(match_obj: Match) -> Optional[str]:
     """Generate the "Match Info" section for pre-match threads."""
