@@ -115,13 +115,19 @@ class Match:
         
         return True
         
+    def is_halftime(self) -> bool:
+        if not self.data.match_base:
+            return False
+
+        return self.data.match_base.match_information.match_status == 'halfTime'
+
     def is_final(self) -> bool:
         if not self.data.match_base:
             return False
-        
+
         if self.data.match_base.match_information.match_status == 'finalWhistle':
             return True
-        
+
         return False
     
     def get_utc_datetime(self) -> datetime | None:

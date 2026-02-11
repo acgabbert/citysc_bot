@@ -16,6 +16,8 @@ def generate_match_header(match_obj: Match, pre: bool = False) -> str:
         result_type = match_obj.get_result_type()
         if result_type:
             result_string = result_type
+        elif match_obj.is_halftime():
+            result_string = "HT"
         elif match_obj.minute_display is not None:
             result_string = f"{match_obj.minute_display}'"
 
@@ -42,9 +44,25 @@ def generate_match_info(match_obj: Match) -> Optional[str]:
     ]
     return "\n".join(info_lines)
 
-def generate_scorers(match_obj: Match) -> List[str]:
-    """Generate scorer strings for a match object"""
-    pass
+def generate_scorers(match_obj: Match) -> Optional[str]:
+    """Generate scorer strings for a match object."""
+    scorers = match_obj.get_goalscorers()
+    if not scorers:
+        return None
+    lines = []
+    for team_id, team_scorers in scorers.items():
+        if not team_scorers:
+            continue
+        if team_id == match_obj.home_id:
+            team_name = match_obj.home.fullName
+        elif team_id == match_obj.away_id:
+            team_name = match_obj.away.fullName
+        else:
+            continue
+        lines.append(f"**{team_name}**: {', '.join(team_scorers)}")
+    if not lines:
+        return None
+    return "\n\n".join(lines)
 
 def generate_match_footer(match_obj: Match) -> str:
     footer = "Last Updated: "
@@ -220,11 +238,12 @@ def match_thread(match_obj: Match):
     
     markdown_components = [
         generate_match_header(match_obj),
+        generate_scorers(match_obj),
         generate_lineups(match_obj),
         generate_match_stats(match_obj),
         generate_match_footer(match_obj)
     ]
-    
+
     valid_markdown_components = [
         component for component in markdown_components if component is not None
     ]
@@ -245,6 +264,7 @@ def post_match_thread(match_obj: Match):
 
     markdown_components = [
         generate_match_header(match_obj),
+        generate_scorers(match_obj),
         generate_lineups(match_obj),
         generate_match_stats(match_obj),
         generate_match_footer(match_obj)
