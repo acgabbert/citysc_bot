@@ -128,6 +128,8 @@ class Match:
         """
         Get the scheduled date and time of the match (UTC).
         """
+        if not self.data.match_base:
+            return None
         return self.data.match_base.match_information.planned_kickoff_time
     
     def get_local_datetime(self) -> datetime | None:
@@ -223,7 +225,7 @@ class Match:
         Returns:
             A dictionary mapping team ID to a list of strings
         """
-        if not self.data.match_events.events:
+        if not self.data.match_base or not self.data.match_events or not self.data.match_events.events:
             return {}
         # Get goal events
         goal_event_details: List[EventDetails] = []
@@ -311,7 +313,7 @@ class Match:
         """
         Get substitution events, ordered by team.
         """
-        if not self.data.match_events or not self.data.match_events.events:
+        if not self.data.match_base or not self.data.match_events or not self.data.match_events.events:
             return {}
         subs_by_team = {
             self.data.match_base.home.team_id: [],
@@ -329,6 +331,8 @@ class Match:
         """
         Get a score string, including penalties if applicable.
         """
+        if not self.data.match_base:
+            return f"{self.home_goals}-{self.away_goals}"
         home_goals = self.data.match_base.match_information.home_team_goals
         away_goals = self.data.match_base.match_information.away_team_goals
         result = f"{home_goals}-{away_goals}"
