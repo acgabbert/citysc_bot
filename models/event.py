@@ -244,7 +244,7 @@ class SubstitutionEvent(BaseEventData):
         out_first = self.event.player_out_first_name or ''
         out_last = self.event.player_out_last_name or 'Unknown player'
 
-        retval = f"{minute}': Subsitution{f", {team_name}" if team_name else ""}: "
+        retval = f"{minute}': Substitution{f", {team_name}" if team_name else ""}: "
         retval += f"{in_first} {in_last}".strip()
         retval += " "
         retval += f"{out_first} {out_last}.".strip()

@@ -1,9 +1,11 @@
-from collections import defaultdict
+import logging
 import time
 from typing import Dict, List, Optional
 from match_sportec import Match
 from models.event import SubstitutionEvent
 from models.person import BasePerson
+
+logger = logging.getLogger(__name__)
 
 def generate_match_header(match_obj: Match, pre: bool = False) -> str:
     """Creates the main header markdown for a match thread."""
@@ -42,9 +44,25 @@ def generate_match_info(match_obj: Match) -> Optional[str]:
     ]
     return "\n".join(info_lines)
 
-def generate_scorers(match_obj: Match) -> List[str]:
-    """Generate scorer strings for a match object"""
-    pass
+def generate_scorers(match_obj: Match) -> Optional[str]:
+    """Generate scorer display for match/post-match threads."""
+    scorers = match_obj.get_goalscorers()
+    if not scorers:
+        return None
+
+    home_display = match_obj.home.abbreviation or match_obj.home.shortName or match_obj.home.fullName
+    away_display = match_obj.away.abbreviation or match_obj.away.shortName or match_obj.away.fullName
+
+    lines = []
+    home_scorers = scorers.get(match_obj.home_id, [])
+    away_scorers = scorers.get(match_obj.away_id, [])
+
+    if home_scorers:
+        lines.append(f"\u26bd **{home_display}:** {', '.join(home_scorers)}")
+    if away_scorers:
+        lines.append(f"\u26bd **{away_display}:** {', '.join(away_scorers)}")
+
+    return "\n".join(lines) if lines else None
 
 def generate_match_footer(match_obj: Match) -> str:
     footer = "Last Updated: "
@@ -53,7 +71,9 @@ def generate_match_footer(match_obj: Match) -> str:
     return f'^({footer})'
 
 def generate_match_stats(match_obj: Match) -> str:
-    if not match_obj.competition in ["Regular Season"]:
+    if match_obj.competition not in ["Regular Season"]:
+        return None
+    if match_obj.home_stats is None or match_obj.away_stats is None:
         return None
     home_display = match_obj.home.abbreviation or match_obj.home.shortName or match_obj.home.fullName
     away_display = match_obj.away.abbreviation or match_obj.away.shortName or match_obj.away.fullName
@@ -75,9 +95,8 @@ def generate_match_stats(match_obj: Match) -> str:
     markdown += add_stat(match_obj, 'passes_from_play_successful', 'Successful Passes')
     markdown += add_stat(match_obj, 'passes_sum', 'Total Passes')
     markdown += add_stat(match_obj, 'passes_from_play_conversion_rate', 'Pass Accuracy', True)
-    
+
     if markdown.endswith(":---:"):
-        # Likely no stats to be returned
         return None
     return markdown
 
@@ -85,9 +104,7 @@ def generate_lineups(match_obj: Match) -> str:
     starting_lineups = match_obj.get_starting_lineups()
     subs = match_obj.get_subs()
     home_lineup = "Not yet available via mlssoccer.com."
-    home_subs = ""
     away_lineup = "Not yet available via mlssoccer.com."
-    away_subs = ""
     if starting_lineups:
         home_lineup = generate_team_lineup(getattr(match_obj.data.match_base.home, "players", []), subs.get(match_obj.home_id, []))
         away_lineup = generate_team_lineup(getattr(match_obj.data.match_base.away, "players", []), subs.get(match_obj.away_id, []))
@@ -95,19 +112,13 @@ def generate_lineups(match_obj: Match) -> str:
             home_lineup = "Not yet available via mlssoccer.com."
         if len(starting_lineups[match_obj.away_id]) < 1:
             away_lineup = "Not yet available via mlssoccer.com."
-    if subs:
-        pass
     return "\n".join([
         "### Lineups",
         f"**{match_obj.home.fullName}**:",
         home_lineup,
         "",
-        home_subs,
-        "",
         f"**{match_obj.away.fullName}**:",
         away_lineup,
-        "",
-        away_subs
     ])
 
 def generate_team_lineup(lineup: List[BasePerson], subs: List[SubstitutionEvent]) -> str:
@@ -125,25 +136,23 @@ def generate_team_lineup(lineup: List[BasePerson], subs: List[SubstitutionEvent]
             starters.append(str(p))
         else:
             bench.append(str(p))
-    
-    starters = ", ".join(starters)
-    bench = "*Subs:* " + ", ".join(bench)
-    return "\n".join([
-        starters,
-        "",
-        bench
-    ])
+
+    parts = [", ".join(starters)]
+    if bench:
+        parts.append("")
+        parts.append("*Subs:* " + ", ".join(bench))
+    return "\n".join(parts)
 
 def format_sub_event(event: SubstitutionEvent) -> str:
     event_details = event.event
-    return f"{event_details.player_out_first_name} {event_details.player_out_last_name} (🔄 {event_details.player_in_first_name} {event_details.player_in_last_name} {event_details.minute_of_play}')"
+    return f"{event_details.player_out_first_name} {event_details.player_out_last_name} (\U0001f504 {event_details.player_in_first_name} {event_details.player_in_last_name} {event_details.minute_of_play}')"
 
 
 def add_stat(match_obj: Match, stat: str, display: str = None, isPercentage=False) -> str:
     home_stat = getattr(match_obj.home_stats, stat, None)
     away_stat = getattr(match_obj.away_stats, stat, None)
     if home_stat is not None and away_stat is not None:
-        print(f"attr {stat} is valid")
+        logger.debug(f"attr {stat} is valid")
 
         if isinstance(home_stat, float) and isPercentage:
             if home_stat < 1:
@@ -168,23 +177,53 @@ def generate_broadcasters(match_obj: Match) -> str:
         if "Apple" in disp and match_obj.data.match_info.appleStreamURL:
             disp = f"[{disp}]({match_obj.data.match_info.appleStreamURL})"
         retval.append(disp)
-    
+
     return ", ".join(retval)
 
 def generate_previous_matchups(match_obj: Match) -> str:
     return None
 
-def generate_injuries(match_obj: Match) -> str:
-    return None
+def generate_injuries(match_obj: Match) -> Optional[str]:
+    """Generate injury report section for pre-match threads."""
+    if not match_obj.injuries:
+        return None
 
-def generate_discipline(match_obj: Match) -> str:
-    return None
+    lines = ["### Injury Report"]
+    for team_id, team_name in [(match_obj.home_id, match_obj.home.fullName), (match_obj.away_id, match_obj.away.fullName)]:
+        opta_id = match_obj._sportec_to_opta.get(team_id)
+        if opta_id and opta_id in match_obj.injuries:
+            injury_list = match_obj.injuries[opta_id]
+            if injury_list:
+                lines.append(f"**{team_name}:** {', '.join(injury_list)}")
+
+    return "\n\n".join(lines) if len(lines) > 1 else None
+
+def generate_discipline(match_obj: Match) -> Optional[str]:
+    """Generate discipline section for pre-match threads."""
+    if not match_obj.discipline:
+        return None
+
+    lines = ["### Discipline"]
+    for team_id, team_name in [(match_obj.home_id, match_obj.home.fullName), (match_obj.away_id, match_obj.away.fullName)]:
+        opta_id = match_obj._sportec_to_opta.get(team_id)
+        if opta_id and opta_id in match_obj.discipline:
+            team_disc = match_obj.discipline[opta_id]
+            if team_disc:
+                parts = []
+                for reason, players in team_disc.items():
+                    if isinstance(players, list):
+                        parts.append(f"{reason}: {', '.join(players)}")
+                    else:
+                        parts.append(f"{reason}: {players}")
+                if parts:
+                    lines.append(f"**{team_name}:** {'; '.join(parts)}")
+
+    return "\n\n".join(lines) if len(lines) > 1 else None
 
 def pre_match_thread(match_obj: Match):
     """
     Generate markdown for a pre-match thread.
     """
-    # Initialize helper variables
     home = match_obj.home.fullName
     away = match_obj.away.fullName
     comp = match_obj.competition
@@ -199,7 +238,7 @@ def pre_match_thread(match_obj: Match):
         generate_discipline(match_obj),
         generate_match_footer(match_obj)
     ]
-    
+
     valid_markdown_components = [
         component for component in markdown_components if component is not None
     ]
@@ -210,21 +249,21 @@ def match_thread(match_obj: Match):
     """
     Generate markdown for a match thread.
     """
-    # Initialize helper variables
     home = match_obj.home.fullName
     away = match_obj.away.fullName
     comp = match_obj.competition
     date = match_obj.get_local_date_string()
 
     title = f'Match Thread: {home} vs. {away} ({comp}) [{date}]'
-    
+
     markdown_components = [
         generate_match_header(match_obj),
+        generate_scorers(match_obj),
         generate_lineups(match_obj),
         generate_match_stats(match_obj),
         generate_match_footer(match_obj)
     ]
-    
+
     valid_markdown_components = [
         component for component in markdown_components if component is not None
     ]
@@ -235,7 +274,6 @@ def post_match_thread(match_obj: Match):
     """
     Generate markdown for a post-match thread.
     """
-    # Initialize helper variables
     home = match_obj.home.fullName
     away = match_obj.away.fullName
     comp = match_obj.competition
@@ -245,11 +283,12 @@ def post_match_thread(match_obj: Match):
 
     markdown_components = [
         generate_match_header(match_obj),
+        generate_scorers(match_obj),
         generate_lineups(match_obj),
         generate_match_stats(match_obj),
         generate_match_footer(match_obj)
     ]
-    
+
     valid_markdown_components = [
         component for component in markdown_components if component is not None
     ]
