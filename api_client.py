@@ -519,9 +519,12 @@ class MLSApiClient:
         data = await self._make_request(
             ApiEndpoint.STATS,
             f"/matches/seasons/{season}",
-            params=params
+            params=params,
+            allow_404=True
         )
         data = data.get("schedule", None)
+        if not data:
+            return []
         try:
             return [MatchSchedule(**match) for match in data]
         except ValidationError as e:

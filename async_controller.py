@@ -46,6 +46,7 @@ parser = argparse.ArgumentParser(prog='async_controller.py', usage='%(prog)s [op
 parser.add_argument('-s', '--sub', help=f'Subreddit; default = {SUB}')
 file_manager = ThreadManager(THREADS_JSON)
 
+
 class AsyncController:
     """Main controller class for scheduling and managing async tasks"""
     
@@ -97,13 +98,14 @@ class AsyncController:
                     await msg.async_send(f"Checking schedule for team {team}")
                     from_date = date.today() - timedelta(days=5)
                     to_date = date.today() + timedelta(days=5)
+
                     data = await client.get_schedule(
                         season=get_current_season(),
                         match_date_gte=from_date.isoformat(),
                         match_date_lte=to_date.isoformat(),
                         team_id=names[team].sportec_id
                     )
-                
+
                 # Check for upcoming matches
                 # use a starting time of 3 hours ago to check for ongoing matches as well
                 match_id, match_time = mls_schedule.check_pre_match_sched(data, date_from=int(time.time()) - 10800)
