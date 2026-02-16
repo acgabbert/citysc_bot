@@ -2,6 +2,7 @@ from collections import defaultdict
 from datetime import datetime
 import json
 import logging
+import os
 import sys
 from typing import Dict, List, Optional, Tuple
 from api_client import MLSApiClient
@@ -12,6 +13,7 @@ from models.person import BasePerson
 from models.schedule import Broadcaster, Competition
 from models.team_stats import TeamStats
 from models.venue import MatchVenue
+import util
 
 logging.basicConfig(
     level=logging.INFO,  # Set the minimum level of messages to handle (e.g., INFO, DEBUG)
@@ -37,9 +39,17 @@ class Match:
     away_goals: int = 0
     home_starters: List[BasePerson] = None
     away_starters: List[BasePerson] = None
+    injuries: Optional[Dict] = None
+    discipline: Optional[Dict] = None
+    _sportec_to_opta: Dict[str, str] = None
 
     def __init__(self, sportec_id: str):
         self.sportec_id = sportec_id
+        self._sportec_to_opta = {
+            entry.sportec_id: str(opta_id)
+            for opta_id, entry in util.names.items()
+            if entry.sportec_id
+        }
     
     async def _fetch_data(self, client: Optional[MLSApiClient] = None) -> ComprehensiveMatchData:
         if client is not None:
@@ -101,10 +111,28 @@ class Match:
         self.away_starters = lineups.get(self.away_id, [])
     
     def update_injuries(self) -> None:
-        pass
+        inj_file = 'data/injuries.json'
+        if not os.path.exists(inj_file):
+            logger.warning(f"{inj_file} not found, skipping injury data")
+            return
+        try:
+            data = util.read_json(inj_file)
+            self.injuries = data.get('injuries', {})
+        except Exception as e:
+            logger.warning(f"Failed to read injury data: {e}")
+            self.injuries = {}
 
     def update_discipline(self) -> None:
-        pass
+        disc_file = 'data/discipline.json'
+        if not os.path.exists(disc_file):
+            logger.warning(f"{disc_file} not found, skipping discipline data")
+            return
+        try:
+            data = util.read_json(disc_file)
+            self.discipline = data.get('discipline', {})
+        except Exception as e:
+            logger.warning(f"Failed to read discipline data: {e}")
+            self.discipline = {}
         
     def is_started(self) -> bool:
         if not self.data.match_base:
@@ -225,6 +253,8 @@ class Match:
         """
         if not self.data.match_events.events:
             return {}
+        if self.data.match_base is None:
+            return {}
         # Get goal events
         goal_event_details: List[EventDetails] = []
         for event in self.data.match_events.events:
@@ -312,6 +342,8 @@ class Match:
         Get substitution events, ordered by team.
         """
         if not self.data.match_events or not self.data.match_events.events:
+            return {}
+        if self.data.match_base is None:
             return {}
         subs_by_team = {
             self.data.match_base.home.team_id: [],
