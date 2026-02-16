@@ -23,9 +23,6 @@ import widgets
 from config import FEATURE_FLAGS, SUB, TEAMS, THREADS_JSON
 from util import names
 
-# Teams that play in MLS NEXT Pro (use different API for schedule)
-NEXT_PRO_TEAMS = {19202}
-
 # Configure logging
 fh = logging.handlers.RotatingFileHandler('log/debug.log', maxBytes=1000000, backupCount=10)
 fh.setLevel(logging.DEBUG)
@@ -49,21 +46,6 @@ parser = argparse.ArgumentParser(prog='async_controller.py', usage='%(prog)s [op
 parser.add_argument('-s', '--sub', help=f'Subreddit; default = {SUB}')
 file_manager = ThreadManager(THREADS_JSON)
 
-
-def _check_nextpro_schedule(data, date_from=None):
-    """Check NEXT Pro schedule for upcoming matches within 48 hours.
-
-    Mirrors mls_schedule.check_pre_match_sched but works with
-    MatchScheduleDeprecated objects from the NEXT Pro API.
-    """
-    if date_from is None:
-        date_from = int(time.time())
-    date_to = date_from + (86400 * 2)
-    for match in data:
-        match_time = match.matchDate.timestamp()
-        if match_time > date_from and match_time < date_to:
-            return str(match.optaId), match.matchDate
-    return None, None
 
 class AsyncController:
     """Main controller class for scheduling and managing async tasks"""
@@ -117,21 +99,16 @@ class AsyncController:
                     from_date = date.today() - timedelta(days=5)
                     to_date = date.today() + timedelta(days=5)
 
-                    if team in NEXT_PRO_TEAMS:
-                        data = await client.get_nextpro_schedule(
-                            club_opta_id=team,
-                            date_from=from_date.isoformat(),
-                            date_to=to_date.isoformat()
-                        )
-                        match_id, match_time = _check_nextpro_schedule(data, date_from=int(time.time()) - 10800)
-                    else:
-                        data = await client.get_schedule(
-                            season=get_current_season(),
-                            match_date_gte=from_date.isoformat(),
-                            match_date_lte=to_date.isoformat(),
-                            team_id=names[team].sportec_id
-                        )
-                        match_id, match_time = mls_schedule.check_pre_match_sched(data, date_from=int(time.time()) - 10800)
+                    data = await client.get_schedule(
+                        season=get_current_season(),
+                        match_date_gte=from_date.isoformat(),
+                        match_date_lte=to_date.isoformat(),
+                        team_id=names[team].sportec_id
+                    )
+
+                # Check for upcoming matches
+                # use a starting time of 3 hours ago to check for ongoing matches as well
+                match_id, match_time = mls_schedule.check_pre_match_sched(data, date_from=int(time.time()) - 10800)
                 
                 if match_id is not None:
                     local_time = match_time.astimezone()
