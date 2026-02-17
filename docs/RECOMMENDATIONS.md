@@ -14,9 +14,9 @@ All 9 issues in this tier have been fixed.
 - [x] **1.4** Duplicate `event_time` field — Consolidated to single `Optional[UtcDatetime]` in `models/event.py`.
 - [x] **1.5** No-op validator (`x and not x`) — Fixed to check `appleSubscriptionTier` in `api_client.py`.
 - [x] **1.6** Silent `None` returns on ValidationError — Added `raise` after logging in 7 API methods in `api_client.py`.
-- [x] **1.7** `get_feed()` missing return — Added return statement in `match_sportec.py`.
-- [x] **1.8** `get_score()` dead code overwrite — Removed unreachable team-name assignment in `match_sportec.py`.
-- [x] **1.9** Wrong variable on away lineup miss — Fixed to assign `away_lineup` in `match_markdown_sportec.py`.
+- [x] **1.7** `get_feed()` missing return — Added return statement in `match.py`.
+- [x] **1.8** `get_score()` dead code overwrite — Removed unreachable team-name assignment in `match.py`.
+- [x] **1.9** Wrong variable on away lineup miss — Fixed to assign `away_lineup` in `match_markdown.py`.
 
 ---
 
@@ -37,7 +37,7 @@ All 9 issues in this tier have been fixed.
 Deleted 8 legacy modules (`match.py`, `match_markdown.py`, `mls_api.py`, `match_constants.py`, `club.py`, `player.py`, `widget_markdown.py`, `standings.py`). Cleaned up `widgets.py`, `mls_schedule.py`, `models/club.py`, and `api_client.py` to remove all dead imports, functions, and constants.
 
 ### 3.2 `print()` statements scattered throughout production code
-**Files:** `injuries.py:68-90`, `match_markdown_sportec.py:140`, `reddit_client.py:231`, `discipline.py` (various)
+**Files:** `injuries.py:68-90`, `match_markdown.py:140`, `reddit_client.py:231`, `discipline.py` (various)
 
 These go to stdout (captured in Docker logs) but provide no log-level filtering. Replace with `logger.debug()` or `logger.info()`.
 
@@ -70,8 +70,8 @@ Some methods raise exceptions, some return `None`, some return empty collections
 
 This function creates a raw `asyncpraw.Reddit` instance without any of the retry/error-handling logic from `RedditClient`. It's used by `widgets.py`. Migrate those call sites to use `RedditClient` instead and remove this function.
 
-### 3.7 Module-level `logging.basicConfig` in `match_sportec.py`
-**File:** `match_sportec.py:16-20`
+### 3.7 Module-level `logging.basicConfig` in `match.py`
+**File:** `match.py:16-20`
 
 Calling `logging.basicConfig()` at import time with `stream=sys.stdout` overrides the root logger configuration set by `async_controller.py`. This can cause duplicate log output and unexpected routing to stdout.
 
@@ -83,7 +83,7 @@ Calling `logging.basicConfig()` at import time with `stream=sys.stdout` override
 There are zero test files in the project. The Pydantic models, markdown generators, and schedule-checking logic are all highly testable with unit tests. A minimal test suite should cover:
 1. `mls_schedule.check_pre_match_sched()` — core scheduling logic
 2. Pydantic model parsing — ensure API responses deserialize correctly
-3. `match_markdown_sportec` — verify generated markdown
+3. `match_markdown` — verify generated markdown
 4. `thread_manager` — JSON persistence round-trip
 
 ### 4.2 No CI/CD pipeline
@@ -99,18 +99,18 @@ All logging is to rotating files and Discord. Consider adding:
 
 ## Tier 5: Feature Gaps & Enhancements
 
-### 5.1 Implement `update_injuries()` and `update_discipline()` in `match_sportec.Match`
-**File:** `match_sportec.py:94-98`
+### 5.1 Implement `update_injuries()` and `update_discipline()` in `match.Match`
+**File:** `match.py:94-98`
 
 Both methods are stubs (`pass`). Port logic to read from the injury/discipline JSON files into the new Match class.
 
 ### 5.2 Implement `generate_injuries()`, `generate_discipline()`, and `generate_previous_matchups()`
-**File:** `match_markdown_sportec.py:168-175`
+**File:** `match_markdown.py:168-175`
 
 All three functions return `None`. The pre-match thread currently omits injury/discipline data that was available in the legacy system.
 
 ### 5.3 Implement `generate_scorers()`
-**File:** `match_markdown_sportec.py:39-41`
+**File:** `match_markdown.py:39-41`
 
 The `generate_scorers()` function is a stub (`pass`). The match thread header doesn't currently show who scored.
 
@@ -145,10 +145,10 @@ This catches `KeyboardInterrupt`, `SystemExit`, etc. Use `except Exception:` at 
 ### 6.3 Typos in log messages
 - `async_controller.py:119`: `"shceduling"` → `"scheduling"`
 - `models/event.py:248`: `"Subsitution"` → `"Substitution"`
-- `match_sportec.py:153`: docstring says `"linups"` → `"lineups"`
+- `match.py:153`: docstring says `"linups"` → `"lineups"`
 
-### 6.4 `match_markdown_sportec.py` limits stats to "Regular Season" only
-**File:** `match_markdown_sportec.py:50-51`
+### 6.4 `match_markdown.py` limits stats to "Regular Season" only
+**File:** `match_markdown.py:50-51`
 ```python
 if not match_obj.competition in ["Regular Season"]:
     return None

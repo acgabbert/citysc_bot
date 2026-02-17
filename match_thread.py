@@ -7,9 +7,9 @@ import time
 from typing import Optional, Union
 
 import config
-import match_markdown_sportec as md
+import match_markdown as md
 from api_client import MLSApiClient
-from match_sportec import Match
+from match import Match
 from thread_manager import MatchThreads, ThreadManager
 import util
 import discord as msg

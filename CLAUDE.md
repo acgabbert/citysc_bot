@@ -34,11 +34,13 @@ Copy `config-example.py` to `config.py` and fill in secrets (Reddit OAuth, Disco
 
 ## Architecture
 
-**Scheduling layer** (`async_controller.py`): `AsyncController` runs an `AsyncIOScheduler` with cron-triggered jobs for daily setup, injuries, discipline, widgets, and Playwright screenshots. Job execution/error callbacks send Discord notifications via sync `msg.send()`.
+**Scheduling layer** (`async_controller.py`): `AsyncController` runs an `AsyncIOScheduler` with cron-triggered jobs for daily setup, injuries, discipline, widgets, and Playwright screenshots. MLS NEXT Pro teams are routed through a separate API (`get_nextpro_schedule()`). Job execution/error callbacks send Discord notifications via sync `msg.send()`.
 
 **Match thread lifecycle** (`match_thread.py`): Three phases — `pre_match_thread()` (24h before), `match_thread()` (30min before kickoff, 60s polling loop during match), `post_match_thread()` (after final whistle). Each phase creates/edits Reddit threads and updates `ThreadManager` state.
 
-**API data** (`api_client.py` + `match_sportec.py`): `MLSApiClient` is an async context manager for MLS API calls. `Match` wraps it with match-specific logic. Both support session reuse via an optional `client` parameter to avoid creating multiple aiohttp sessions.
+**Match markdown** (`match_markdown.py`): Generates all Reddit thread markdown — headers, scorers, lineups, stats, injuries, discipline, and footers. `pre_match_thread()`, `match_thread()`, and `post_match_thread()` each return `(title, body)` tuples.
+
+**API data** (`api_client.py` + `match.py`): `MLSApiClient` is an async context manager for MLS API calls. `Match` wraps it with match-specific logic (including reading injury/discipline data from JSON files). Both support session reuse via an optional `client` parameter to avoid creating multiple aiohttp sessions.
 
 **State persistence** (`thread_manager.py`): `ThreadManager` reads/writes `data/threads.json` with atomic writes (tempfile + `os.replace`) and `asyncio.Lock` for concurrency safety.
 
@@ -54,7 +56,7 @@ Copy `config-example.py` to `config.py` and fill in secrets (Reddit OAuth, Disco
 
 This is the most important pattern to understand:
 
-- **Async context**: `match_thread.py`, `api_client.py`, `match_sportec.py`, `thread_manager.py`, `reddit_client.py` — use `await`, `async with`, `async_send()`
+- **Async context**: `match_thread.py`, `api_client.py`, `match.py`, `thread_manager.py`, `reddit_client.py` — use `await`, `async with`, `async_send()`
 - **Sync context**: `injuries.py`, `discipline.py`, `widgets.py`, APScheduler callbacks (`_job_executed`, `_job_error`) — use `msg.send()` (sync requests)
 - **`ThreadManager`**: `save()`, `add_threads()`, `update_thread()` are async. `get_threads()` is sync (read-only, in-memory).
 - **Discord**: `send()` is sync (requests), `async_send()` is async (aiohttp). Use the right one based on calling context.
