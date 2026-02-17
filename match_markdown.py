@@ -315,7 +315,8 @@ async def dry_run(sportec_id: str, thread_type: str = 'match', output_dir: str =
 
     async with MLSApiClient() as client:
         match_obj = await Match.create(sportec_id, client=client)
-        title, body = generator(match_obj)
+
+    title, body = generator(match_obj)
 
     os.makedirs(output_dir, exist_ok=True)
     filename = f"{thread_type}_{sportec_id}.md"

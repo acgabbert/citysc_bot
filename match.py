@@ -4,9 +4,9 @@ import json
 import logging
 import os
 import sys
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 from api_client import MLSApiClient
-from models.club import Club_Sport, ClubMatch_Base
+from models.club import Club_Sport
 from models.event import EventDetails, MlsEvent, SubstitutionEvent
 from models.match import ComprehensiveMatchData
 from models.person import BasePerson

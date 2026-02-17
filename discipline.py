@@ -3,7 +3,6 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 import re
 import logging
-import unicodedata
 from typing import Optional
 
 import util

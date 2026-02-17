@@ -8,7 +8,7 @@ from typing import Optional
 import discord as msg
 from reddit_client import RedditClient
 import util
-from config import SUB, TEST_SUB
+from config import SUB
 
 parser = argparse.ArgumentParser(prog='widgets.py', usage='%(prog)s [options]', description='')
 parser.add_argument('-s', '--sub', help='Subreddit')
