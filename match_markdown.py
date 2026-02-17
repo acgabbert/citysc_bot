@@ -1,7 +1,11 @@
+import argparse
+import asyncio
 import logging
+import os
+import sys
 import time
 from typing import Dict, List, Optional
-from match_sportec import Match
+from match import Match
 from models.event import SubstitutionEvent
 from models.person import BasePerson
 
@@ -180,7 +184,7 @@ def generate_broadcasters(match_obj: Match) -> str:
 
     return ", ".join(retval)
 
-def generate_previous_matchups(match_obj: Match) -> str:
+def generate_previous_matchups(match_obj: Match) -> Optional[str]:
     return None
 
 def generate_injuries(match_obj: Match) -> Optional[str]:
@@ -294,3 +298,53 @@ def post_match_thread(match_obj: Match):
     ]
 
     return title, "\n\n".join(valid_markdown_components)
+
+
+THREAD_TYPES = {
+    'pre': pre_match_thread,
+    'match': match_thread,
+    'post': post_match_thread,
+}
+
+
+async def dry_run(sportec_id: str, thread_type: str = 'match', output_dir: str = 'data') -> str:
+    """Generate match markdown and save to a file without posting to Reddit."""
+    from api_client import MLSApiClient
+
+    generator = THREAD_TYPES[thread_type]
+
+    async with MLSApiClient() as client:
+        match_obj = await Match.create(sportec_id, client=client)
+        title, body = generator(match_obj)
+
+    os.makedirs(output_dir, exist_ok=True)
+    filename = f"{thread_type}_{sportec_id}.md"
+    filepath = os.path.join(output_dir, filename)
+
+    with open(filepath, 'w') as f:
+        f.write(f"# {title}\n\n")
+        f.write(body)
+
+    return filepath
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        prog='match_markdown.py',
+        description='Generate match thread markdown (dry run, no Reddit posting)'
+    )
+    parser.add_argument('-i', '--id', required=True, help='Match Sportec ID')
+    parser.add_argument('-t', '--type', choices=['pre', 'match', 'post'], default='match',
+                        help='Thread type (default: match)')
+    parser.add_argument('-o', '--output', default='data',
+                        help='Output directory (default: data)')
+    args = parser.parse_args()
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        stream=sys.stdout
+    )
+
+    filepath = asyncio.run(dry_run(args.id, args.type, args.output))
+    print(f'Markdown saved to {filepath}')
