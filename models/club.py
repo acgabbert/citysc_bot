@@ -7,7 +7,7 @@ from models.person import BasePerson, NonPlayer
 class Club_Sport(BaseModel):
     """Model for club object from Sport API match call"""
     model_config = ConfigDict(extra="ignore", strict=False)
-    
+
     optaId: int
     sportecId: str
     fullName: str
@@ -15,6 +15,22 @@ class Club_Sport(BaseModel):
     shortName: Optional[str] = None
     abbreviation: Optional[str] = None
     backgroundColor: Optional[str] = None
+    logoBWSlug: Optional[str] = None
+    logoColorSlug: Optional[str] = None
+    logoColorUrl: Optional[str] = None
+    crestColorSlug: Optional[str] = None
+
+    def get_logo_url(self, width: int = 128, height: int = 128) -> Optional[str]:
+        """Format the logoColorUrl with the given dimensions.
+
+        Replaces {formatInstructions} with Cloudinary transform params.
+        """
+        if not self.logoColorUrl:
+            return None
+        return self.logoColorUrl.replace(
+            "{formatInstructions}",
+            f"w_{width},h_{height},c_pad/f_auto"
+        )
 
 class ClubMatch_Base(BaseModel):
     """Model for club object from Stats API base match call"""

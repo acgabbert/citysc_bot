@@ -14,6 +14,8 @@ FEATURE_FLAGS = {
     'enable_discipline': True,
     # Enable daily match checking tasks
     'enable_daily_setup':  True,
+    # Enable inline club logos in match thread headers
+    'enable_inline_logos': False,
     # Schedule times (24h format)
     'schedule_times': {
         'selenium': '00:45',

@@ -652,6 +652,33 @@ class MLSApiClient:
         )
 
 
+    async def download_club_logo(
+        self,
+        logo_url: str,
+    ) -> bytes:
+        """Download a club logo image from the given URL.
+
+        Args:
+            logo_url: A fully formatted logo URL (use Club_Sport.get_logo_url()).
+
+        Returns:
+            The image bytes.
+        """
+        session = self._sessions[ApiEndpoint.SPORT]
+        try:
+            async with session.get(
+                logo_url,
+                timeout=self.config.timeout
+            ) as response:
+                if response.status != 200:
+                    text = await response.text()
+                    raise MLSApiClientError(f"Failed to download logo: {response.status} {text}")
+                return await response.read()
+        except asyncio.TimeoutError as e:
+            raise MLSApiTimeoutError(f"Logo download timed out: {logo_url}") from e
+        except aiohttp.ClientError as e:
+            raise MLSApiError(f"Logo download failed: {logo_url} - {e}") from e
+
     # MLS Next Pro API endpoints
     async def get_nextpro_match_info(self, match_id: int) -> Dict[str, Any]:
         """Get match info for an MLS Next Pro match"""

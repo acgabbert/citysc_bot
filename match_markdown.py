@@ -5,11 +5,20 @@ import os
 import sys
 import time
 from typing import Dict, List, Optional
+
+import config
 from match import Match
 from models.event import SubstitutionEvent
 from models.person import BasePerson
 
 logger = logging.getLogger(__name__)
+
+def _club_logo_markdown(club, size: int = 32) -> str:
+    """Return inline Reddit image markdown for a club logo, or empty string if unavailable."""
+    logo_url = club.get_logo_url(width=size, height=size)
+    if not logo_url:
+        return ""
+    return f"![{club.abbreviation or club.shortName or club.fullName}]({logo_url})"
 
 def generate_match_header(match_obj: Match, pre: bool = False) -> str:
     """Creates the main header markdown for a match thread."""
@@ -25,8 +34,18 @@ def generate_match_header(match_obj: Match, pre: bool = False) -> str:
         elif match_obj.minute_display is not None:
             result_string = f"{match_obj.minute_display}'"
 
+    home_display = home.fullName
+    away_display = away.fullName
+    if config.FEATURE_FLAGS.get('enable_inline_logos', False):
+        home_logo = _club_logo_markdown(home)
+        away_logo = _club_logo_markdown(away)
+        if home_logo:
+            home_display = f"{home_logo} {home.fullName}"
+        if away_logo:
+            away_display = f"{away.fullName} {away_logo}"
+
     prefix = f"{result_string}: " if result_string else ""
-    header_parts = [f"## {prefix}{home.fullName} {joiner_string} {away.fullName}"]
+    header_parts = [f"## {prefix}{home_display} {joiner_string} {away_display}"]
 
     if pre:
         header_parts.append(generate_match_info(match_obj))
