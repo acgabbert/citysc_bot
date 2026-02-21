@@ -234,6 +234,8 @@ class Match:
         """
         Get all events for a match.
         """
+        if not self.data.match_events:
+            return None
         return self.data.match_events.events
 
     def get_broadcasters(self) -> List[Broadcaster]:
@@ -251,7 +253,7 @@ class Match:
         Returns:
             A dictionary mapping team ID to a list of strings
         """
-        if not self.data.match_events.events:
+        if not self.data.match_events or not self.data.match_events.events:
             return {}
         if self.data.match_base is None:
             return {}
@@ -333,7 +335,7 @@ class Match:
         """
         Get all events for a match
         """
-        if not self.data.match_events.events:
+        if not self.data.match_events or not self.data.match_events.events:
             return []
         return [str(event) for event in self.data.match_events.events]
 
@@ -374,7 +376,7 @@ class Match:
         """
         Get result type if the match is finished.
         """
-        if not self.data.match_events:
+        if not self.data.match_events or not self.data.match_events.events:
             return ""
         result = "FT"
         # check if any events are in extra time
