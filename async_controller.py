@@ -124,7 +124,17 @@ class AsyncController:
 
                         if thread_time.timestamp() < now:
                             root.info('whoops. creating thread')
-                            await self.create_match_thread(match_id, team != 19202)
+                            self.scheduler.add_job(
+                                self.create_match_thread,
+                                'date',
+                                run_date=datetime.now(),
+                                args=[match_id, team != 19202],
+                                name=f'match_thread_{match_id}',
+                                replace_existing=True
+                            )
+                            message = f'Scheduled immediate match thread for {match_id}'
+                            root.info(message)
+                            await msg.async_send(message)
                         else:
                             root.info('scheduling thread')
                             self.scheduler.add_job(
@@ -179,12 +189,17 @@ class AsyncController:
                         threads = file_manager.get_threads(str(match_id))
                         if threads and threads.match and not threads.post:
                             # Resume match thread updates
-                            try:
-                                await thread.match_thread(match_id, self.subreddit)
-                            except Exception as e:
-                                error_msg = f"Error catching up on match thread: {str(e)}"
-                                root.error(error_msg)
-                                await msg.async_send(error_msg, tag=True)
+                            self.scheduler.add_job(
+                                self.create_match_thread,
+                                'date',
+                                run_date=datetime.now(),
+                                args=[match_id, True],
+                                name=f'match_thread_{match_id}',
+                                replace_existing=True
+                            )
+                            message = f'Scheduled match thread resume for {match_id}'
+                            root.info(message)
+                            await msg.async_send(message)
 
                     else:
                         message = f'No matches today for {team}.'
