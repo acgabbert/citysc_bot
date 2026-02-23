@@ -5,9 +5,11 @@ import asyncio
 from playwright.async_api import async_playwright, Browser, Page
 import discord as msg
 
+from models.constants import get_current_season
+
 logger = logging.getLogger(__name__)
 
-standings_url = 'https://www.mlssoccer.com/standings/#season=MLS-SEA-0001K9&live=false'
+standings_url = f'https://www.mlssoccer.com/standings/#season={get_current_season()}&live=false'
 schedule_url = 'https://www.mlssoccer.com/schedule/scores#competition=all&club=MLS-CLU-00001L&date='
 schedule_no_matches = 'mls-c-schedule__no-results-text'
 
