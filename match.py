@@ -156,6 +156,8 @@ class Match:
         """
         Get the scheduled date and time of the match (UTC).
         """
+        if not self.data.match_base:
+            return None
         return self.data.match_base.match_information.planned_kickoff_time
     
     def get_local_datetime(self) -> datetime | None:
@@ -363,6 +365,8 @@ class Match:
         """
         Get a score string, including penalties if applicable.
         """
+        if self.data.match_base is None:
+            return "0-0"
         home_goals = self.data.match_base.match_information.home_team_goals
         away_goals = self.data.match_base.match_information.away_team_goals
         result = f"{home_goals}-{away_goals}"
