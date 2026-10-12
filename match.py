@@ -34,15 +34,9 @@ class Match:
     away_starters: List[BasePerson] = None
     injuries: Optional[Dict] = None
     discipline: Optional[Dict] = None
-    _sportec_to_opta: Dict[str, str] = None
 
     def __init__(self, sportec_id: str):
         self.sportec_id = sportec_id
-        self._sportec_to_opta = {
-            entry.sportec_id: str(opta_id)
-            for opta_id, entry in util.names.items()
-            if entry.sportec_id
-        }
     
     async def _fetch_data(self, client: Optional[MLSApiClient] = None) -> ComprehensiveMatchData:
         if client is not None:
@@ -144,7 +138,20 @@ class Match:
             return True
         
         return False
-    
+
+    def is_abandoned(self) -> bool:
+        """True if the match was postponed, abandoned or cancelled and won't reach a final whistle.
+        The stats API's exact strings for these aren't documented, so match on substrings."""
+        if not self.data.match_base:
+            return False
+        status = self.data.match_base.match_information.match_status.lower()
+        return any(word in status for word in ('postpon', 'abandon', 'cancel'))
+
+    def get_kickoff_timestamp(self) -> float:
+        """Scheduled kickoff (Unix time), from the stats API if it has the match yet, else the sport API."""
+        kickoff = self.get_utc_datetime() or self.data.match_info.matchDate
+        return kickoff.timestamp()
+
     def get_utc_datetime(self) -> datetime | None:
         """
         Get the scheduled date and time of the match (UTC).

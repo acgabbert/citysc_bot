@@ -30,6 +30,15 @@ file_manager = ThreadManager(config.THREADS_JSON)
 
 # Minute from which MATCH_UPDATE_INTERVAL_LATE applies
 LATE_MATCH_MINUTE = 80
+# A failed post-match thread is retried this many times in total, this many seconds apart
+POST_MATCH_ATTEMPTS = 3
+POST_MATCH_RETRY_DELAY = 60
+
+
+def match_thread_max_hours() -> float:
+    """Hours after kickoff to stop updating a match thread that never goes final
+    (e.g. a long weather delay or a status the bot doesn't recognize)."""
+    return getattr(config, 'MATCH_THREAD_MAX_HOURS', 5)
 
 
 def update_interval(match_obj: Match) -> float:
@@ -135,6 +144,7 @@ async def match_thread(
                 await thread.load()
                 await msg.async_send('Found existing match thread')
 
+            deadline = match_obj.get_kickoff_timestamp() + match_thread_max_hours() * 3600
             while True:
                 before = time.time()
                 try:
@@ -167,7 +177,7 @@ async def match_thread(
                     await msg.async_send('Match is finished, final update made', tag=True)
                     if post and not post_thread:
                         # post a post-match thread before exiting the loop
-                        await post_match_thread(sportec_id, sub, thread)
+                        await post_match_thread_with_retry(sportec_id, sub, thread)
                     elif not post:
                         message = f'No post-match thread for {sportec_id}'
                         await msg.async_send(message)
@@ -175,7 +185,56 @@ async def match_thread(
                         message = f'Found post-match thread for {sportec_id}. Skipping post-match thread.'
                         await msg.async_send(message, tag=True)
                     break
+                if match_obj.is_abandoned():
+                    status = match_obj.data.match_base.match_information.match_status
+                    await msg.async_send(
+                        f'Match {sportec_id} is {status}. Stopped match thread updates; '
+                        f'no post-match thread posted.',
+                        tag=True
+                    )
+                    break
+                if time.time() > deadline:
+                    await msg.async_send(
+                        f'Match {sportec_id} still not final {match_thread_max_hours()}h after kickoff. '
+                        f'Stopped match thread updates. If it has finished, post the post-match thread with '
+                        f'`python match_thread.py -i {sportec_id} --post`.',
+                        tag=True
+                    )
+                    break
                 await asyncio.sleep(update_interval(match_obj))
+
+
+async def post_match_thread_with_retry(
+    sportec_id: str,
+    sub: str = prod_sub,
+    thread: Optional[Union[str, asyncpraw.models.Submission]] = None
+) -> bool:
+    """Post a post-match thread, retrying on failure. Returns True once one exists.
+    Never posts a second one: each attempt first checks threads.json, which
+    post_match_thread() updates as soon as the thread is submitted."""
+    for attempt in range(1, POST_MATCH_ATTEMPTS + 1):
+        threads = file_manager.get_threads(sportec_id)
+        if threads and threads.post:
+            return True
+        try:
+            await post_match_thread(sportec_id, sub, thread)
+            return True
+        except Exception as e:
+            logger.exception(f'Post-match thread attempt {attempt}/{POST_MATCH_ATTEMPTS} for {sportec_id} failed')
+            if attempt == POST_MATCH_ATTEMPTS:
+                await msg.async_send(
+                    f'Giving up on post-match thread for {sportec_id} after {attempt} attempts: {str(e)}\n'
+                    f'Post it with `python match_thread.py -i {sportec_id} --post`.',
+                    tag=True
+                )
+                return False
+            await msg.async_send(
+                f'Post-match thread attempt {attempt}/{POST_MATCH_ATTEMPTS} for {sportec_id} failed: {str(e)}. '
+                f'Retrying in {POST_MATCH_RETRY_DELAY}s.',
+                tag=True
+            )
+            await asyncio.sleep(POST_MATCH_RETRY_DELAY)
+    return False
 
 
 async def post_match_thread(
@@ -205,16 +264,17 @@ async def post_match_thread(
             mod=True, unsticky=thread
         )
 
-        if thread is not None:
-            text = f'[Continue the discussion in the post-match thread.](https://www.reddit.com/r/{sub}/comments/{post_thread_obj.id_from_url(post_thread_obj.shortlink)})'
-            await reddit.add_comment(thread, text)
-        
-        await msg.async_send(f'Post-match thread posted! https://www.reddit.com/r/{sub}/comments/{post_thread_obj.id_from_url(post_thread_obj.shortlink)}', tag=True)
-
+        # Save the thread first so a retry after a later failure won't post another
         if threads is None:
             threads = MatchThreads(slug=match_obj.slug)
         threads.post = post_thread_obj.id_from_url(post_thread_obj.shortlink)
         await file_manager.add_threads(sportec_id, threads)
+
+        if thread is not None:
+            text = f'[Continue the discussion in the post-match thread.](https://www.reddit.com/r/{sub}/comments/{threads.post})'
+            await reddit.add_comment(thread, text)
+
+        await msg.async_send(f'Post-match thread posted! https://www.reddit.com/r/{sub}/comments/{threads.post}', tag=True)
 
 @util.time_dec(False)
 async def main():

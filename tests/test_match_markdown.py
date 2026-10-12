@@ -53,6 +53,27 @@ async def test_pre_match_injuries_and_discipline(isolated_cwd):
     assert "**Vancouver Whitecaps FC:** Suspended: Player C" in body
 
 
+async def test_pre_match_opponent_without_sportec_id_in_names(isolated_cwd):
+    """Opponents are looked up by the Opta ID the API returns, not util.names,
+    where most clubs have no Sportec ID."""
+    from conftest import FixtureClient, load_payloads, PRE_MATCH_ID
+    from match import Match
+
+    (isolated_cwd / "data").mkdir()
+    (isolated_cwd / "data" / "injuries.json").write_text('{"injuries": {"3500": ["Player D"]}}')
+    (isolated_cwd / "data" / "discipline.json").write_text(
+        '{"discipline": {"3500": {"Suspended": ["Player E"]}}}'
+    )
+    payloads = load_payloads(PRE_MATCH_ID)
+    payloads["match_info"]["away"].update(
+        optaId=3500, sportecId="MLS-CLU-00000S", fullName="Seattle Sounders FC"
+    )
+    match = await Match.create(PRE_MATCH_ID, client=FixtureClient(payloads))
+    _, body = md.pre_match_thread(match)
+    assert "**Seattle Sounders FC:** Player D" in body
+    assert "**Seattle Sounders FC:** Suspended: Player E" in body
+
+
 async def test_match_thread_before_lineups():
     match = await make_match("pre_match")
     _, body = md.match_thread(match)

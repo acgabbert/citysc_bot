@@ -18,10 +18,11 @@ FEATURE_FLAGS = {
     'enable_inline_logos': False,
     # Schedule times (24h format)
     'schedule_times': {
-        'selenium': '00:45',
+        'playwright': '00:45',
         'widgets': '01:00',
         'injuries': '01:15',
         'discipline': '01:15',
+        'prune_threads': '01:25',
         'daily_setup': '01:30'
     }
 }
@@ -39,42 +40,12 @@ DISCORD_BOTADMINID = '' # a group to tag for important log messages
 DISCORD_APP_ID = ''
 DISCORD_TOKEN = ''
 MLS_BOT_WEBHOOK = 'https://discord.com/api/webhooks/'
-CSS_PATH = 'markdown/markdown.css'
 THREADS_JSON = 'data/threads.json'
 # Entries in THREADS_JSON older than this are removed daily
 THREADS_MAX_AGE_DAYS = 30
 # Seconds between match thread updates, and from the 80th minute on
 MATCH_UPDATE_INTERVAL = 60
 MATCH_UPDATE_INTERVAL_LATE = 30
+# Stop updating a match thread this many hours after kickoff if the match never goes final
+MATCH_THREAD_MAX_HOURS = 5
 
-# More reddit config - widgets
-WIDGETS = {
-    'upcoming': {
-        'name': 'Upcoming Matches',
-        'file': 'markdown/Upcoming_alt.md',
-        'widget': '',
-        'test widget': '',
-        'css': CSS_PATH
-    },
-    'standings': {
-        'name': 'Western Conference Standings',
-        'file': 'markdown/WesternConference.md',
-        'widget': '',
-        'test widget': '',
-        'css': CSS_PATH
-    },
-    'schedule': {
-        'name': 'Full Schedule',
-        'file': 'markdown/Schedule_alt.md',
-        'widget': '',
-        'test widget': '',
-        'css': CSS_PATH
-    },
-    'preseason': {
-        'name': 'Preseason Schedule',
-        'file': 'markdown/Preseason.md',
-        'widget': '',
-        'test widget': '',
-        'css': CSS_PATH
-    }
-}

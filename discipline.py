@@ -5,6 +5,7 @@ import re
 import logging
 from typing import Optional
 
+import discord as msg
 import util
 from util import names
 
@@ -151,9 +152,16 @@ def main():
     if soup is None:
         logger.error("Could not fetch discipline content, skipping update")
         return False
-    disc_obj = populate_discipline(soup)
+    try:
+        disc_obj = populate_discipline(soup)
+    except Exception as e:
+        # An empty report is valid (e.g. early season), but a parse error
+        # means the page layout changed: keep the last good data.
+        logger.exception('Failed to parse discipline report')
+        msg.send(f'Failed to parse discipline report, keeping previous {DISC_FILE}: {e}', tag=True)
+        return False
     util.write_json(disc_obj.to_dict(), DISC_FILE)
-    return util.file_changed(DISC_FILE)
+    return True
 
 
 if __name__ == '__main__':

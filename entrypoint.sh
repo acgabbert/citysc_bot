@@ -7,7 +7,7 @@ if [ ! -f "/app/config.py" ]; then
 fi
 
 # Check for required directories in /app
-for dir in assets markdown log png; do
+for dir in assets log png; do
     if [ ! -d "/app/$dir" ]; then
         echo "Creating /app/$dir directory"
         mkdir -p "/app/$dir"

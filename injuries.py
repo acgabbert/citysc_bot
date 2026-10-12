@@ -5,6 +5,7 @@ import requests
 from datetime import datetime
 from bs4 import BeautifulSoup
 
+import discord as msg
 import util
 from util import names
 
@@ -150,19 +151,29 @@ def match_teams(injury_obj: Dict) -> Dict:
 
 
 def main():
-    retval = False
     soup = get_injury_content()
     if soup is None:
         root.error("Could not fetch injury content, skipping update")
-        return retval
-    inj_obj = populate_injuries(soup)
+        return False
+    try:
+        inj_obj = populate_injuries(soup)
+    except Exception as e:
+        root.exception('Failed to parse injury report')
+        msg.send(f'Failed to parse injury report, keeping previous {INJ_FILE}: {e}', tag=True)
+        return False
+    if not inj_obj.injuries:
+        # Every club is listed on the page, so no matched clubs means the layout changed
+        message = f'No clubs found in injury report, keeping previous {INJ_FILE}. Has the page layout changed?'
+        root.error(message)
+        msg.send(message, tag=True)
+        return False
     newest_inj = {'matchday': inj_obj.matchday if inj_obj.matchday else "Unknown", 'injuries': {}}
     new_inj = inj_obj.to_dict()
     for key in new_inj['injuries']:
         new_key = str(key)
         newest_inj['injuries'][new_key] = new_inj['injuries'][key]
     util.write_json(newest_inj, INJ_FILE)
-    return retval
+    return True
 
 
 if __name__ == '__main__':
