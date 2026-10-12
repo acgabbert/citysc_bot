@@ -3,7 +3,6 @@ from datetime import datetime
 import json
 import logging
 import os
-import sys
 from typing import Dict, List, Optional
 from api_client import MLSApiClient
 from models.club import Club_Sport
@@ -14,12 +13,6 @@ from models.schedule import Broadcaster, Competition
 from models.team_stats import TeamStats
 from models.venue import MatchVenue
 import util
-
-logging.basicConfig(
-    level=logging.INFO,  # Set the minimum level of messages to handle (e.g., INFO, DEBUG)
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', # Example format
-    stream=sys.stdout  # Direct output to stdout
-)
 
 logger = logging.getLogger(__name__)
 
@@ -189,7 +182,7 @@ class Match:
 
     def get_starting_lineups(self) -> Dict[str, List[BasePerson]]:
         """
-        Retrieve the starting linups for both teams.
+        Retrieve the starting lineups for both teams.
         
         Returns:
             A dictionary mapping team IDs (str) to lists of starting players (BasePerson)
@@ -263,6 +256,10 @@ class Match:
         goal_event_details: List[EventDetails] = []
         for event in self.data.match_events.events:
             if event.sub_type == 'goals':
+                # Shootout kicks are 'penalties' events with sub_type 'goals'
+                # but don't count toward the score.
+                if event.event.game_section == 'penalty':
+                    continue
                 if event.type == 'penalties':
                     goal_event_details.append(event.event.shot_at_goal)
                 else: #if event.type == 'shot_at_goals':
@@ -278,6 +275,9 @@ class Match:
         for event in goal_event_details:
             player_id = event.player_id or f"{event.player_first_name}_{event.player_last_name}"
             team_id = event.team_id
+            if team_id not in scorers_by_team:
+                logger.warning(f"Goal event {event.event_id} has unknown team {team_id}, skipping")
+                continue
 
             if not scorers_by_team[team_id][player_id]["goals"] or scorers_by_team[team_id][player_id]["first_name"] == "Unknown":
                 scorers_by_team[team_id][player_id]["first_name"] = event.player_first_name or "Unknown"
@@ -303,28 +303,28 @@ class Match:
                 full_name = f"{player_data['first_name']} {player_data['last_name']}".strip()
                 # Sort goals numerically by minute
                 def sort_key(minute_str: str):
-                    penalty = " pen" in minute_str
-                    minute_part = minute_str.replace(" pen", "")
+                    minute_part = minute_str.replace(" pen", "").replace("'", "")
                     try:
                         if '+' in minute_part:
                             base, added = map(int, minute_part.split("+"))
-                            numeric_minute = float(base) + float(added) / 10.0
+                            numeric_minute = float(base) + float(added) / 100.0
                         elif minute_part == '?':
                             return float('inf')
                         else:
-                            numeric_minute = float(minute_part.replace("'", ""))
+                            numeric_minute = float(minute_part)
                         return numeric_minute
                     except ValueError:
                         return float('inf')
                 
-                # TODO:
-                # Have tried this both reversed and not -
-                # still appears to sort goals in reverse order (latest first)
                 sorted_goals = sorted(player_data["goals"], key=sort_key)
                 goals_str = ", ".join(sorted_goals)
-                output_by_team[team_id].append(f"{full_name} ({goals_str})")
-        
-        return output_by_team
+                output_by_team[team_id].append((sort_key(sorted_goals[0]), f"{full_name} ({goals_str})"))
+
+        # Events come from the API newest first; list scorers by their first goal.
+        return {
+            team_id: [line for _, line in sorted(scorers, key=lambda scorer: scorer[0])]
+            for team_id, scorers in output_by_team.items()
+        }
 
 
     def get_venue(self) -> MatchVenue:
@@ -380,22 +380,20 @@ class Match:
         """
         Get result type if the match is finished.
         """
-        if not self.data.match_events or not self.data.match_events.events:
+        if not self.is_final():
             return ""
         result = "FT"
         # check if any events are in extra time
-        penalties = any('penalty' in event_obj.event.game_section.lower() for event_obj in self.data.match_events.events)
-        extra_time = any('extra' in event_obj.event.game_section.lower() for event_obj in self.data.match_events.events)
+        events = self.data.match_events.events if self.data.match_events else []
+        sections = [(event_obj.event.game_section or '').lower() for event_obj in events]
+        penalties = any('penalty' in section for section in sections)
+        extra_time = any('extra' in section for section in sections)
 
         if extra_time:
             result = "AET"
         if penalties:
             result += " (Pens)"
-        
-        if self.is_final():
-            return result
-        else:
-            return ""
+        return result
     
     def get_data_string(self) -> str:
         retval = []
