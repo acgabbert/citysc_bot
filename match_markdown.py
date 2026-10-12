@@ -212,9 +212,11 @@ def generate_injuries(match_obj: Match) -> Optional[str]:
         return None
 
     lines = ["### Injury Report"]
-    for team_id, team_name in [(match_obj.home_id, match_obj.home.fullName), (match_obj.away_id, match_obj.away.fullName)]:
-        opta_id = match_obj._sportec_to_opta.get(team_id)
-        if opta_id and opta_id in match_obj.injuries:
+    # injuries.json and discipline.json are keyed by the club's Opta ID
+    for club in (match_obj.home, match_obj.away):
+        opta_id = str(club.optaId)
+        team_name = club.fullName
+        if opta_id in match_obj.injuries:
             injury_list = match_obj.injuries[opta_id]
             if injury_list:
                 lines.append(f"**{team_name}:** {', '.join(injury_list)}")
@@ -227,9 +229,11 @@ def generate_discipline(match_obj: Match) -> Optional[str]:
         return None
 
     lines = ["### Discipline"]
-    for team_id, team_name in [(match_obj.home_id, match_obj.home.fullName), (match_obj.away_id, match_obj.away.fullName)]:
-        opta_id = match_obj._sportec_to_opta.get(team_id)
-        if opta_id and opta_id in match_obj.discipline:
+    # injuries.json and discipline.json are keyed by the club's Opta ID
+    for club in (match_obj.home, match_obj.away):
+        opta_id = str(club.optaId)
+        team_name = club.fullName
+        if opta_id in match_obj.discipline:
             team_disc = match_obj.discipline[opta_id]
             if team_disc:
                 parts = []

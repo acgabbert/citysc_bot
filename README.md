@@ -30,10 +30,11 @@ Then fill in `config.py`.
 | `CLIENT_ID`, `SECRET_TOKEN`, `USERNAME`, `PASSWORD`, `USER_AGENT_STR` | Reddit script-app credentials. The account must be a moderator to sticky threads. |
 | `SUB`, `TEST_SUB` | Subreddit to post to, and a test subreddit for manual runs. |
 | `TEAMS` | Opta IDs of the teams to follow. |
-| `FEATURE_FLAGS` | Turns scheduled jobs on or off: `enable_widgets`, `enable_injuries`, `enable_discipline`, `enable_daily_setup`, plus `enable_inline_logos` for club logos in thread headers. |
+| `FEATURE_FLAGS` | Turns scheduled jobs on or off: `enable_widgets`, `enable_injuries`, `enable_discipline`, `enable_daily_setup`, plus `enable_inline_logos` for club logos in thread headers. `schedule_times` sets the daily job times. |
 | `MLS_BOT_WEBHOOK`, `DISCORD_BOTADMINID` | Discord webhook for status messages, and the role to tag on errors. |
 | `THREADS_JSON`, `THREADS_MAX_AGE_DAYS` | Where thread IDs are stored, and how long entries are kept (default 30 days). |
 | `MATCH_UPDATE_INTERVAL`, `MATCH_UPDATE_INTERVAL_LATE` | Seconds between match thread updates, and from the 80th minute on (defaults 60 and 30). |
+| `MATCH_THREAD_MAX_HOURS` | Stop updating a match thread this many hours after kickoff if the match never reaches full time, e.g. a long weather delay (default 5). |
 
 Settings added after your `config.py` was written fall back to their defaults.
 
@@ -54,11 +55,13 @@ python match_thread.py -i SPORTEC_ID -s /r/test_sub
 
 Sportec IDs look like `MLS-MAT-0009MQ`.
 
-Daily jobs (server local time): widget screenshots 00:45, widget upload 01:00, injuries and discipline 01:15, `threads.json` cleanup 01:25, schedule check 01:30. The schedule check queues the day's pre-match and match threads.
+Daily jobs (server local time, changeable in `FEATURE_FLAGS['schedule_times']`): widget screenshots 00:45, widget upload 01:00, injuries and discipline 01:15, `threads.json` cleanup 01:25, schedule check 01:30. The schedule check queues the day's pre-match and match threads, resumes a match thread that was interrupted, and posts a post-match thread that's missing from a match in the last 24 hours.
+
+A failed post-match thread is retried twice, a minute apart. A match thread stops updating if the match is postponed or abandoned, or `MATCH_THREAD_MAX_HOURS` after kickoff; Discord gets a tagged message either way.
 
 ### Docker
 
-Set `BOT_BASE_PATH` in `.env` to a directory holding `config.py` and the `assets`, `markdown`, `log`, `png` and `data` directories (default `/opt/citysc_bot`), then:
+Set `BOT_BASE_PATH` in `.env` to a directory holding `config.py` and the `assets`, `log`, `png` and `data` directories (default `/opt/citysc_bot`), then:
 
 ```bash
 docker compose build

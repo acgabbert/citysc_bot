@@ -14,6 +14,15 @@ def subreddit_name(subreddit: str) -> str:
         return subreddit.split('/r/')[1]
     return subreddit
 
+# Errors worth retrying: 5xx and 429...
+RETRYABLE_ERRORS = (
+    asyncprawcore.exceptions.ServerError,
+    asyncprawcore.exceptions.TooManyRequests,
+)
+# ...plus network failures (aiohttp connection errors and timeouts), but only for
+# operations that are safe to repeat: a timed-out submit may have gone through.
+RETRYABLE_ERRORS_IDEMPOTENT = RETRYABLE_ERRORS + (asyncprawcore.exceptions.RequestException,)
+
 class RedditAPIError(Exception):
     """Base exception for Reddit API errors"""
     pass
@@ -72,32 +81,30 @@ class RedditClient:
         await self.close()
         await self.connect()
 
-    async def _execute_with_retry(self, operation, *args, **kwargs) -> Any:
-        """Execute a Reddit API operation with retries."""
+    async def _execute_with_retry(self, operation, *args, idempotent: bool = True, **kwargs) -> Any:
+        """Execute a Reddit API operation, retrying server errors and rate limits
+        (and network errors, if idempotent) with exponential backoff."""
+        retryable = RETRYABLE_ERRORS_IDEMPOTENT if idempotent else RETRYABLE_ERRORS
         last_error = None
-        
+
         for attempt in range(self.max_retries):
             try:
-                result = await operation(*args, **kwargs)
-                return result
-                
-            except asyncprawcore.exceptions.ServerError as e:
+                return await operation(*args, **kwargs)
+
+            except retryable as e:
                 last_error = e
                 if attempt == self.max_retries - 1:
                     break
-                    
+
                 wait_time = self.retry_delay * (2 ** attempt)
-                logger.warning(f"Reddit server error, retrying in {wait_time}s: {str(e)}")
+                logger.warning(f"Reddit {type(e).__name__}, retrying in {wait_time}s: {str(e)}")
+                # Don't refresh the client here: operation is bound to an object
+                # (e.g. a Submission) that holds the current client's session.
                 await asyncio.sleep(wait_time)
-                
-                # Refresh the client on connection errors
-                if isinstance(e, (asyncprawcore.exceptions.RequestException,
-                               asyncprawcore.exceptions.ResponseException)):
-                    await self.refresh()
-                    
+
             except Exception as e:
                 raise RedditClientError(f"Reddit operation failed: {str(e)}") from e
-                
+
         raise RedditServerError(f"Operation failed after {self.max_retries} attempts: {str(last_error)}")
 
     async def submit_thread(
@@ -118,6 +125,7 @@ class RedditClient:
         # Submit the thread
         thread = await self._execute_with_retry(
             subreddit_obj.submit,
+            idempotent=False,
             title=title,
             selftext=text,
             send_replies=False
@@ -182,7 +190,7 @@ class RedditClient:
         if isinstance(thread, str):
             thread = await self.client.submission(id=thread)
             
-        comment = await self._execute_with_retry(thread.reply, text)
+        comment = await self._execute_with_retry(thread.reply, text, idempotent=False)
         
         if distinguish or sticky:
             await asyncio.sleep(self.reddit_processing_delay)

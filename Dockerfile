@@ -1,46 +1,27 @@
 FROM python:3.13-slim-bookworm
 
-# Install system dependencies as root
-RUN apt-get update && apt-get install -y \
-    wget \
-    unzip \
-    chromium \
-    chromium-driver \
-    xvfb \
-    libgbm1 \
-    libnss3 \
-    libxss1 \
-    libasound2 \
-    libatk-bridge2.0-0 \
-    libgtk-3-0 \
-    fonts-noto-color-emoji \
-    && rm -rf /var/lib/apt/lists/*
-
 WORKDIR /app
 
 # Create a non-root user with UID 1000
-RUN useradd -u 1000 -m botuser 
+RUN useradd -u 1000 -m botuser
+
+# Install Python dependencies system-wide, then the system libraries Playwright's
+# Chromium needs (install-deps uses apt, so it runs as root)
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt && \
+    playwright install-deps chromium && \
+    apt-get update && apt-get install -y --no-install-recommends fonts-noto-color-emoji && \
+    rm -rf /var/lib/apt/lists/*
 
 # Create required directories with proper permissions
-RUN mkdir -p assets models markdown log png data && \
+RUN mkdir -p assets models log png data && \
     chown -R 1000:1000 /app && \
-    chmod 755 /app/assets && \
-    chmod 755 /app/markdown && \
-    chmod 755 /app/models && \
-    chmod 755 /app/log && \
-    chmod 755 /app/png && \
-    chmod 755 /app/data
+    chmod 755 /app/assets /app/models /app/log /app/png /app/data
 
 # Switch to UID 1000 for subsequent commands
 USER 1000
 
-# Copy requirements first to leverage Docker cache
-COPY --chown=1000:1000 requirements.txt .
-RUN pip install --user --no-cache-dir -r requirements.txt
-
-# Install Playwright and browser as botuser
-RUN pip install --user playwright
-ENV PATH="/home/botuser/.local/bin:${PATH}"
+# Download Playwright's Chromium into botuser's cache
 RUN playwright install chromium
 
 # Copy the source code
@@ -51,9 +32,6 @@ COPY --chown=1000:1000 *.sh ./
 
 # Add the app directory to PYTHONPATH
 ENV PYTHONPATH=/app
-
-# Set Chrome options for running in container
-ENV CHROME_OPTIONS="--headless --no-sandbox --disable-dev-shm-usage"
 
 RUN chmod +x entrypoint.sh
 

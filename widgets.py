@@ -32,12 +32,11 @@ async def update_image_widget(name, subreddit='stlouiscitysc'):
         return await client.update_image_widget(widget_name, image_path, size, subreddit)
 
 
-async def main():
-    args = parser.parse_args()
-    sub: str = args.sub or SUB
+async def main(subreddit: str = SUB):
     for name in ['Western Conference', 'This Week', 'Next Week']:
-        await update_image_widget(name, sub)
+        await update_image_widget(name, subreddit)
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    args = parser.parse_args()
+    asyncio.run(main(args.sub or SUB))

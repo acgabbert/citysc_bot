@@ -4,7 +4,6 @@ services:
     volumes:
       - ${BOT_BASE_PATH:-/opt/citysc_bot}/config.py:/app/config.py:ro
       - ${BOT_BASE_PATH:-/opt/citysc_bot}/assets:/app/assets
-      - ${BOT_BASE_PATH:-/opt/citysc_bot}/markdown:/app/markdown
       - ${BOT_BASE_PATH:-/opt/citysc_bot}/log:/app/log
       - ${BOT_BASE_PATH:-/opt/citysc_bot}/png:/app/png
       - ${BOT_BASE_PATH:-/opt/citysc_bot}/data:/app/data
