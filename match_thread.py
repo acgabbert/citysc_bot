@@ -28,6 +28,22 @@ test_sub = config.TEST_SUB
 prod_sub = config.SUB
 file_manager = ThreadManager(config.THREADS_JSON)
 
+# Minute from which MATCH_UPDATE_INTERVAL_LATE applies
+LATE_MATCH_MINUTE = 80
+
+
+def update_interval(match_obj: Match) -> float:
+    """Seconds to wait between match thread updates. Late in the match
+    (and in extra time) this is MATCH_UPDATE_INTERVAL_LATE, if set."""
+    interval = getattr(config, 'MATCH_UPDATE_INTERVAL', 60)
+    late_interval = getattr(config, 'MATCH_UPDATE_INTERVAL_LATE', interval)
+    try:
+        # minute_of_play looks like "33" or "90+4"
+        minute = int(str(match_obj.minute_display).split('+')[0])
+    except ValueError:
+        return interval
+    return late_interval if minute >= LATE_MATCH_MINUTE else interval
+
 async def pre_match_thread(sportec_id: str, sub: str = prod_sub):
     """Post a pre-match/matchday thread.
     
@@ -159,7 +175,7 @@ async def match_thread(
                         message = f'Found post-match thread for {sportec_id}. Skipping post-match thread.'
                         await msg.async_send(message, tag=True)
                     break
-                await asyncio.sleep(60)
+                await asyncio.sleep(update_interval(match_obj))
 
 
 async def post_match_thread(
