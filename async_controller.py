@@ -54,6 +54,14 @@ parser.add_argument('-s', '--sub', help=f'Subreddit; default = {SUB}')
 # A second instance would miss threads posted after startup and undo prunes.
 file_manager = thread.file_manager
 
+SECONDS_PER_DAY = 24 * 60 * 60
+# Match threads go up this long before kickoff
+MATCH_THREAD_LEAD_TIME = 30 * 60
+# A match that kicked off less than this long ago may still be in progress
+MATCH_IN_PROGRESS_WINDOW = 3 * 60 * 60
+# St. Louis CITY 2 (MLS NEXT Pro) gets match threads only: no pre- or post-match threads
+CITY2_OPTA_ID = 19202
+
 
 class AsyncController:
     """Main controller class for scheduling and managing async tasks"""
@@ -116,7 +124,7 @@ class AsyncController:
 
                 # Check for upcoming matches
                 # use a starting time of 3 hours ago to check for ongoing matches as well
-                match_id, match_time = mls_schedule.check_pre_match_sched(data, date_from=int(time.time()) - 10800)
+                match_id, match_time = mls_schedule.check_pre_match_sched(data, date_from=int(time.time()) - MATCH_IN_PROGRESS_WINDOW)
                 
                 if match_id is not None:
                     local_time = match_time.astimezone()
@@ -124,11 +132,11 @@ class AsyncController:
 
                     # Check if match is within next 24 hours
                     now = time.time()
-                    today = time.time() + 86400
+                    today = time.time() + SECONDS_PER_DAY
                     if match_time.timestamp() < today and datetime.now().date() == local_time.date():
                         root.info("checking and/or scheduling thread")
                         # Schedule match thread for 30 mins before game
-                        thread_time = datetime.fromtimestamp(match_time.timestamp() - 1800)
+                        thread_time = datetime.fromtimestamp(match_time.timestamp() - MATCH_THREAD_LEAD_TIME)
 
                         if thread_time.timestamp() < now:
                             root.info('whoops. creating thread')
@@ -136,7 +144,7 @@ class AsyncController:
                                 self.create_match_thread,
                                 'date',
                                 run_date=datetime.now(),
-                                args=[match_id, team != 19202],
+                                args=[match_id, team != CITY2_OPTA_ID],
                                 name=f'match_thread_{match_id}',
                                 replace_existing=True
                             )
@@ -149,7 +157,7 @@ class AsyncController:
                                 self.create_match_thread,
                                 'date',
                                 run_date=thread_time,
-                                args=[match_id, team != 19202],  # post-match thread only if not CITY2
+                                args=[match_id, team != CITY2_OPTA_ID],
                                 name=f'match_thread_{match_id}',
                                 replace_existing=True
                             )
@@ -160,7 +168,7 @@ class AsyncController:
                         
                         current_hour = datetime.now().hour
                         # Schedule pre-match thread if not CITY2
-                        if current_hour < 4 and team != 19202:
+                        if current_hour < 4 and team != CITY2_OPTA_ID:
                             pre_match_time = datetime.now().replace(hour=4, minute=0)
                             
                             self.scheduler.add_job(
@@ -177,7 +185,7 @@ class AsyncController:
                             await msg.async_send(message)
 
                         # catch up if no pre-match thread posted yet
-                        if current_hour >= 4 and current_hour < 9 and team != 19202:
+                        if current_hour >= 4 and current_hour < 9 and team != CITY2_OPTA_ID:
                             threads = file_manager.get_threads(str(match_id))
                             if threads is None or not threads.pre:
                                 # immediately create match_thread
@@ -193,7 +201,7 @@ class AsyncController:
                                     await msg.async_send(error_msg, tag=True)
                     
                     # If match has started but not likely finished (within last 3 hours)
-                    elif match_time.timestamp() < now and now - match_time.timestamp() < 10800:
+                    elif match_time.timestamp() < now and now - match_time.timestamp() < MATCH_IN_PROGRESS_WINDOW:
                         threads = file_manager.get_threads(str(match_id))
                         if threads and threads.match and not threads.post:
                             # Resume match thread updates

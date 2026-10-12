@@ -4,7 +4,6 @@ import logging
 import sqlite3
 import inspect
 import json
-import asyncpraw
 import asyncio
 import signal
 import subprocess
@@ -12,7 +11,6 @@ from datetime import datetime, timezone
 from collections import namedtuple
 from typing import Any
 
-import config
 import discord as msg
 import functools
 
@@ -225,17 +223,6 @@ names = {
     1292: Names('Club América', 'América', 'CA', '')
 }
 
-
-def get_reddit() -> asyncpraw.Reddit:
-    reddit = asyncpraw.Reddit(
-        client_id=config.CLIENT_ID,
-        client_secret=config.SECRET_TOKEN,
-        password=config.PASSWORD,
-        user_agent=config.USER_AGENT_STR,
-        username=config.USERNAME
-    )
-    reddit.validate_on_submit = True
-    return reddit
 
 def normalize_datetime(v: Any) -> datetime:
     """

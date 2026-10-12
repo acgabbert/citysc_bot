@@ -8,6 +8,12 @@ import discord as msg
 
 logger = logging.getLogger(__name__)
 
+def subreddit_name(subreddit: str) -> str:
+    """Strip a leading /r/ so '/r/stlouiscitysc' and 'stlouiscitysc' both work."""
+    if '/r/' in subreddit:
+        return subreddit.split('/r/')[1]
+    return subreddit
+
 class RedditAPIError(Exception):
     """Base exception for Reddit API errors"""
     pass
@@ -105,8 +111,7 @@ class RedditClient:
         unsticky: Optional[Union[str, asyncpraw.models.Submission]] = None
     ) -> asyncpraw.models.Submission:
         """Submit a new thread to Reddit."""
-        if '/r/' in subreddit:
-            subreddit = subreddit.split('/r/')[1]
+        subreddit = subreddit_name(subreddit)
             
         subreddit_obj = await self.client.subreddit(subreddit)
         
@@ -203,8 +208,7 @@ class RedditClient:
         subreddit: str
     ) -> asyncpraw.models.SubredditWidgets:
         """Get a list of the widgets in a subreddit's sidebar"""
-        if '/r/' in subreddit:
-            subreddit = subreddit.split('/r/')[1]
+        subreddit = subreddit_name(subreddit)
         sub = await self.client.subreddit(subreddit)
         return sub.widgets
 
@@ -228,8 +232,7 @@ class RedditClient:
         subreddit: str
     ) -> bool:
         """Update a subreddit's image widget"""
-        if '/r/' in subreddit:
-            subreddit = subreddit.split('/r/')[1]
+        subreddit = subreddit_name(subreddit)
         widgets = await self.get_widgets(subreddit)
         updated = False
         async for w in widgets.sidebar():

@@ -13,7 +13,7 @@ from match import Match
 from thread_manager import MatchThreads, ThreadManager
 import util
 import discord as msg
-from reddit_client import RedditClient
+from reddit_client import RedditClient, subreddit_name
 
 logger = logging.getLogger(__name__)
 
@@ -38,8 +38,7 @@ async def pre_match_thread(sportec_id: str, sub: str = prod_sub):
     Returns:
         The created pre-match thread
     """
-    if '/r/' in sub:
-        sub = sub.split('/r/')[1]
+    sub = subreddit_name(sub)
     # get a match object
     match_obj = await Match.create(sportec_id)
 
@@ -77,6 +76,7 @@ async def match_thread(
         thread: Existing match thread to update
         post: Whether to create a post-match thread when done
     """
+    sub = subreddit_name(sub)
     async with MLSApiClient() as api_client:
         # get a match object
         match_obj = await Match.create(sportec_id, client=api_client)
@@ -98,8 +98,6 @@ async def match_thread(
         async with RedditClient() as reddit:
             if thread is None:
                 title, markdown = md.match_thread(match_obj)
-                if '/r/' in sub:
-                    sub = sub.split('/r/')[1]
                 thread = await reddit.submit_thread(
                     sub, title, markdown,
                     mod=True, new=True, unsticky=pre_thread
@@ -181,8 +179,7 @@ async def post_match_thread(
     if thread is None and threads and threads.match:
         thread = threads.match
 
-    if '/r/' in sub:
-        sub = sub.split('/r/')[1]
+    sub = subreddit_name(sub)
 
     match_obj = await Match.create(sportec_id)
     title, markdown = md.post_match_thread(match_obj)
