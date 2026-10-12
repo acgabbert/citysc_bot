@@ -68,7 +68,7 @@ async def update_image_widget(name, subreddit='stlouiscitysc'):
     image_path = f'png/{name}-{now.month}-{now.day}.png'
     try:
         im = Image.open(image_path)
-    except:
+    except Exception:
         msg.send(f'Failed to update widget {image_path}.')
         return False
     size = im.size # format (width, height) tuple

@@ -80,7 +80,6 @@ def parse_discipline(soup: BeautifulSoup):
 
     #susp_pattern = r'(?!\d)\w[\w\s\-\.]*\([A-Z]{2,4}\).*\n\n\n\n.*'#vs.\s[A-Z]{2,4}'
     susp_pattern = r'.*\(([A-Z]{2,4})\).*'
-    susp_pattern_2 = r'.*vs\.\s+([A-Z]{2,4}).*(\n.*vs\.\s+[A-Z]{2,4}.*)*'
     # how to match accent marks??
     yellow = r'([\w\s\-\.]*)\(([A-Z]{2,4})\)'
     for i, tag in enumerate(susp):

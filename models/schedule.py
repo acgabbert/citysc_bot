@@ -1,6 +1,5 @@
-from datetime import datetime, timezone
-from typing import Any, Optional
-from pydantic import BaseModel, ConfigDict, field_validator
+from typing import Optional
+from pydantic import BaseModel, ConfigDict
 
 from models.constants import UtcDatetime
 
