@@ -57,5 +57,9 @@ ENV CHROME_OPTIONS="--headless --no-sandbox --disable-dev-shm-usage"
 
 RUN chmod +x entrypoint.sh
 
+# async_controller.py touches this file every minute while its event loop runs
+HEALTHCHECK --interval=1m --timeout=10s --start-period=2m --retries=3 \
+    CMD python -c "import os, sys, time; sys.exit(time.time() - os.path.getmtime('/tmp/citysc_bot.heartbeat') > 300)"
+
 ENTRYPOINT ["/bin/bash", "./entrypoint.sh"]
 CMD ["python", "async_controller.py"]

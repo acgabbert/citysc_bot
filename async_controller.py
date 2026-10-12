@@ -1,7 +1,9 @@
 import argparse
 import asyncio
 import logging, logging.handlers
+import os
 import sys
+import tempfile
 import time
 import traceback
 
@@ -61,6 +63,19 @@ MATCH_THREAD_LEAD_TIME = 30 * 60
 MATCH_IN_PROGRESS_WINDOW = 3 * 60 * 60
 # St. Louis CITY 2 (MLS NEXT Pro) gets match threads only: no pre- or post-match threads
 CITY2_OPTA_ID = 19202
+
+# Touched every HEARTBEAT_INTERVAL seconds while the event loop is running;
+# the Docker HEALTHCHECK reports unhealthy when it goes stale.
+HEARTBEAT_FILE = os.path.join(tempfile.gettempdir(), 'citysc_bot.heartbeat')
+HEARTBEAT_INTERVAL = 60
+
+
+def write_heartbeat() -> None:
+    try:
+        with open(HEARTBEAT_FILE, 'w') as f:
+            f.write(str(time.time()))
+    except OSError as e:
+        root.warning(f'Could not write heartbeat file {HEARTBEAT_FILE}: {e}')
 
 
 class AsyncController:
@@ -304,7 +319,8 @@ class AsyncController:
 
             # Keep running until interrupted
             while True:
-                await asyncio.sleep(300)
+                write_heartbeat()
+                await asyncio.sleep(HEARTBEAT_INTERVAL)
 
         except (KeyboardInterrupt, asyncio.CancelledError):
             message = "Received interrupt "
