@@ -120,28 +120,33 @@ class RedditClient:
         
         if mod:
             await asyncio.sleep(self.reddit_processing_delay)
-            mod_tasks = []
-            
             if new:
-                mod_tasks.append(self._execute_with_retry(
-                    thread.mod.suggested_sort,
-                    sort='new'
-                ))
-                
-            mod_tasks.append(self._execute_with_retry(
-                thread.mod.sticky
-            ))
-            
-            if unsticky:
-                if isinstance(unsticky, str):
-                    unsticky = await self.client.submission(id=unsticky)
-                mod_tasks.append(self._execute_with_retry(
-                    unsticky.mod.sticky,
-                    state=False
-                ))
-            
+                try:
+                    await self._execute_with_retry(
+                        thread.mod.suggested_sort,
+                        sort='new'
+                    )
+                except Exception as e:
+                    logger.error(f"Failed to set suggested sort for thread {thread.id}: {str(e)}")
+
             try:
-                await asyncio.gather(*mod_tasks)
+                # Unsticky the old thread before stickying the new one so the new
+                # thread takes the freed slot. Doing both at once can bump an
+                # unrelated pinned post out of the bottom slot.
+                if unsticky:
+                    if isinstance(unsticky, str):
+                        unsticky = await self.client.submission(id=unsticky)
+                    try:
+                        await self._execute_with_retry(
+                            unsticky.mod.sticky,
+                            state=False
+                        )
+                    except Exception as e:
+                        logger.error(f"Failed to unsticky thread {unsticky.id}: {str(e)}")
+
+                await self._execute_with_retry(
+                    thread.mod.sticky
+                )
             except Exception as e:
                 logger.error(f"Moderation actions failed for thread {thread.id}: {str(e)}")
                 msg.send(f"Warning: Moderation actions failed for new thread")
