@@ -68,6 +68,12 @@ This is the most important pattern to understand:
 - `log/` — Rotating logs (debug.log, controller.log, error.log)
 - `assets/` — Team logos
 
-## No Test Suite
+## Tests & CI
 
-There are currently no tests, no pytest config, and no CI/CD pipeline. See `docs/RECOMMENDATIONS.md` for the prioritized improvement roadmap.
+```bash
+pip install -r requirements-dev.txt
+ruff check .
+pytest
+```
+
+Tests never hit the network or Reddit. `tests/conftest.py` loads `config-example.py` as `config`, runs each test in a temp directory, and provides `FixtureClient`, an `MLSApiClient` that serves saved responses from `tests/fixtures/<match_id>/` (a missing file behaves like the API's 404). `MATCH_STATES` covers pre-match, lineups-only, live, final, shootout and missing-endpoint states; add a state there when a new partial-data case shows up. `.github/workflows/ci.yml` runs ruff and pytest on every PR. See `docs/RECOMMENDATIONS.md` for the improvement roadmap.

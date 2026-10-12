@@ -119,7 +119,7 @@ async def match_thread(
                 # thread already exists in the json
                 thread = await reddit.get_thread(thread)
                 await thread.load()
-                await msg.async_send(f'Found existing match thread')
+                await msg.async_send('Found existing match thread')
 
             while True:
                 before = time.time()

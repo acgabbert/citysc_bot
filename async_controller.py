@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 import logging, logging.handlers
+import sys
 import time
 import traceback
 
@@ -30,17 +31,22 @@ fh2 = logging.handlers.RotatingFileHandler('log/controller.log', maxBytes=100000
 fh2.setLevel(logging.INFO)
 er = logging.handlers.RotatingFileHandler('log/error.log', maxBytes=2000000, backupCount=2)
 er.setLevel(logging.ERROR)
+# stdout, for `docker compose logs`
+sh = logging.StreamHandler(sys.stdout)
+sh.setLevel(logging.INFO)
 
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 fh.setFormatter(formatter)
 fh2.setFormatter(formatter)
 er.setFormatter(formatter)
+sh.setFormatter(formatter)
 
 root = logging.getLogger()
 root.setLevel(logging.INFO)
 root.addHandler(fh)
 root.addHandler(fh2)
 root.addHandler(er)
+root.addHandler(sh)
 
 parser = argparse.ArgumentParser(prog='async_controller.py', usage='%(prog)s [options]', description='')
 parser.add_argument('-s', '--sub', help=f'Subreddit; default = {SUB}')
@@ -118,7 +124,7 @@ class AsyncController:
                     now = time.time()
                     today = time.time() + 86400
                     if match_time.timestamp() < today and datetime.now().date() == local_time.date():
-                        root.info("checking and/or shceduling thread")
+                        root.info("checking and/or scheduling thread")
                         # Schedule match thread for 30 mins before game
                         thread_time = datetime.fromtimestamp(match_time.timestamp() - 1800)
 
@@ -255,7 +261,6 @@ class AsyncController:
 
             # Check if we should run now
             current_time = datetime.now()
-            target_time = current_time.replace(hour=1, minute=30)
             
             # If it's after 1:30 AM today, run now
             if current_time.hour > 1 or (current_time.hour == 1 and current_time.minute >= 30):

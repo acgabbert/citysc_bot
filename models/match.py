@@ -1,12 +1,12 @@
-from typing import Any, List, Optional
+from typing import List, Optional
 from pydantic import BaseModel, ConfigDict
 
 from models.club import Club_Sport, ClubMatch_Base
 from models.constants import FlexibleBool, UtcDatetime
-from models.event import MatchEventResponse, MlsEvent
+from models.event import MatchEventResponse
 from models.match_stats import MatchStats
-from models.person import BasePerson, NonPlayer
-from models.schedule import Broadcaster, Competition, MatchSchedule, Season
+from models.person import BasePerson
+from models.schedule import Broadcaster, Competition, Season
 from models.venue import MatchVenue
 
 

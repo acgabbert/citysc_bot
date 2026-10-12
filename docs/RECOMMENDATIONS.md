@@ -36,10 +36,8 @@ All 9 issues in this tier have been fixed.
 ### ~~3.1 Large amount of dead/legacy code~~ (Resolved)
 Deleted 8 legacy modules (`match.py`, `match_markdown.py`, `mls_api.py`, `match_constants.py`, `club.py`, `player.py`, `widget_markdown.py`, `standings.py`). Cleaned up `widgets.py`, `mls_schedule.py`, `models/club.py`, and `api_client.py` to remove all dead imports, functions, and constants.
 
-### 3.2 `print()` statements scattered throughout production code
-**Files:** `injuries.py:68-90`, `match_markdown.py:140`, `reddit_client.py:231`, `discipline.py` (various)
-
-These go to stdout (captured in Docker logs) but provide no log-level filtering. Replace with `logger.debug()` or `logger.info()`.
+### ~~3.2 `print()` statements scattered throughout production code~~ (Resolved)
+`injuries.py` and `reddit_client.py` now use the logger. The remaining `print()` calls are in CLI entry points (`__main__` / `main()`), where printing is intended.
 
 ### 3.3 Duplicate subreddit-prefix stripping logic
 The pattern `if '/r/' in sub: sub = sub.split('/r/')[1]` appears in:
@@ -70,24 +68,18 @@ Some methods raise exceptions, some return `None`, some return empty collections
 
 This function creates a raw `asyncpraw.Reddit` instance without any of the retry/error-handling logic from `RedditClient`. It's used by `widgets.py`. Migrate those call sites to use `RedditClient` instead and remove this function.
 
-### 3.7 Module-level `logging.basicConfig` in `match.py`
-**File:** `match.py:16-20`
-
-Calling `logging.basicConfig()` at import time with `stream=sys.stdout` overrides the root logger configuration set by `async_controller.py`. This can cause duplicate log output and unexpected routing to stdout.
+### ~~3.7 Module-level `logging.basicConfig` in `match.py`~~ (Resolved)
+Removed. `async_controller.py` now adds its own stdout handler so `docker compose logs` still shows INFO-level output.
 
 ---
 
 ## Tier 4: Missing Tests & Observability
 
-### 4.1 No test suite
-There are zero test files in the project. The Pydantic models, markdown generators, and schedule-checking logic are all highly testable with unit tests. A minimal test suite should cover:
-1. `mls_schedule.check_pre_match_sched()` — core scheduling logic
-2. Pydantic model parsing — ensure API responses deserialize correctly
-3. `match_markdown` — verify generated markdown
-4. `thread_manager` — JSON persistence round-trip
+### ~~4.1 No test suite~~ (Resolved)
+`tests/` covers model parsing, `Match`, `match_markdown`, `check_pre_match_sched()` and `ThreadManager`, using real MLS API responses saved in `tests/fixtures/` (pre-match, final, extra time + shootout) plus derived partial-data states (lineups only, mid-match, missing `match_base`/`match_events`/stats).
 
-### 4.2 No CI/CD pipeline
-No `.github/workflows/` or equivalent. Even a minimal pipeline that runs linting (`ruff` or `flake8`) and type checking (`mypy`) would catch many of the bugs listed above.
+### ~~4.2 No CI/CD pipeline~~ (Resolved)
+`.github/workflows/ci.yml` runs `ruff check .` and `pytest` on every PR and push to `main`. Ruff is limited to correctness rules (`E9`, `F`, `PLE`) for now; type checking (`mypy`) is not set up yet.
 
 ### 4.3 No structured logging or metrics
 All logging is to rotating files and Discord. Consider adding:
@@ -99,20 +91,14 @@ All logging is to rotating files and Discord. Consider adding:
 
 ## Tier 5: Feature Gaps & Enhancements
 
-### 5.1 Implement `update_injuries()` and `update_discipline()` in `match.Match`
-**File:** `match.py:94-98`
+### ~~5.1 Implement `update_injuries()` and `update_discipline()` in `match.Match`~~ (Resolved)
 
-Both methods are stubs (`pass`). Port logic to read from the injury/discipline JSON files into the new Match class.
+### 5.2 Implement `generate_previous_matchups()`
+**File:** `match_markdown.py`
 
-### 5.2 Implement `generate_injuries()`, `generate_discipline()`, and `generate_previous_matchups()`
-**File:** `match_markdown.py:168-175`
+`generate_injuries()` and `generate_discipline()` are done. `generate_previous_matchups()` still returns `None`.
 
-All three functions return `None`. The pre-match thread currently omits injury/discipline data that was available in the legacy system.
-
-### 5.3 Implement `generate_scorers()`
-**File:** `match_markdown.py:39-41`
-
-The `generate_scorers()` function is a stub (`pass`). The match thread header doesn't currently show who scored.
+### ~~5.3 Implement `generate_scorers()`~~ (Resolved)
 
 ### 5.4 Thread data cleanup / rotation
 `threads.json` grows indefinitely over the season. Add a cleanup job that removes entries older than N days to prevent unbounded growth.
@@ -135,17 +121,9 @@ for name in ['Western Conference', 'This Week', 'Next Week']:
     await update_image_widget(name, target_sub)
 ```
 
-### 6.2 `widgets.py:71` — bare `except:` clause
-```python
-except:
-    msg.send(f'Failed to update widget {image_path}.')
-```
-This catches `KeyboardInterrupt`, `SystemExit`, etc. Use `except Exception:` at minimum.
+### ~~6.2 `widgets.py` — bare `except:` clause~~ (Resolved)
 
-### 6.3 Typos in log messages
-- `async_controller.py:119`: `"shceduling"` → `"scheduling"`
-- `models/event.py:248`: `"Subsitution"` → `"Substitution"`
-- `match.py:153`: docstring says `"linups"` → `"lineups"`
+### ~~6.3 Typos in log messages~~ (Resolved)
 
 ### 6.4 `match_markdown.py` limits stats to "Regular Season" only
 **File:** `match_markdown.py:50-51`
@@ -163,8 +141,8 @@ This skips stats for playoffs, Leagues Cup, US Open Cup, etc. If this is intenti
 |------|----------|-------|
 | ~~1~~ | ~~Bugs & Correctness~~ | ~~9~~ (done) |
 | ~~2~~ | ~~Reliability & Robustness~~ | ~~6~~ (done) |
-| 3 | Code Quality & Maintainability | 6 (1 done) |
-| 4 | Tests & Observability | 3 |
-| 5 | Feature Gaps | 6 |
-| 6 | Low-Priority Cleanup | 4 |
+| 3 | Code Quality & Maintainability | 7 (3 done) |
+| 4 | Tests & Observability | 3 (2 done) |
+| 5 | Feature Gaps | 6 (2 done, 1 partial) |
+| 6 | Low-Priority Cleanup | 4 (2 done) |
 | | **Total** | **35** |

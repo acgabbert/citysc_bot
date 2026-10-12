@@ -1,7 +1,7 @@
-from typing import Any, List, Optional
-from pydantic import BaseModel, ConfigDict, field_validator
+from typing import List, Optional
+from pydantic import BaseModel, ConfigDict
 
-from models.person import BasePerson, NonPlayer
+from models.person import BasePerson
 
 
 class Club_Sport(BaseModel):

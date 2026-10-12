@@ -1,0 +1,9 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"
+
+[tool.ruff.lint]
+# Correctness only: syntax errors, pyflakes (unused/undefined names), and
+# pylint errors (e.g. bad logging format args). Style rules can come later.
+select = ["E9", "F", "PLE"]

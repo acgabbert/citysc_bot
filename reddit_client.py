@@ -149,7 +149,7 @@ class RedditClient:
                 )
             except Exception as e:
                 logger.error(f"Moderation actions failed for thread {thread.id}: {str(e)}")
-                msg.send(f"Warning: Moderation actions failed for new thread")
+                msg.send("Warning: Moderation actions failed for new thread")
                 
         return thread
 
@@ -233,7 +233,7 @@ class RedditClient:
         widgets = await self.get_widgets(subreddit)
         updated = False
         async for w in widgets.sidebar():
-            print(w.shortName)
+            logger.debug(w.shortName)
             if w.shortName == widget_name:
                 try:
                     mod: asyncpraw.models.WidgetModeration = w.mod

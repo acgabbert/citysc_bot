@@ -1,7 +1,10 @@
-from typing import Annotated, List, Literal, Optional, Union
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+import logging
+from typing import Annotated, Any, List, Literal, Optional, Union, get_args
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from models.constants import FlexibleBool, UtcDatetime
+
+logger = logging.getLogger(__name__)
 
 
 class EventDetails(BaseModel):
@@ -26,12 +29,14 @@ class EventDetails(BaseModel):
     @model_validator(mode='after')
     def set_minute_of_play_for_half(self) -> 'EventDetails':
         """
-        Sets minute_of_play to '46' if game_section is 'half'
-        and minute_of_play was not provided (is None).
+        Sets minute_of_play to '46' (or '106' in extra time) for events
+        during a break, when minute_of_play was not provided (is None).
         """
         if self.minute_of_play is None:
             if self.game_section == "half":
                 self.minute_of_play = "46"
+            elif self.game_section == "halfExtra":
+                self.minute_of_play = "106"
             else:
                 self.minute_of_play = "?"
         return self
@@ -102,6 +107,28 @@ class CardEvent(BaseEventData):
         last_name = self.event.player_last_name or 'Unknown player'
         color = self.event.card_color or self.event.card_rating or 'unknown'
         return f"{minute}': {first_name} {last_name}".strip() + f" receives a {color} card."
+
+class CoachCardEvent(BaseEventData):
+    """Card shown to a coach or other team official"""
+
+    type: Literal['card_coaches']
+    sub_type: Optional[str] = None
+
+    class CoachCardEventDetails(EventDetails):
+        card_color: Optional[str] = None
+        first_name: Optional[str] = None
+        last_name: Optional[str] = None
+        person_id: Optional[str] = None
+        person_role: Optional[str] = None
+
+    event: CoachCardEventDetails
+
+    def __str__(self) -> str:
+        minute = self.event.minute_of_play or '?'
+        first_name = self.event.first_name or ''
+        last_name = self.event.last_name or 'Unknown coach'
+        color = self.event.card_color or 'unknown'
+        return f"{minute}': {first_name} {last_name}".strip() + f" (coach) receives a {color} card."
 
 class CornerEvent(BaseEventData):
     """Corner event"""
@@ -252,6 +279,7 @@ class SubstitutionEvent(BaseEventData):
 
 MlsEvent = Union[
     CardEvent,
+    CoachCardEvent,
     CornerEvent,
     FinalWhistleEvent,
     FoulEvent,
@@ -265,9 +293,33 @@ MlsEvent = Union[
     SubstitutionEvent
 ]
 
+_KNOWN_EVENT_TYPES = {
+    literal
+    for event_cls in get_args(MlsEvent)
+    for literal in get_args(event_cls.model_fields['type'].annotation)
+}
+
 class MatchEventResponse(BaseModel):
     model_config = ConfigDict(extra="allow", strict=False)
     events: List[Annotated[MlsEvent, Field(discriminator='type')]]
+
+    @field_validator('events', mode='before')
+    @classmethod
+    def drop_unknown_event_types(cls, events: Any) -> Any:
+        """
+        Skip event types we don't model, so one new event type from the API
+        doesn't make the whole response fail validation.
+        """
+        if not isinstance(events, list):
+            return events
+        known = []
+        for event in events:
+            event_type = event.get('type') if isinstance(event, dict) else None
+            if event_type in _KNOWN_EVENT_TYPES:
+                known.append(event)
+            else:
+                logger.warning(f"Skipping unknown match event type: {event_type}")
+        return known
 
     class EventsMatchInfo(BaseModel):
         model_config = ConfigDict(extra="allow", strict=False)

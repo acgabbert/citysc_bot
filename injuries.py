@@ -83,7 +83,7 @@ def parse_matchday(soup: BeautifulSoup) -> int:
     matchday_number = None
     found_elements = soup.find_all(string=pattern)
     if found_elements:
-        print(f"Found {len(found_elements)} matching elements.")
+        root.debug(f"Found {len(found_elements)} matching elements.")
         first_match_text = found_elements[0].strip()
         match = pattern.search(first_match_text)
         if match:
@@ -91,21 +91,18 @@ def parse_matchday(soup: BeautifulSoup) -> int:
                 # group(1) corresponds to the first capturing group (\d+)
                 matchday_number_str = match.group(1)
                 matchday_number = int(matchday_number_str)
-                print(f"Found text: '{first_match_text}'")
-                print(f"Extracted Matchday Number: {matchday_number}")
+                root.debug(f"Found text: '{first_match_text}'")
+                root.info(f"Extracted Matchday Number: {matchday_number}")
             except ValueError:
-                print(f"Found text '{first_match_text}', but could not convert '{matchday_number_str}' to an integer.")
+                root.warning(f"Found text '{first_match_text}', but could not convert '{matchday_number_str}' to an integer.")
             except IndexError:
-                print(f"Found text '{first_match_text}', but couldn't extract the number group.")
+                root.warning(f"Found text '{first_match_text}', but couldn't extract the number group.")
         else:
-            print(f"Found element with text '{first_match_text}', but regex couldn't extract number.")
+            root.warning(f"Found element with text '{first_match_text}', but regex couldn't extract number.")
 
     else:
-        print("No text matching the pattern 'UPDATED THROUGH: Matchday [number]' found.")
+        root.warning("No text matching the pattern 'UPDATED THROUGH: Matchday [number]' found.")
 
-    # You can now use the variable 'matchday_number' which holds the integer (or None if not found/extracted)
-    if matchday_number is not None:
-        print(f"\nThe extracted number is: {matchday_number}")
     return matchday_number
 
 def parse_injuries(soup: BeautifulSoup) -> Dict:

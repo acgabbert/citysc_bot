@@ -6,15 +6,15 @@ import backoff
 import inspect
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime
 from enum import Enum
 from typing import Dict, List, Optional, Any, Union
 from urllib.parse import urljoin
-from pydantic import BaseModel, ValidationError, field_validator, model_validator
+from pydantic import BaseModel, ValidationError, model_validator
 
 import config
 from models.constants import UtcDatetime
-from models.event import MlsEvent, MatchEventResponse
+from models.event import MatchEventResponse
 from models.match import ComprehensiveMatchData, Match_Base, Match_Sport
 from models.match_stats import MatchStats
 from models.schedule import MatchSchedule
@@ -542,7 +542,7 @@ class MLSApiClient:
         try:
             return MatchSchedule(**data)
         except ValidationError as e:
-            logger.error('error: ', e)
+            logger.error(f'error: {e}')
             logger.error(data)
             for error in e.errors():
                 if error['type'] == 'missing':
@@ -573,7 +573,7 @@ class MLSApiClient:
             data = MatchStats(**data)
             return data
         except ValidationError as e:
-            logger.error('error: ', e)
+            logger.error(f'error: {e}')
             for error in e.errors():
                 if error['type'] == 'missing':
                     logger.error(error['loc'][0])
@@ -594,7 +594,7 @@ class MLSApiClient:
             data = MatchEventResponse(**data)
             return data
         except ValidationError as e:
-            logger.error('error: ', e)
+            logger.error(f'error: {e}')
             for error in e.errors():
                 if error['type'] == 'missing':
                     logger.error(error['loc'][0])
@@ -721,7 +721,7 @@ async def main():
     async with MLSApiClient() as client:
         try:
             match_id = 2261385
-            match_stats = await client.get_match_stats(match_id)
+            await client.get_match_stats(match_id)
             match_info = await client.get_match_info(match_id)
 
             print(f"Match info: {match_info}")
