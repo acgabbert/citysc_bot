@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 import json
 import os
 import tempfile
+import time
 from typing import Dict, Optional
 
 
@@ -14,6 +15,8 @@ class MatchThreads():
     pre: Optional[str] = None
     post: Optional[str] = None
     stream_link: Optional[str] = field(default=None, metadata={"json_key": "stream-link"})
+    # Unix time the entry was first saved; used to prune old entries
+    created: Optional[float] = None
 
     @classmethod
     def from_dict(cls, data: Dict) -> 'MatchThreads':
@@ -22,7 +25,8 @@ class MatchThreads():
             match=data.get("match"),
             pre=data.get("pre"),
             post=data.get("post"),
-            stream_link=data.get("stream-link")
+            stream_link=data.get("stream-link"),
+            created=data.get("created"),
         )
 
     def to_dict(self) -> Dict:
@@ -35,6 +39,8 @@ class MatchThreads():
             result["post"] = self.post
         if self.stream_link:
             result["stream-link"] = self.stream_link
+        if self.created is not None:
+            result["created"] = self.created
         return result
 
 class ThreadManager:
@@ -81,6 +87,8 @@ class ThreadManager:
                 raise
 
     async def add_threads(self, sportec_id: str, thread: MatchThreads) -> None:
+        if thread.created is None:
+            thread.created = time.time()
         self.threads[sportec_id] = thread
         await self.save()
 
@@ -94,3 +102,23 @@ class ThreadManager:
                 if hasattr(thread, key):
                     setattr(thread, key, value)
             await self.save()
+
+    async def prune(self, max_age_days: float) -> int:
+        """
+        Remove entries saved more than max_age_days ago and return how many were removed.
+        Entries from before `created` existed are stamped with the current time, so they
+        are removed max_age_days after the first prune.
+        """
+        now = time.time()
+        cutoff = now - max_age_days * 86400
+        changed = False
+        for thread in self.threads.values():
+            if thread.created is None:
+                thread.created = now
+                changed = True
+        old = [sportec_id for sportec_id, thread in self.threads.items() if thread.created < cutoff]
+        for sportec_id in old:
+            del self.threads[sportec_id]
+        if old or changed:
+            await self.save()
+        return len(old)

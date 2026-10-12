@@ -19,9 +19,9 @@ import match_thread as thread
 import mls_schedule
 import mls_playwright
 from models.constants import get_current_season
-from thread_manager import ThreadManager
 import widgets
-from config import FEATURE_FLAGS, SUB, TEAMS, THREADS_JSON
+import config
+from config import FEATURE_FLAGS, SUB, TEAMS
 from util import names
 
 # Configure logging
@@ -50,7 +50,9 @@ root.addHandler(sh)
 
 parser = argparse.ArgumentParser(prog='async_controller.py', usage='%(prog)s [options]', description='')
 parser.add_argument('-s', '--sub', help=f'Subreddit; default = {SUB}')
-file_manager = ThreadManager(THREADS_JSON)
+# Share match_thread's ThreadManager so both see the same in-memory threads.
+# A second instance would miss threads posted after startup and undo prunes.
+file_manager = thread.file_manager
 
 
 class AsyncController:
@@ -224,6 +226,12 @@ class AsyncController:
                 root.exception(f"Error in daily setup for team {team}: {str(e)}")
                 await msg.async_send(f"Error in daily setup for team {team}: {str(e)}", True)
     
+    async def prune_threads(self):
+        """Remove old entries from threads.json"""
+        max_age = getattr(config, 'THREADS_MAX_AGE_DAYS', 30)
+        removed = await file_manager.prune(max_age)
+        root.info(f'Pruned {removed} thread entries older than {max_age} days')
+
     def setup_jobs(self):
         """Setup all scheduled jobs based on feature flags"""
         if FEATURE_FLAGS['enable_widgets']:
@@ -257,6 +265,11 @@ class AsyncController:
                 self.daily_setup,
                 CronTrigger(hour=1, minute=30),
                 name='daily_setup'
+            )
+            self.scheduler.add_job(
+                self.prune_threads,
+                CronTrigger(hour=1, minute=25),
+                name='prune_threads'
             )
 
             # Check if we should run now

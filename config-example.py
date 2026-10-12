@@ -41,6 +41,8 @@ DISCORD_TOKEN = ''
 MLS_BOT_WEBHOOK = 'https://discord.com/api/webhooks/'
 CSS_PATH = 'markdown/markdown.css'
 THREADS_JSON = 'data/threads.json'
+# Entries in THREADS_JSON older than this are removed daily
+THREADS_MAX_AGE_DAYS = 30
 
 # More reddit config - widgets
 WIDGETS = {
