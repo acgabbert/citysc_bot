@@ -91,11 +91,27 @@ def _empty_events() -> Dict[str, Optional[dict]]:
     return payloads
 
 
+def _playoff_payloads() -> Dict[str, Optional[dict]]:
+    """The final fixture relabelled as a playoff match (no real playoff fixture saved yet)."""
+    payloads = load_payloads(FINAL_ID)
+    payloads["match_info"]["competition"].update(
+        sportecId="MLS-COM-000002",
+        name="Major League Soccer - Cup Playoffs",
+        slug="mls-cup-playoffs",
+        shortName="MLS Cup Playoffs",
+        matchType="Playoff",
+    )
+    stats = payloads["match_stats"]["match_statistics_list"][0]["match_statistics"]
+    stats.update(competition="MLS Cup Playoffs", competition_id="MLS-COM-000002")
+    return payloads
+
+
 MATCH_STATES = {
     "pre_match": lambda: load_payloads(PRE_MATCH_ID),
     "scheduled": _scheduled_payloads,
     "live": _live_payloads,
     "final": lambda: load_payloads(FINAL_ID),
+    "playoff": _playoff_payloads,
     "shootout": lambda: load_payloads(SHOOTOUT_ID),
     "missing_base": lambda: _without(FINAL_ID, "match_base"),
     "missing_events": lambda: _without(FINAL_ID, "match_events"),

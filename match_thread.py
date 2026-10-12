@@ -13,7 +13,7 @@ from match import Match
 from thread_manager import MatchThreads, ThreadManager
 import util
 import discord as msg
-from reddit_client import RedditClient
+from reddit_client import RedditClient, subreddit_name
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +28,22 @@ test_sub = config.TEST_SUB
 prod_sub = config.SUB
 file_manager = ThreadManager(config.THREADS_JSON)
 
+# Minute from which MATCH_UPDATE_INTERVAL_LATE applies
+LATE_MATCH_MINUTE = 80
+
+
+def update_interval(match_obj: Match) -> float:
+    """Seconds to wait between match thread updates. Late in the match
+    (and in extra time) this is MATCH_UPDATE_INTERVAL_LATE, if set."""
+    interval = getattr(config, 'MATCH_UPDATE_INTERVAL', 60)
+    late_interval = getattr(config, 'MATCH_UPDATE_INTERVAL_LATE', interval)
+    try:
+        # minute_of_play looks like "33" or "90+4"
+        minute = int(str(match_obj.minute_display).split('+')[0])
+    except ValueError:
+        return interval
+    return late_interval if minute >= LATE_MATCH_MINUTE else interval
+
 async def pre_match_thread(sportec_id: str, sub: str = prod_sub):
     """Post a pre-match/matchday thread.
     
@@ -38,8 +54,7 @@ async def pre_match_thread(sportec_id: str, sub: str = prod_sub):
     Returns:
         The created pre-match thread
     """
-    if '/r/' in sub:
-        sub = sub.split('/r/')[1]
+    sub = subreddit_name(sub)
     # get a match object
     match_obj = await Match.create(sportec_id)
 
@@ -77,6 +92,7 @@ async def match_thread(
         thread: Existing match thread to update
         post: Whether to create a post-match thread when done
     """
+    sub = subreddit_name(sub)
     async with MLSApiClient() as api_client:
         # get a match object
         match_obj = await Match.create(sportec_id, client=api_client)
@@ -98,8 +114,6 @@ async def match_thread(
         async with RedditClient() as reddit:
             if thread is None:
                 title, markdown = md.match_thread(match_obj)
-                if '/r/' in sub:
-                    sub = sub.split('/r/')[1]
                 thread = await reddit.submit_thread(
                     sub, title, markdown,
                     mod=True, new=True, unsticky=pre_thread
@@ -161,7 +175,7 @@ async def match_thread(
                         message = f'Found post-match thread for {sportec_id}. Skipping post-match thread.'
                         await msg.async_send(message, tag=True)
                     break
-                await asyncio.sleep(60)
+                await asyncio.sleep(update_interval(match_obj))
 
 
 async def post_match_thread(
@@ -181,8 +195,7 @@ async def post_match_thread(
     if thread is None and threads and threads.match:
         thread = threads.match
 
-    if '/r/' in sub:
-        sub = sub.split('/r/')[1]
+    sub = subreddit_name(sub)
 
     match_obj = await Match.create(sportec_id)
     title, markdown = md.post_match_thread(match_obj)

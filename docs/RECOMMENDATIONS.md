@@ -39,34 +39,19 @@ Deleted 8 legacy modules (`match.py`, `match_markdown.py`, `mls_api.py`, `match_
 ### ~~3.2 `print()` statements scattered throughout production code~~ (Resolved)
 `injuries.py` and `reddit_client.py` now use the logger. The remaining `print()` calls are in CLI entry points (`__main__` / `main()`), where printing is intended.
 
-### 3.3 Duplicate subreddit-prefix stripping logic
-The pattern `if '/r/' in sub: sub = sub.split('/r/')[1]` appears in:
-- `match_thread.py:40-41`
-- `match_thread.py:99-100`
-- `match_thread.py:182-183`
-- `reddit_client.py:108-109`
-- `reddit_client.py:201-202`
-- `reddit_client.py:226-227`
+### ~~3.3 Duplicate subreddit-prefix stripping logic~~ (Resolved)
+`reddit_client.subreddit_name()` replaces the six copies.
 
-Extract this to a single utility function.
-
-### 3.4 Magic numbers throughout scheduling logic
-**File:** `async_controller.py`
-- `86400` (seconds in a day) — used at lines 98, 117
-- `10800` (3 hours) — line 109, 176
-- `1800` (30 minutes) — line 121, 176
-
-Define named constants (e.g., `SECONDS_PER_DAY`, `PRE_MATCH_LEAD_TIME`).
+### ~~3.4 Magic numbers throughout scheduling logic~~ (Resolved)
+`async_controller.py` now uses `SECONDS_PER_DAY`, `MATCH_THREAD_LEAD_TIME`, `MATCH_IN_PROGRESS_WINDOW` and `CITY2_OPTA_ID`.
 
 ### 3.5 Inconsistent error handling patterns
 Some methods raise exceptions, some return `None`, some return empty collections, and some swallow exceptions silently. This makes callers fragile. Establish a consistent convention:
 - API methods should raise on failure (or return documented empty results)
 - Domain methods should propagate or handle explicitly
 
-### 3.6 `util.get_reddit()` is a duplicate of `RedditClient`
-**File:** `util.py:229-238`
-
-This function creates a raw `asyncpraw.Reddit` instance without any of the retry/error-handling logic from `RedditClient`. It's used by `widgets.py`. Migrate those call sites to use `RedditClient` instead and remove this function.
+### ~~3.6 `util.get_reddit()` is a duplicate of `RedditClient`~~ (Resolved)
+Removed, along with the unused widget helpers in `widgets.py` that called it.
 
 ### ~~3.7 Module-level `logging.basicConfig` in `match.py`~~ (Resolved)
 Removed. `async_controller.py` now adds its own stdout handler so `docker compose logs` still shows INFO-level output.
@@ -76,15 +61,14 @@ Removed. `async_controller.py` now adds its own stdout handler so `docker compos
 ## Tier 4: Missing Tests & Observability
 
 ### ~~4.1 No test suite~~ (Resolved)
-`tests/` covers model parsing, `Match`, `match_markdown`, `check_pre_match_sched()` and `ThreadManager`, using real MLS API responses saved in `tests/fixtures/` (pre-match, final, extra time + shootout) plus derived partial-data states (lineups only, mid-match, missing `match_base`/`match_events`/stats).
+`tests/` covers model parsing, `Match`, `match_markdown`, `check_pre_match_sched()` and `ThreadManager`, using real MLS API responses saved in `tests/fixtures/` (pre-match, final, extra time + shootout) plus derived states (a playoff match, lineups only, mid-match, missing `match_base`/`match_events`/stats).
 
 ### ~~4.2 No CI/CD pipeline~~ (Resolved)
 `.github/workflows/ci.yml` runs `ruff check .` and `pytest` on every PR and push to `main`. Ruff is limited to correctness rules (`E9`, `F`, `PLE`) for now; type checking (`mypy`) is not set up yet.
 
 ### 4.3 No structured logging or metrics
-All logging is to rotating files and Discord. Consider adding:
+The Docker health check is done: the controller touches a heartbeat file every minute and the `HEALTHCHECK` marks the container unhealthy when it goes stale. Still open:
 - Structured JSON logging for machine parsing
-- A simple health-check endpoint (e.g., via a tiny `aiohttp` server) so Docker can use `HEALTHCHECK`
 - Counters for API calls, errors, and thread posts (even just logged periodically)
 
 ---
@@ -100,38 +84,27 @@ All logging is to rotating files and Discord. Consider adding:
 
 ### ~~5.3 Implement `generate_scorers()`~~ (Resolved)
 
-### 5.4 Thread data cleanup / rotation
-`threads.json` grows indefinitely over the season. Add a cleanup job that removes entries older than N days to prevent unbounded growth.
+### ~~5.4 Thread data cleanup / rotation~~ (Resolved)
+Entries record when they were first saved; a daily `prune_threads` job removes ones older than `THREADS_MAX_AGE_DAYS` (default 30). The controller now shares `match_thread`'s `ThreadManager` instead of keeping a second copy.
 
-### 5.5 Configurable match-update interval
-The 60-second polling interval in `match_thread.py:162` is hardcoded. Making it configurable (or reducing it during key moments like second-half injury time) would improve thread timeliness.
+### ~~5.5 Configurable match-update interval~~ (Resolved)
+`MATCH_UPDATE_INTERVAL` (default 60s) and `MATCH_UPDATE_INTERVAL_LATE` (from the 80th minute on) in `config.py`.
 
-### 5.6 Add a README
-The project has no `README.md`. A basic README with setup instructions, architecture overview, and configuration guide would significantly help onboarding and future maintenance.
+### ~~5.6 Add a README~~ (Resolved)
+Added `README.md`.
 
 ---
 
-## Tier 6: Low-Priority Cleanup
+## ~~Tier 6: Low-Priority Cleanup~~ (All resolved)
 
-### 6.1 `widgets.py:main()` has repetitive conditional logic
-Lines 82-94 repeat the `if sub: ... else: ...` pattern three times. Refactor to:
-```python
-target_sub = sub or SUB
-for name in ['Western Conference', 'This Week', 'Next Week']:
-    await update_image_widget(name, target_sub)
-```
+### ~~6.1 `widgets.py:main()` has repetitive conditional logic~~ (Resolved)
 
 ### ~~6.2 `widgets.py` — bare `except:` clause~~ (Resolved)
 
 ### ~~6.3 Typos in log messages~~ (Resolved)
 
-### 6.4 `match_markdown.py` limits stats to "Regular Season" only
-**File:** `match_markdown.py:50-51`
-```python
-if not match_obj.competition in ["Regular Season"]:
-    return None
-```
-This skips stats for playoffs, Leagues Cup, US Open Cup, etc. If this is intentional, add a comment; if not, broaden the check or remove it.
+### ~~6.4 `match_markdown.py` limits stats to "Regular Season" only~~ (Resolved)
+The filter is gone: playoff and cup matches get a stats table whenever the stats API has data. The U.S. Open Cup fixture confirms it does for cup matches.
 
 ---
 
@@ -141,8 +114,8 @@ This skips stats for playoffs, Leagues Cup, US Open Cup, etc. If this is intenti
 |------|----------|-------|
 | ~~1~~ | ~~Bugs & Correctness~~ | ~~9~~ (done) |
 | ~~2~~ | ~~Reliability & Robustness~~ | ~~6~~ (done) |
-| 3 | Code Quality & Maintainability | 7 (3 done) |
-| 4 | Tests & Observability | 3 (2 done) |
-| 5 | Feature Gaps | 6 (2 done, 1 partial) |
-| 6 | Low-Priority Cleanup | 4 (2 done) |
+| 3 | Code Quality & Maintainability | 7 (6 done) |
+| 4 | Tests & Observability | 3 (2 done, 1 partial) |
+| 5 | Feature Gaps | 6 (5 done, 1 open) |
+| ~~6~~ | ~~Low-Priority Cleanup~~ | ~~4~~ (done) |
 | | **Total** | **35** |

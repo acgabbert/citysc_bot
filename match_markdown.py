@@ -93,9 +93,9 @@ def generate_match_footer(match_obj: Match) -> str:
     footer += update + f'. All data via mlssoccer.com. Match ID: {str(match_obj.sportec_id)}'
     return f'^({footer})'
 
-def generate_match_stats(match_obj: Match) -> str:
-    if match_obj.competition not in ["Regular Season"]:
-        return None
+def generate_match_stats(match_obj: Match) -> Optional[str]:
+    # Any competition the stats API covers (playoffs, cups) gets a table;
+    # matches it doesn't cover have no stats and are skipped below.
     if match_obj.home_stats is None or match_obj.away_stats is None:
         return None
     home_display = match_obj.home.abbreviation or match_obj.home.shortName or match_obj.home.fullName

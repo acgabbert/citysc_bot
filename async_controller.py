@@ -1,7 +1,9 @@
 import argparse
 import asyncio
 import logging, logging.handlers
+import os
 import sys
+import tempfile
 import time
 import traceback
 
@@ -19,9 +21,9 @@ import match_thread as thread
 import mls_schedule
 import mls_playwright
 from models.constants import get_current_season
-from thread_manager import ThreadManager
 import widgets
-from config import FEATURE_FLAGS, SUB, TEAMS, THREADS_JSON
+import config
+from config import FEATURE_FLAGS, SUB, TEAMS
 from util import names
 
 # Configure logging
@@ -50,7 +52,30 @@ root.addHandler(sh)
 
 parser = argparse.ArgumentParser(prog='async_controller.py', usage='%(prog)s [options]', description='')
 parser.add_argument('-s', '--sub', help=f'Subreddit; default = {SUB}')
-file_manager = ThreadManager(THREADS_JSON)
+# Share match_thread's ThreadManager so both see the same in-memory threads.
+# A second instance would miss threads posted after startup and undo prunes.
+file_manager = thread.file_manager
+
+SECONDS_PER_DAY = 24 * 60 * 60
+# Match threads go up this long before kickoff
+MATCH_THREAD_LEAD_TIME = 30 * 60
+# A match that kicked off less than this long ago may still be in progress
+MATCH_IN_PROGRESS_WINDOW = 3 * 60 * 60
+# St. Louis CITY 2 (MLS NEXT Pro) gets match threads only: no pre- or post-match threads
+CITY2_OPTA_ID = 19202
+
+# Touched every HEARTBEAT_INTERVAL seconds while the event loop is running;
+# the Docker HEALTHCHECK reports unhealthy when it goes stale.
+HEARTBEAT_FILE = os.path.join(tempfile.gettempdir(), 'citysc_bot.heartbeat')
+HEARTBEAT_INTERVAL = 60
+
+
+def write_heartbeat() -> None:
+    try:
+        with open(HEARTBEAT_FILE, 'w') as f:
+            f.write(str(time.time()))
+    except OSError as e:
+        root.warning(f'Could not write heartbeat file {HEARTBEAT_FILE}: {e}')
 
 
 class AsyncController:
@@ -114,7 +139,7 @@ class AsyncController:
 
                 # Check for upcoming matches
                 # use a starting time of 3 hours ago to check for ongoing matches as well
-                match_id, match_time = mls_schedule.check_pre_match_sched(data, date_from=int(time.time()) - 10800)
+                match_id, match_time = mls_schedule.check_pre_match_sched(data, date_from=int(time.time()) - MATCH_IN_PROGRESS_WINDOW)
                 
                 if match_id is not None:
                     local_time = match_time.astimezone()
@@ -122,11 +147,11 @@ class AsyncController:
 
                     # Check if match is within next 24 hours
                     now = time.time()
-                    today = time.time() + 86400
+                    today = time.time() + SECONDS_PER_DAY
                     if match_time.timestamp() < today and datetime.now().date() == local_time.date():
                         root.info("checking and/or scheduling thread")
                         # Schedule match thread for 30 mins before game
-                        thread_time = datetime.fromtimestamp(match_time.timestamp() - 1800)
+                        thread_time = datetime.fromtimestamp(match_time.timestamp() - MATCH_THREAD_LEAD_TIME)
 
                         if thread_time.timestamp() < now:
                             root.info('whoops. creating thread')
@@ -134,7 +159,7 @@ class AsyncController:
                                 self.create_match_thread,
                                 'date',
                                 run_date=datetime.now(),
-                                args=[match_id, team != 19202],
+                                args=[match_id, team != CITY2_OPTA_ID],
                                 name=f'match_thread_{match_id}',
                                 replace_existing=True
                             )
@@ -147,7 +172,7 @@ class AsyncController:
                                 self.create_match_thread,
                                 'date',
                                 run_date=thread_time,
-                                args=[match_id, team != 19202],  # post-match thread only if not CITY2
+                                args=[match_id, team != CITY2_OPTA_ID],
                                 name=f'match_thread_{match_id}',
                                 replace_existing=True
                             )
@@ -158,7 +183,7 @@ class AsyncController:
                         
                         current_hour = datetime.now().hour
                         # Schedule pre-match thread if not CITY2
-                        if current_hour < 4 and team != 19202:
+                        if current_hour < 4 and team != CITY2_OPTA_ID:
                             pre_match_time = datetime.now().replace(hour=4, minute=0)
                             
                             self.scheduler.add_job(
@@ -175,7 +200,7 @@ class AsyncController:
                             await msg.async_send(message)
 
                         # catch up if no pre-match thread posted yet
-                        if current_hour >= 4 and current_hour < 9 and team != 19202:
+                        if current_hour >= 4 and current_hour < 9 and team != CITY2_OPTA_ID:
                             threads = file_manager.get_threads(str(match_id))
                             if threads is None or not threads.pre:
                                 # immediately create match_thread
@@ -191,7 +216,7 @@ class AsyncController:
                                     await msg.async_send(error_msg, tag=True)
                     
                     # If match has started but not likely finished (within last 3 hours)
-                    elif match_time.timestamp() < now and now - match_time.timestamp() < 10800:
+                    elif match_time.timestamp() < now and now - match_time.timestamp() < MATCH_IN_PROGRESS_WINDOW:
                         threads = file_manager.get_threads(str(match_id))
                         if threads and threads.match and not threads.post:
                             # Resume match thread updates
@@ -224,6 +249,12 @@ class AsyncController:
                 root.exception(f"Error in daily setup for team {team}: {str(e)}")
                 await msg.async_send(f"Error in daily setup for team {team}: {str(e)}", True)
     
+    async def prune_threads(self):
+        """Remove old entries from threads.json"""
+        max_age = getattr(config, 'THREADS_MAX_AGE_DAYS', 30)
+        removed = await file_manager.prune(max_age)
+        root.info(f'Pruned {removed} thread entries older than {max_age} days')
+
     def setup_jobs(self):
         """Setup all scheduled jobs based on feature flags"""
         if FEATURE_FLAGS['enable_widgets']:
@@ -258,6 +289,11 @@ class AsyncController:
                 CronTrigger(hour=1, minute=30),
                 name='daily_setup'
             )
+            self.scheduler.add_job(
+                self.prune_threads,
+                CronTrigger(hour=1, minute=25),
+                name='prune_threads'
+            )
 
             # Check if we should run now
             current_time = datetime.now()
@@ -283,7 +319,8 @@ class AsyncController:
 
             # Keep running until interrupted
             while True:
-                await asyncio.sleep(300)
+                write_heartbeat()
+                await asyncio.sleep(HEARTBEAT_INTERVAL)
 
         except (KeyboardInterrupt, asyncio.CancelledError):
             message = "Received interrupt "
