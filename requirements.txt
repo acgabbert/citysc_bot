@@ -1,6 +1,6 @@
 aiohttp
 apscheduler
-asyncpraw
+asyncpraw>=8
 backoff
 bs4
 pillow
