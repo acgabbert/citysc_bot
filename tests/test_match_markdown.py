@@ -88,9 +88,19 @@ async def test_post_match_thread_shootout():
     _, body = md.post_match_thread(match)
     assert "## AET (Pens): St. Louis CITY SC 2-2 (4-2 pens) Houston Dynamo FC" in body
     assert "⚽ **STL:** Marcel Hartel (10', 51' pen)" in body
-    # Stats table is regular-season only
-    assert "### Match Stats:" not in body
+    # Cup matches get a stats table too
+    assert "### Match Stats:" in body
+    assert "| STL | 2-2 | HOU |" in body
+    assert "| 54.17% | Ball Possession | 45.83% |" in body
     assert "?'" not in body
+
+
+async def test_post_match_thread_playoff():
+    match = await make_match("playoff")
+    title, body = md.post_match_thread(match)
+    assert "(MLS Cup Playoffs)" in title
+    assert "### Match Stats:" in body
+    assert "| 58.47% | Ball Possession | 41.53% |" in body
 
 
 async def test_post_match_thread_without_stats():
