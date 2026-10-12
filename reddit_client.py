@@ -220,7 +220,7 @@ class RedditClient:
         size: tuple[int, int]
     ) -> list[dict[str, Any]]:
         """Update an image widget with an uploaded image"""
-        image_url = await widget.mod.upload_image(image_path)
+        image_url = await widget.mod.upload_image(asyncpraw.models.WidgetMedia(image_path))
         image_data = [{'width': size[0], 'height': size[1], 'url': image_url, 'linkUrl': ''}]
         return image_data
     
