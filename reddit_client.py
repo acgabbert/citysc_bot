@@ -234,7 +234,6 @@ class RedditClient:
         """Update a subreddit's image widget"""
         subreddit = subreddit_name(subreddit)
         widgets = await self.get_widgets(subreddit)
-        updated = False
         async for w in widgets.sidebar():
             logger.debug(w.shortName)
             if w.shortName == widget_name:
@@ -242,15 +241,14 @@ class RedditClient:
                     mod: asyncpraw.models.WidgetModeration = w.mod
                     image_data = await self.get_image_data(widgets, image_path, image_size)
                     await mod.update(data=image_data)
-                    updated = True
                     msg.send(f'Updated {widget_name} widget on subreddit {subreddit}!')
-                    break
+                    return True
                 except Exception as e:
                     message = (
                         f'Error while updating {widget_name} widget.\n'
                         f'{str(e)}\n'
                     )
                     msg.send(message, tag=True)
-        if not updated:
-            msg.send(f'No widgets matching name "{widget_name}" on subreddit "{subreddit}" updated.', tag=True)
-        return updated
+                    return False
+        msg.send(f'No widgets matching name "{widget_name}" on subreddit "{subreddit}" updated.', tag=True)
+        return False
