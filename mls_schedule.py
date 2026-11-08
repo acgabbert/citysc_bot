@@ -1,5 +1,5 @@
 import time
-from typing import List
+from typing import List, Optional
 
 from models.schedule import MatchSchedule
 
@@ -15,3 +15,14 @@ def check_pre_match_sched(data: List[MatchSchedule], date_from=None):
         if match_time > date_from and match_time < date_to:
             return match.match_id, match.planned_kickoff_time
     return None, None
+
+
+def kickoff_tbd(data: List[MatchSchedule], match_id: str) -> Optional[str]:
+    """The schedule's match_date_time_status ("Time tbd", "Day and time tbd")
+    if the league hasn't set the kickoff time for match_id, else None. While
+    it's unset, planned_kickoff_time is a placeholder."""
+    for match in data:
+        if match.match_id == match_id:
+            status = match.match_date_time_status or ''
+            return status if 'tbd' in status.lower() else None
+    return None

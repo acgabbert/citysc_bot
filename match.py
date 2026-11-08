@@ -1,15 +1,16 @@
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import logging
 import os
 import re
 from typing import Dict, List, Optional
+import config
 from api_client import MLSApiClient
 from models.club import Club_Sport
 from models.constants import MlsCompetition
-from models.event import EventDetails, MlsEvent, SubstitutionEvent
+from models.event import CardEvent, EventDetails, MlsEvent, PenaltyEvent, SubstitutionEvent
 from models.match import ComprehensiveMatchData
 from models.person import BasePerson
 from models.schedule import Broadcaster, Competition
@@ -75,6 +76,47 @@ class PlayoffRound:
         return self.name
 
 
+@dataclass
+class SeriesGame:
+    """An earlier, finished game in a best-of-3 series."""
+    game: int
+    match_id: str
+    home_id: str
+    away_id: str
+    home_goals: int
+    away_goals: int
+    winner_id: str
+    home_pens: Optional[int] = None
+    away_pens: Optional[int] = None
+
+
+@dataclass
+class ShootoutKick:
+    taker: str
+    scored: bool
+    # The API's shot_result for a miss, e.g. "SavedShot"
+    shot_result: Optional[str] = None
+
+    @property
+    def saved(self) -> bool:
+        return self.shot_result == 'SavedShot'
+
+
+# card_color / card_rating values from the events API
+CARD_EMOJI = {
+    'yellow': '\U0001f7e8',
+    'yellowRed': '\U0001f7e8\U0001f7e5',  # second yellow
+    'red': '\U0001f7e5',
+}
+
+# Full-match highlight videos have slugs like
+# "highlights-st-louis-city-sc-vs-la-galaxy-october-11-2026"
+HIGHLIGHTS_SLUG_PREFIX = 'highlights-'
+# How far ahead to look for the next match
+NEXT_MATCH_WINDOW = timedelta(days=60)
+VIDEO_URL = 'https://www.mlssoccer.com/video/{slug}'
+
+
 class Match:
     data: Optional[ComprehensiveMatchData] = None
     home: Optional[Club_Sport] = None
@@ -95,6 +137,17 @@ class Match:
     # Winner team IDs of earlier games in a best-of-3 series, oldest first.
     # None until loaded (or if they couldn't be worked out).
     series_winners: Optional[List[str]] = None
+    # The same earlier games with their scores, oldest first.
+    series_games: Optional[List[SeriesGame]] = None
+    # Reddit thread IDs of earlier series games, by match ID: set by
+    # match_thread.py from threads.json, used to link them.
+    series_threads: Optional[Dict[str, str]] = None
+    # mlssoccer.com page for the full-match highlights, once it's published
+    highlights_url: Optional[str] = None
+    # The followed team's next match (sport API data only), for post-match
+    # threads, and its schedule status if the date or time is TBD
+    next_match: Optional['Match'] = None
+    next_match_tbd: Optional[str] = None
     _sportec_to_opta: Dict[str, str] = None
 
     def __init__(self, sportec_id: str):
@@ -232,16 +285,22 @@ class Match:
         return date.strftime('%B %d, %Y')
         
         
+    def is_time_tbd(self) -> bool:
+        """True while the league hasn't set a kickoff time (matchDate is a placeholder)."""
+        return bool(self.data.match_info and self.data.match_info.isTimeTbd)
+
     def get_local_time_string(self) -> str:
         """
-        Get the local time string for the match.
+        Get the local time string for the match, or "TBD" if the kickoff
+        time hasn't been set.
         """
+        if self.is_time_tbd():
+            return "TBD"
         date = self.get_local_datetime()
         if not date:
             return "Unknown"
-        time_string = date.strftime('%I:%M %p ')
-        time_string += datetime.now().astimezone().tzname()
-        return time_string
+        # The zone name for the match date (CDT vs. CST), not for today
+        return date.strftime('%I:%M %p %Z')
 
     def get_starting_lineups(self) -> Dict[str, List[BasePerson]]:
         """
@@ -322,6 +381,139 @@ class Match:
             return 'MLS Cup'
         return f"{self.competition} \u2013 {playoff_round}"
 
+    def get_seeds(self) -> Optional[Dict[str, int]]:
+        """Playoff seeds by team ID, or None outside the playoffs or before they're set."""
+        if self.get_playoff_round() is None:
+            return None
+        info = self.data.match_info
+        if info.homeClubRank is None or info.awayClubRank is None:
+            return None
+        return {self.home_id: info.homeClubRank, self.away_id: info.awayClubRank}
+
+    def get_attendance(self) -> Optional[int]:
+        """Announced attendance, or None if the API doesn't have it (it reports 0)."""
+        if self.data.match_base is None:
+            return None
+        spectators = self.data.match_base.environment.number_of_spectators
+        return spectators if spectators else None
+
+    def get_cards(self) -> Dict[str, List[str]]:
+        """
+        Cards by player ID, oldest first, each as an emoji and the minute,
+        e.g. {"MLS-OBJ-...": ["\U0001f7e829'", "\U0001f7e8\U0001f7e5109'"]}.
+        """
+        cards: Dict[str, List[str]] = defaultdict(list)
+        # Events come from the API newest first
+        for event in reversed(self.get_events() or []):
+            if not isinstance(event, CardEvent) or not event.event.player_id:
+                continue
+            color = event.event.card_color or event.event.card_rating
+            emoji = CARD_EMOJI.get(color)
+            if emoji is None:
+                logger.warning(f"Unknown card color {color} on event {event.event.event_id}")
+                continue
+            cards[event.event.player_id].append(f"{emoji}{event.event.minute_of_play}'")
+        return dict(cards)
+
+    def get_shootout(self) -> Optional[Dict[str, List[ShootoutKick]]]:
+        """Penalty shootout kicks by team ID in the order taken, or None if there wasn't one."""
+        events = self.get_events() or []
+        if not any(e.type == 'start_penalty_shoot_out' for e in events):
+            return None
+        # Events come from the API newest first
+        kicks = [
+            e for e in reversed(events)
+            if isinstance(e, PenaltyEvent) and e.event.game_section == 'penalty'
+        ]
+        by_team: Dict[str, List[ShootoutKick]] = {self.home_id: [], self.away_id: []}
+        for e in kicks:
+            shot = e.event.shot_at_goal
+            team_id = shot.team_id or e.event.team_id
+            if team_id not in by_team:
+                logger.warning(f"Shootout kick {e.event.event_id} has unknown team {team_id}, skipping")
+                continue
+            taker = f"{shot.player_first_name or ''} {shot.player_last_name or 'Unknown player'}".strip()
+            scored = shot.shot_result == 'SuccessfulShot'
+            by_team[team_id].append(ShootoutKick(taker, scored, None if scored else shot.shot_result))
+        return by_team
+
+    async def load_highlights(self, client: Optional[MLSApiClient] = None) -> Optional[str]:
+        """Look up the full-match highlights video and set highlights_url if it's out."""
+        try:
+            if client is not None:
+                data = await client.get_videos(self.sportec_id)
+            else:
+                async with MLSApiClient() as new_client:
+                    data = await new_client.get_videos(self.sportec_id)
+        except Exception as e:
+            logger.warning(f"Failed to look up highlights for {self.sportec_id}: {e}")
+            return self.highlights_url
+        for item in (data or {}).get('items', []):
+            slug = item.get('slug') or ''
+            if slug.startswith(HIGHLIGHTS_SLUG_PREFIX):
+                self.highlights_url = VIDEO_URL.format(slug=slug)
+                break
+        return self.highlights_url
+
+    async def load_next_match(self, client: Optional[MLSApiClient] = None) -> Optional['Match']:
+        """Look up the next match on the schedule and set next_match."""
+        try:
+            if client is not None:
+                await self._load_next_match(client)
+            else:
+                async with MLSApiClient() as new_client:
+                    await self._load_next_match(new_client)
+        except Exception as e:
+            logger.warning(f"Failed to look up the next match after {self.sportec_id}: {e}")
+        return self.next_match
+
+    def _next_match_team_ids(self) -> List[str]:
+        """Teams whose next match to look for: the ones we follow, or both if neither is."""
+        followed = {str(team) for team in getattr(config, 'TEAMS', [])}
+        teams = [club.sportecId for club in (self.home, self.away) if str(club.optaId) in followed]
+        return teams or [self.home_id, self.away_id]
+
+    async def _load_next_match(self, client: MLSApiClient) -> None:
+        info = self.data.match_info
+        kickoff = info.matchDate
+        if kickoff is None:
+            return
+        # A Game 3 can stay on the schedule after a 2-0 series
+        score = self.get_series_score()
+        series_over = bool(score) and max(score.values()) > ROUND_ONE_GAMES // 2
+        this_pairing = {self.home_id, self.away_id}
+
+        entry = None
+        for team_id in self._next_match_team_ids():
+            schedule = await client.get_schedule(
+                info.season.sportecId,
+                match_date_gte=kickoff.date().isoformat(),
+                # The API rejects a start date without an end date
+                match_date_lte=(kickoff + NEXT_MATCH_WINDOW).date().isoformat(),
+                team_id=team_id,
+            )
+            candidates = [
+                m for m in schedule
+                if m.match_id != self.sportec_id
+                and m.planned_kickoff_time is not None
+                and m.planned_kickoff_time > kickoff
+                # The league schedules "MLS Test" matches for its own testing
+                and 'test' not in m.competition_name.lower()
+                and not (series_over and {m.home_team_id, m.away_team_id} == this_pairing)
+            ]
+            if candidates:
+                entry = min(candidates, key=lambda m: m.planned_kickoff_time)
+                break
+        if entry is None:
+            return
+
+        next_match = Match(entry.match_id)
+        next_match.data = ComprehensiveMatchData(match_info=await client.get_match_by_id(entry.match_id))
+        next_match._process_data(next_match.data)
+        self.next_match = next_match
+        status = entry.match_date_time_status or ''
+        self.next_match_tbd = status if 'tbd' in status.lower() else None
+
     def get_winner_id(self) -> Optional[str]:
         """Team ID of the winner of a finished match (including on penalties)."""
         if not self.is_final():
@@ -349,6 +541,7 @@ class Match:
             return
         if playoff_round.game == 1:
             self.series_winners = []
+            self.series_games = []
             return
 
         info = self.data.match_base.match_information
@@ -368,12 +561,15 @@ class Match:
             return
 
         try:
-            winners = []
-            for m in earlier:
+            games = []
+            for number, m in enumerate(earlier, start=1):
                 if m.home_team_goals is None or m.away_team_goals is None:
                     return
+                game = SeriesGame(number, m.match_id, m.home_team_id, m.away_team_id,
+                                  m.home_team_goals, m.away_team_goals, winner_id=None)
                 if m.home_team_goals != m.away_team_goals:
-                    winners.append(m.home_team_id if m.home_team_goals > m.away_team_goals else m.away_team_id)
+                    game.winner_id = m.home_team_id if m.home_team_goals > m.away_team_goals else m.away_team_id
+                    games.append(game)
                     continue
                 if client is not None:
                     base = await client.get_match(m.match_id)
@@ -384,11 +580,15 @@ class Match:
                 if pens.home_team_penalty_goals is None or pens.away_team_penalty_goals is None:
                     logger.warning(f"No shootout result for drawn series game {m.match_id}")
                     return
-                winners.append(m.home_team_id if pens.home_team_penalty_goals > pens.away_team_penalty_goals else m.away_team_id)
+                game.home_pens = pens.home_team_penalty_goals
+                game.away_pens = pens.away_team_penalty_goals
+                game.winner_id = m.home_team_id if game.home_pens > game.away_pens else m.away_team_id
+                games.append(game)
         except Exception as e:
             logger.warning(f"Failed to load series results for {self.sportec_id}: {e}")
             return
-        self.series_winners = winners
+        self.series_games = games
+        self.series_winners = [game.winner_id for game in games]
 
     def get_series_score(self, include_current: bool = True) -> Optional[Dict[str, int]]:
         """Series wins by team ID, or None if this isn't a series or results are unknown."""

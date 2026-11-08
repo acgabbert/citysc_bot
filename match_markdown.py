@@ -33,13 +33,17 @@ def generate_match_header(match_obj: Match, pre: bool = False) -> str:
 
     home_display = home.fullName
     away_display = away.fullName
+    seeds = match_obj.get_seeds()
+    if seeds:
+        home_display = f"#{seeds[match_obj.home_id]} {home_display}"
+        away_display = f"#{seeds[match_obj.away_id]} {away_display}"
     if config.FEATURE_FLAGS.get('enable_inline_logos', False):
         home_logo = _club_logo_markdown(home)
         away_logo = _club_logo_markdown(away)
         if home_logo:
-            home_display = f"{home_logo} {home.fullName}"
+            home_display = f"{home_logo} {home_display}"
         if away_logo:
-            away_display = f"{away.fullName} {away_logo}"
+            away_display = f"{away_display} {away_logo}"
 
     prefix = f"{result_string}: " if result_string else ""
     header_parts = [f"## {prefix}{home_display} {joiner_string} {away_display}"]
@@ -106,6 +110,89 @@ def generate_scorers(match_obj: Match) -> Optional[str]:
 
     return "\n".join(lines) if lines else None
 
+def _team_display(match_obj: Match, team_id: str) -> str:
+    club = match_obj.home if team_id == match_obj.home_id else match_obj.away
+    return club.abbreviation or club.shortName or club.fullName
+
+def _format_kick(kick) -> str:
+    if kick.scored:
+        return f"\u2705 {kick.taker}"
+    return f"\u274c {kick.taker}{' (saved)' if kick.saved else ''}"
+
+def generate_shootout(match_obj: Match) -> Optional[str]:
+    """Kick-by-kick penalty shootout table for match/post-match threads."""
+    shootout = match_obj.get_shootout()
+    if shootout is None:
+        return None
+    home_kicks = shootout.get(match_obj.home_id, [])
+    away_kicks = shootout.get(match_obj.away_id, [])
+    home_display = _team_display(match_obj, match_obj.home_id)
+    away_display = _team_display(match_obj, match_obj.away_id)
+    lines = [
+        "### Penalty Shootout",
+        f"| {home_display} | | {away_display} |",
+        "| :---: | :---: | :---: |",
+    ]
+    for i in range(max(len(home_kicks), len(away_kicks))):
+        home = _format_kick(home_kicks[i]) if i < len(home_kicks) else ""
+        away = _format_kick(away_kicks[i]) if i < len(away_kicks) else ""
+        lines.append(f"| {home} | {i + 1} | {away} |")
+    if not home_kicks and not away_kicks:
+        lines.append("| | Shootout underway | |")
+    return "\n".join(lines)
+
+def generate_series_games(match_obj: Match) -> Optional[str]:
+    """Results of earlier games in a best-of-3 series, linked to their threads."""
+    if not match_obj.series_games:
+        return None
+    names = {match_obj.home_id: match_obj.home.fullName, match_obj.away_id: match_obj.away.fullName}
+    threads = match_obj.series_threads or {}
+    lines = ["### Series So Far"]
+    for game in match_obj.series_games:
+        line = (f"- **Game {game.game}:** {names.get(game.home_id, game.home_id)} "
+                f"{game.home_goals}-{game.away_goals} {names.get(game.away_id, game.away_id)}")
+        if game.home_pens is not None and game.away_pens is not None:
+            line += f" ({game.home_pens}-{game.away_pens} pens)"
+        thread_id = threads.get(game.match_id)
+        if thread_id:
+            line += f" ([thread](https://www.reddit.com/comments/{thread_id}))"
+        lines.append(line)
+    return "\n".join(lines)
+
+def generate_next_match(match_obj: Match) -> Optional[str]:
+    """The next match line for post-match threads, e.g. "**Next:** Portland
+    Timbers vs. San Diego FC (MLS Cup Playoffs – Round One, Game 2 of 3) –
+    Saturday, November 1, 8:30 PM CDT".
+    """
+    next_match = match_obj.next_match
+    if next_match is None:
+        return None
+    tbd = (match_obj.next_match_tbd or '').lower()
+    kickoff = next_match.get_local_datetime()
+    if 'day' in tbd or kickoff is None:
+        when = "date and time TBD"
+    else:
+        when = f"{kickoff:%A, %B} {kickoff.day}"
+        if tbd or next_match.is_time_tbd():
+            when += ", time TBD"
+        else:
+            when += f", {next_match.get_local_time_string().lstrip('0')}"
+    return (f"**Next:** {next_match.home.fullName} vs. {next_match.away.fullName} "
+            f"({next_match.get_competition_display()}) \u2013 {when}")
+
+def generate_post_match_info(match_obj: Match) -> Optional[str]:
+    """Next match, highlights link and attendance for post-match threads."""
+    lines = []
+    next_line = generate_next_match(match_obj)
+    if next_line:
+        lines.append(next_line)
+    if match_obj.highlights_url:
+        lines.append(f"\U0001f3a5 [Match highlights]({match_obj.highlights_url})")
+    attendance = match_obj.get_attendance()
+    if attendance:
+        lines.append(f"**Attendance:** {attendance:,}")
+    return "\n\n".join(lines) if lines else None
+
 def generate_match_footer(match_obj: Match) -> str:
     footer = "Last Updated: "
     update = time.strftime('%b %d, %I:%M%p', time.localtime())
@@ -148,8 +235,9 @@ def generate_lineups(match_obj: Match) -> str:
     home_lineup = "Not yet available via mlssoccer.com."
     away_lineup = "Not yet available via mlssoccer.com."
     if starting_lineups:
-        home_lineup = generate_team_lineup(getattr(match_obj.data.match_base.home, "players", []), subs.get(match_obj.home_id, []))
-        away_lineup = generate_team_lineup(getattr(match_obj.data.match_base.away, "players", []), subs.get(match_obj.away_id, []))
+        cards = match_obj.get_cards()
+        home_lineup = generate_team_lineup(getattr(match_obj.data.match_base.home, "players", []), subs.get(match_obj.home_id, []), cards)
+        away_lineup = generate_team_lineup(getattr(match_obj.data.match_base.away, "players", []), subs.get(match_obj.away_id, []), cards)
         if len(starting_lineups[match_obj.home_id]) < 1:
             home_lineup = "Not yet available via mlssoccer.com."
         if len(starting_lineups[match_obj.away_id]) < 1:
@@ -163,21 +251,28 @@ def generate_lineups(match_obj: Match) -> str:
         away_lineup,
     ])
 
-def generate_team_lineup(lineup: List[BasePerson], subs: List[SubstitutionEvent]) -> str:
+def generate_team_lineup(lineup: List[BasePerson], subs: List[SubstitutionEvent],
+                         cards: Optional[Dict[str, List[str]]] = None) -> str:
+    """Starters (with subs and cards inline), then the bench. A player who came
+    on is listed with any cards on the bench line."""
     if not lineup:
         return "Not yet available via mlssoccer.com."
+    cards = cards or {}
     starters = []
     bench = []
     subs_mapping: Dict[str, SubstitutionEvent] = {}
     for s in subs:
         subs_mapping[s.event.player_out_id] = s
     for p in lineup:
+        player = str(p)
+        if cards.get(p.person_id):
+            player += " " + " ".join(cards[p.person_id])
         if p.person_id in subs_mapping:
-            starters.append(format_sub_event(subs_mapping.get(p.person_id)))
+            starters.append(format_sub_event(subs_mapping.get(p.person_id), player))
         elif p.starting:
-            starters.append(str(p))
+            starters.append(player)
         else:
-            bench.append(str(p))
+            bench.append(player)
 
     parts = [", ".join(starters)]
     if bench:
@@ -185,9 +280,12 @@ def generate_team_lineup(lineup: List[BasePerson], subs: List[SubstitutionEvent]
         parts.append("*Subs:* " + ", ".join(bench))
     return "\n".join(parts)
 
-def format_sub_event(event: SubstitutionEvent) -> str:
+def format_sub_event(event: SubstitutionEvent, player_out: Optional[str] = None) -> str:
+    """'Player Out (🔄 Player In 70')'; player_out replaces the name from the event."""
     event_details = event.event
-    return f"{event_details.player_out_first_name} {event_details.player_out_last_name} (\U0001f504 {event_details.player_in_first_name} {event_details.player_in_last_name} {event_details.minute_of_play}')"
+    if player_out is None:
+        player_out = f"{event_details.player_out_first_name} {event_details.player_out_last_name}"
+    return f"{player_out} (\U0001f504 {event_details.player_in_first_name} {event_details.player_in_last_name} {event_details.minute_of_play}')"
 
 
 def add_stat(match_obj: Match, stat: str, display: str = None, isPercentage=False) -> str:
@@ -275,6 +373,7 @@ def pre_match_thread(match_obj: Match):
 
     markdown_components = [
         generate_match_header(match_obj, pre=True),
+        generate_series_games(match_obj),
         generate_previous_matchups(match_obj),
         generate_injuries(match_obj),
         generate_discipline(match_obj),
@@ -301,8 +400,10 @@ def match_thread(match_obj: Match):
     markdown_components = [
         generate_match_header(match_obj),
         generate_scorers(match_obj),
+        generate_shootout(match_obj),
         generate_lineups(match_obj),
         generate_match_stats(match_obj),
+        generate_series_games(match_obj),
         generate_match_footer(match_obj)
     ]
 
@@ -325,9 +426,12 @@ def post_match_thread(match_obj: Match):
 
     markdown_components = [
         generate_match_header(match_obj),
+        generate_post_match_info(match_obj),
         generate_scorers(match_obj),
+        generate_shootout(match_obj),
         generate_lineups(match_obj),
         generate_match_stats(match_obj),
+        generate_series_games(match_obj),
         generate_match_footer(match_obj)
     ]
 

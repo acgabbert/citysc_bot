@@ -2,8 +2,10 @@
 Shared test setup.
 
 Fixtures in tests/fixtures/<match_id>/ are real MLS API responses saved from
-the four endpoints `MLSApiClient.get_all_match_data()` calls. A missing file
-means that endpoint returned 404 (e.g. the stats API before a match).
+the four endpoints `MLSApiClient.get_all_match_data()` calls, plus videos.json
+(trimmed to the fields we read) from `get_videos()`. A missing file means that
+endpoint returned 404 (e.g. the stats API before a match), or for videos, that
+there are none yet.
 """
 import copy
 import importlib.util
@@ -62,8 +64,15 @@ def load_schedule_json() -> dict:
         return json.load(f)
 
 
+def load_sd_schedule() -> dict:
+    """San Diego FC's schedule from Oct 20, 2025 on, saved on 2026-11-08: the
+    Round One series with Portland, then the Conference Semifinal and Final."""
+    with open(FIXTURES / "schedule_sd_2025.json", encoding="utf-8") as f:
+        return json.load(f)
+
+
 def load_payloads(match_id: str) -> Dict[str, Optional[dict]]:
-    return {name: load_fixture(match_id, name) for name in PAYLOAD_NAMES}
+    return {name: load_fixture(match_id, name) for name in PAYLOAD_NAMES + ("videos",)}
 
 
 def _scheduled_payloads() -> Dict[str, Optional[dict]]:
@@ -157,10 +166,16 @@ class FixtureClient(MLSApiClient):
         self.payloads = payloads
 
     async def _make_request(self, endpoint, path, params=None, allow_404=False):
-        if path.endswith("/key_events"):
+        if path.startswith("/matches/seasons/"):
+            name = "schedule"
+        elif endpoint == ApiEndpoint.SPORT and path.split("/")[-1] in self.payloads.get("other_match_infos", {}):
+            return copy.deepcopy(self.payloads["other_match_infos"][path.split("/")[-1]])
+        elif path.endswith("/key_events"):
             name = "match_events"
         elif path.startswith("/statistics/clubs/matches/"):
             name = "match_stats"
+        elif endpoint == ApiEndpoint.VIDEO:
+            name = "videos"
         elif endpoint == ApiEndpoint.SPORT:
             name = "match_info"
         elif endpoint == ApiEndpoint.MATCHES:

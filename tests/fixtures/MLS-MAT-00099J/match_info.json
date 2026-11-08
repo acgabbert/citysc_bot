@@ -1,0 +1,129 @@
+{
+ "optaId": 289022007,
+ "sportecId": "MLS-MAT-00099J",
+ "slug": "sdvsmin-11-24-2025",
+ "leagueMatchTitle": "Audi 2025 MLS Cup Playoffs",
+ "home": {
+  "optaId": 21280,
+  "sportecId": "MLS-CLU-000065",
+  "fullName": "San Diego FC",
+  "slug": "san-diego-fc",
+  "shortName": "San Diego",
+  "abbreviation": "SD",
+  "backgroundColor": "#06172B",
+  "logoBWSlug": "webcomp_834d2900-7d50-43fc-b211-89f49a0db780",
+  "logoColorSlug": "webcomp_104e47da-bd80-4ea3-bcbd-1ee6503769be",
+  "logoColorUrl": "https://images.mlssoccer.com/image/upload/{formatInstructions}/v1748261519/assets/logos/mls-clubs/Club_Logo-San_Diego_nwpyul.png",
+  "crestColorSlug": "webcomp_124c4658-9aa4-4ca2-9100-ee0125a532f8",
+  "ecalWidgetId": "6a29f80cca6887000286c90f"
+ },
+ "away": {
+  "optaId": 6977,
+  "sportecId": "MLS-CLU-00000L",
+  "fullName": "Minnesota United FC",
+  "slug": "minnesota-united-fc",
+  "shortName": "Minnesota",
+  "abbreviation": "MIN",
+  "backgroundColor": "#737B82",
+  "logoBWSlug": "webcomp_73d6b760-8b5f-44fb-9ed8-19435b008968",
+  "logoColorSlug": "webcomp_050dc9bd-4b9a-4797-bfd0-22d2c271cd9d",
+  "logoColorUrl": "https://images.mlssoccer.com/image/upload/{formatInstructions}/v1747754826/assets/logos/mls-clubs/Club_Logo-Minnesota_ftweor.png",
+  "crestColorSlug": "webcomp_858d4cc5-5d2c-4d30-a173-50bac6381c30",
+  "ecalWidgetId": "6a06979c10e30800028c63f0"
+ },
+ "venue": {
+  "venueSportecId": "MLS-STA-000037",
+  "backgroundImageSlug": "",
+  "name": "Snapdragon Stadium",
+  "city": "San Diego"
+ },
+ "season": {
+  "slug": "mls-cup-playoffs-2025",
+  "optaId": 2025,
+  "sportecId": "MLS-SEA-0001K9",
+  "competitionOptaId": "9800",
+  "name": "2025"
+ },
+ "competition": {
+  "optaId": 98,
+  "sportecId": "MLS-COM-000002",
+  "name": "Major League Soccer - Cup Playoffs",
+  "widgetId": "",
+  "slug": "mls-cup-playoffs",
+  "shortName": "MLS Cup Playoffs",
+  "matchType": "Cup",
+  "logoLight": {
+   "slug": ""
+  },
+  "logoDark": {
+   "slug": ""
+  },
+  "blockHeaderName": "",
+  "mgmId": "0",
+  "nextgenEcalMatchHubDisplay": false,
+  "playerHeadshotThumbnailField": ""
+ },
+ "broadcasters": [
+  {
+   "broadcasterTypeLabel": "",
+   "broadcasterName": "MLS Season Pass",
+   "broadcasterStreamingURL": "https://tv.apple.com/channel/tvs.sbd.7000",
+   "broadcasterType": "International Streaming"
+  },
+  {
+   "broadcasterTypeLabel": "",
+   "broadcasterName": "Apple TV",
+   "broadcasterStreamingURL": "https://tv.apple.com/channel/tvs.sbd.7000",
+   "broadcasterType": "International Streaming",
+   "broadcasterThumbnail": {
+    "slug": "appletv-icon-x4",
+    "selfUrl": "https://forge-dapi.mls-prd.deltatre.digital/v2/content/en-us/photos/appletv-icon-x4",
+    "title": "appletv-icon_x4",
+    "templateUrl": "https://images.mlssoccer.com/image/private/{formatInstructions}/mls/snffj82ru8ziiotyvipr",
+    "thumbnailUrl": "https://images.mlssoccer.com/image/private/w_250,h_250,c_thumb,g_auto,q_auto,f_jpg/mls/snffj82ru8ziiotyvipr",
+    "format": "png",
+    "overriddenFormats": {}
+   }
+  }
+ ],
+ "sponsorImage": {},
+ "leaguePromoImage": {},
+ "matchDate": "2025-11-25T03:00:00.0000000Z",
+ "thirdPartyTickets": {
+  "url": "https://www.ticketmaster.com/event/0A00632BDF96390B?brand=mls&wt.mc_id=MLS_LEAGUE_SDFC_SCHED_PG_SEMI_PLAYOFFS&utm_source=mlssoccer.com&utm_medium=client&utm_campaign=MLS_LEAGUE&utm_content=SDFC_SCHED_PG_SEMI_PLAYOFFS",
+  "openInNewTab": true,
+  "isVisible": false
+ },
+ "tags": [
+  {
+   "type": "tag",
+   "_translationId": "83c30462-26e8-4cab-8b0b-5a1e878953a6",
+   "_entityId": "4b618269-e6a3-4939-b8b6-9c65f03837a0",
+   "selfUrl": "https://forge-dapi.mls-prd.deltatre.digital/v2/content/en-us/tags/sportcache-update",
+   "title": "SportCache Update",
+   "slug": "sportcache-update",
+   "neutralSlug": "sportcache-update",
+   "externalSourceReference": {},
+   "fields": {}
+  }
+ ],
+ "homeClubBroadcasters": [],
+ "awayClubBroadcasters": [],
+ "clubBroadcasters": [],
+ "isTimeTbd": false,
+ "mgmId": "",
+ "appleStreamURL": "https://tv.apple.com/us/sporting-event/san-diego-fc-vs-minnesota-united/umc.cse.1212bqmxkgdua36sqhz1n5tz9?ctx_brand=tvs.sbd.7000",
+ "appleSubscriptionTier": "",
+ "appleAdvertisementCategory": "",
+ "roundName": "match-round-semis",
+ "competitionPhase": "",
+ "homeClubRank": "1",
+ "awayClubRank": "4",
+ "roundNumber": 5,
+ "roundGroup": "",
+ "matchDay": "5",
+ "calendarUrl": "",
+ "hidePromotionalSponsorBrandedImageOnMatchHub": false,
+ "delayedMatch": false,
+ "priorityMatchSponsor": ""
+}

@@ -3,8 +3,10 @@
 Reddit match-thread bot for [r/stlouiscitysc](https://www.reddit.com/r/stlouiscitysc). It watches St. Louis CITY SC's schedule and, for each match:
 
 - posts a pre-match thread the morning of the match,
-- posts a match thread 30 minutes before kickoff and keeps it updated with the score, scorers, lineups and stats,
-- posts a post-match thread after the final whistle.
+- posts a match thread 30 minutes before kickoff and keeps it updated with the score, scorers, cards, lineups, stats and any penalty shootout,
+- posts a post-match thread after the final whistle with the team's next match, then edits it a few times over the next hour to pick up final stats, attendance and the highlights video.
+
+Playoff threads also show the round, the seeds, the series score and links to the threads for earlier games in a series. Scores stay out of thread titles so they don't spoil the result.
 
 It also updates the subreddit's sidebar image widgets, scrapes MLS injury and discipline reports for the pre-match thread, and sends status messages to a Discord webhook. CITY 2 (MLS NEXT Pro) matches get a match thread only.
 
@@ -34,6 +36,7 @@ Then fill in `config.py`.
 | `MLS_BOT_WEBHOOK`, `DISCORD_BOTADMINID` | Discord webhook for status messages, and the role to tag on errors. |
 | `THREADS_JSON`, `THREADS_MAX_AGE_DAYS` | Where thread IDs are stored, and how long entries are kept (default 30 days). |
 | `MATCH_UPDATE_INTERVAL`, `MATCH_UPDATE_INTERVAL_LATE` | Seconds between match thread updates, and from the 80th minute on (defaults 60 and 30). |
+| `POST_MATCH_UPDATE_MINUTES` | Minutes after the post-match thread is posted to re-edit it (default `[10, 30, 60]`). |
 
 Settings added after your `config.py` was written fall back to their defaults.
 
@@ -54,7 +57,7 @@ python match_thread.py -i SPORTEC_ID -s /r/test_sub
 
 Sportec IDs look like `MLS-MAT-0009MQ`.
 
-Daily jobs (server local time): widget screenshots 00:45, widget upload 01:00, injuries and discipline 01:15, `threads.json` cleanup 01:25, schedule check 01:30. The schedule check queues the day's pre-match and match threads.
+Daily jobs (server local time): widget screenshots 00:45, widget upload 01:00, injuries and discipline 01:15, `threads.json` cleanup 01:25, schedule check 01:30. The schedule check queues the day's pre-match and match threads. If the league hasn't set the kickoff time yet ("Time tbd" on the schedule), it doesn't queue anything and tags the Discord admin role instead; run `match_thread.py` by hand or wait for the next day's check once the time is set.
 
 ### Docker
 

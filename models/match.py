@@ -1,5 +1,5 @@
 from typing import List, Optional
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 
 from models.club import Club_Sport, ClubMatch_Base
 from models.constants import FlexibleBool, UtcDatetime
@@ -32,6 +32,18 @@ class Match_Sport(BaseModel):
     roundGroup: Optional[str] = None
     matchDay: Optional[str] = None
     delayedMatch: Optional[FlexibleBool] = None
+    # True while the league hasn't set a kickoff time; matchDate is a placeholder
+    isTimeTbd: Optional[FlexibleBool] = None
+    # Playoff seeds ("1", "8"); blank for other matches
+    homeClubRank: Optional[int] = None
+    awayClubRank: Optional[int] = None
+
+    @field_validator('homeClubRank', 'awayClubRank', mode='before')
+    @classmethod
+    def blank_rank_is_none(cls, value):
+        if isinstance(value, str) and not value.strip():
+            return None
+        return value
 
 class MatchInformation(BaseModel):
     """Model for match information from Stats API base"""

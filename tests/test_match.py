@@ -28,6 +28,10 @@ async def test_every_accessor_survives_every_state(state):
     match.get_utc_datetime()
     match.get_local_date_string()
     match.get_local_time_string()
+    match.get_seeds()
+    match.get_attendance()
+    match.get_cards()
+    match.get_shootout()
     match.get_data_string()
     match.is_started()
     match.is_final()
@@ -268,3 +272,176 @@ async def test_mls_cup_winner():
     match.data.match_info.roundName = "match-round-cup"
     assert match.get_competition_display() == "MLS Cup"
     assert match.get_series_status() == "Vancouver Whitecaps FC wins MLS Cup!"
+
+
+async def test_series_games():
+    match = await make_match("playoff_series")
+    games = match.series_games
+    assert [(g.game, g.match_id, g.home_goals, g.away_goals, g.home_pens, g.away_pens, g.winner_id)
+            for g in games] == [
+        (1, "MLS-MAT-00098S", 2, 1, None, None, SD),
+        (2, "MLS-MAT-00098W", 2, 2, 3, 2, POR),
+    ]
+    assert games[1].home_id == POR
+    # Unknown before the stats API has the match, and outside a series
+    assert (await make_match("playoff_placeholder")).series_games is None
+    assert (await make_match("final")).series_games is None
+
+
+async def test_seeds():
+    assert (await make_match("playoff_series")).get_seeds() == {SD: 1, POR: 8}
+    # Placeholders have blank ranks; regular season matches never get seeds
+    assert (await make_match("playoff_placeholder")).get_seeds() is None
+    assert (await make_match("final")).get_seeds() is None
+
+
+async def test_kickoff_time_tbd():
+    match = await make_match("playoff_placeholder")
+    assert match.is_time_tbd()
+    assert match.get_local_time_string() == "TBD"
+    match = await make_match("pre_match")
+    assert not match.is_time_tbd()
+    assert match.get_local_time_string() == "07:30 PM CDT"
+
+
+async def test_attendance():
+    assert (await make_match("final")).get_attendance() == 22423
+    # The API reports 0 when it doesn't have a number
+    assert (await make_match("shootout")).get_attendance() is None
+    assert (await make_match("missing_base")).get_attendance() is None
+
+
+async def test_shootout_kicks():
+    match = await make_match("shootout")
+    shootout = match.get_shootout()
+    assert [(k.taker, k.scored, k.saved) for k in shootout[match.away_id]] == [
+        ("Guilherme Santos", False, True),
+        ("Ondřej Lingr", True, False),
+        ("Duane Holmes", True, False),
+        ("Héctor Herrera", False, True),
+    ]
+    assert sum(k.scored for k in shootout[match.home_id]) == 4
+    # Extra time, but no shootout
+    assert (await make_match("final")).get_shootout() is None
+
+
+async def test_cards():
+    match = await make_match("shootout")
+    cards = match.get_cards()
+    ennali = next(p.person_id for p in match.data.match_base.away.players if p.last_name == "Ennali")
+    assert cards[ennali] == ["\U0001f7e829'", "\U0001f7e8\U0001f7e5109'"]
+    # Coach cards aren't player cards
+    assert sum(len(c) for c in cards.values()) == 8
+    assert (await make_match("empty_events")).get_cards() == {}
+
+
+async def test_load_highlights():
+    payloads = MATCH_STATES["final"]()
+    match = await Match.create(FINAL_ID, client=FixtureClient(payloads))
+    url = await match.load_highlights(FixtureClient(payloads))
+    # The full highlights, not a goal clip or the match snapshot
+    assert url == match.highlights_url == (
+        "https://www.mlssoccer.com/video/highlights-st-louis-city-sc-vs-la-galaxy-october-11-2026"
+    )
+
+
+async def test_load_highlights_not_out_yet():
+    match = await make_match("shootout")  # no videos.json
+    assert await match.load_highlights(FixtureClient(MATCH_STATES["shootout"]())) is None
+    # Only goal clips so far
+    payloads = MATCH_STATES["final"]()
+    payloads["videos"]["items"] = [i for i in payloads["videos"]["items"] if i["slug"].startswith("goal-")]
+    assert await match.load_highlights(FixtureClient(payloads)) is None
+
+
+async def test_load_highlights_api_error():
+    class FailingClient(FixtureClient):
+        async def get_videos(self, match_id):
+            raise RuntimeError("boom")
+
+    match = await make_match("final")
+    assert await match.load_highlights(FailingClient({})) is None
+
+
+def _with_next_matches(payloads):
+    from conftest import load_sd_schedule
+
+    payloads["schedule"] = load_sd_schedule()
+    payloads["other_match_infos"] = {
+        mid: load_fixture(mid, "match_info") for mid in ("MLS-MAT-00098W", "MLS-MAT-00099J")
+    }
+    return payloads
+
+
+def _series_game_payloads(game: int, home_goals: int, away_goals: int):
+    """Game 1 or 2 of the SD-POR series, finished, with Game 3's sport API data borrowed."""
+    match_id = SERIES_EARLIER_IDS[game - 1]
+    payloads = _with_next_matches(_series_payloads(match_id, SERIES_EARLIER_IDS[:game - 1]))
+    info = load_fixture(SERIES_GAME_3_ID, "match_info")
+    kickoff = {1: "2025-10-27T01:30:00Z", 2: "2025-11-02T01:30:00Z"}[game]
+    info.update(sportecId=match_id, roundNumber=game + 1, roundGroup=f"game_{game}", matchDate=kickoff)
+    if game == 2:
+        info.update(home=info["away"], away=info["home"])
+    payloads["match_info"] = info
+    payloads["match_base"]["match_information"].update(
+        match_status="finalWhistle", home_team_goals=home_goals, away_team_goals=away_goals,
+        home_team_penalty_goals=None, away_team_penalty_goals=None,
+    )
+    return payloads
+
+
+async def test_next_match_is_next_series_game():
+    payloads = _series_game_payloads(1, 2, 1)
+    match = await Match.create(SERIES_EARLIER_IDS[0], client=FixtureClient(payloads))
+    next_match = await match.load_next_match(FixtureClient(payloads))
+    assert next_match.sportec_id == "MLS-MAT-00098W"
+    assert str(next_match.get_playoff_round()) == "Round One, Game 2 of 3"
+    assert match.next_match_tbd is None
+
+
+async def test_next_match_skips_unneeded_game_3():
+    # SD (away) wins Game 2 to go up 2-0; Game 3 is still on the schedule
+    payloads = _series_game_payloads(2, 0, 1)
+    match = await Match.create(SERIES_EARLIER_IDS[1], client=FixtureClient(payloads))
+    assert match.get_series_status() == (
+        "San Diego FC wins the series 2-0 and advances to the Conference Semifinals"
+    )
+    next_match = await match.load_next_match(FixtureClient(payloads))
+    assert next_match.sportec_id == "MLS-MAT-00099J"
+
+
+async def test_next_match_after_series():
+    payloads = _with_next_matches(MATCH_STATES["playoff_series"]())
+    match = await Match.create(SERIES_GAME_3_ID, client=FixtureClient(payloads))
+    next_match = await match.load_next_match(FixtureClient(payloads))
+    assert next_match.sportec_id == "MLS-MAT-00099J"
+    assert next_match.get_competition_display() == "MLS Cup Playoffs – Conference Semifinal"
+
+
+async def test_no_next_match():
+    # Nothing on the schedule (e.g. after elimination), or the lookup fails
+    match = await make_match("final")
+    assert await match.load_next_match(FixtureClient(MATCH_STATES["final"]())) is None
+
+    class FailingClient(FixtureClient):
+        async def get_schedule(self, season, **kwargs):
+            raise RuntimeError("boom")
+
+    assert await match.load_next_match(FailingClient({})) is None
+
+
+async def test_next_match_schedule_query():
+    """The schedule API returns 400 for match_date[gte] without match_date[lte]."""
+    calls = []
+
+    class RecordingClient(FixtureClient):
+        async def get_schedule(self, season, **kwargs):
+            calls.append((season, kwargs))
+            return []
+
+    match = await make_match("playoff_series")
+    await match.load_next_match(RecordingClient({}))
+    season, kwargs = calls[0]
+    assert season == "MLS-SEA-0001K9"
+    assert kwargs["match_date_gte"] == "2025-11-10"
+    assert kwargs["match_date_lte"] == "2026-01-09"

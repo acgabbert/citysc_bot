@@ -478,13 +478,14 @@ class MLSApiClient:
         )
     
     # Video API endpoints
-    async def get_videos(self, match_id: int) -> Dict[str, Any]:
-        """Get standings from sport API"""
+    async def get_videos(self, match_id: str) -> Dict[str, Any]:
+        """Get videos (goal clips, highlights) for a match by Sportec ID, newest first"""
         return await self._make_request(
-            ApiEndpoint.SPORT,
-            "/content/en-us/brightcovevideos",
+            ApiEndpoint.VIDEO,
+            "content/en-us/brightcovevideos",
             params={
-                'fields.optaMatchId': match_id
+                'fields.sportecMatchId': match_id,
+                '$limit': 50
             },
             allow_404=True
         )

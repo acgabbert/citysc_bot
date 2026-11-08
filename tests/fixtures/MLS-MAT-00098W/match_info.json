@@ -1,0 +1,129 @@
+{
+ "optaId": 289021984,
+ "sportecId": "MLS-MAT-00098W",
+ "slug": "porvssd-11-01-2025",
+ "leagueMatchTitle": "Audi 2025 MLS Cup Playoffs",
+ "home": {
+  "optaId": 1581,
+  "sportecId": "MLS-CLU-00000P",
+  "fullName": "Portland Timbers",
+  "slug": "portland-timbers",
+  "shortName": "Portland",
+  "abbreviation": "POR",
+  "backgroundColor": "#004812",
+  "logoBWSlug": "webcomp_e8545a05-ee03-49db-a7eb-9e1318240244",
+  "logoColorSlug": "webcomp_76603088-3a69-4f7e-8716-13921f96e294",
+  "logoColorUrl": "https://images.mlssoccer.com/image/upload/{formatInstructions}/v1747769540/assets/logos/mls-clubs/Club_Logo-Portland_qihpaz.png",
+  "crestColorSlug": "webcomp_4d2e72bd-527c-454b-a8b9-472cbfe5e890",
+  "ecalWidgetId": "6a29f7e49f93590002a7fd9a"
+ },
+ "away": {
+  "optaId": 21280,
+  "sportecId": "MLS-CLU-000065",
+  "fullName": "San Diego FC",
+  "slug": "san-diego-fc",
+  "shortName": "San Diego",
+  "abbreviation": "SD",
+  "backgroundColor": "#06172B",
+  "logoBWSlug": "webcomp_834d2900-7d50-43fc-b211-89f49a0db780",
+  "logoColorSlug": "webcomp_104e47da-bd80-4ea3-bcbd-1ee6503769be",
+  "logoColorUrl": "https://images.mlssoccer.com/image/upload/{formatInstructions}/v1748261519/assets/logos/mls-clubs/Club_Logo-San_Diego_nwpyul.png",
+  "crestColorSlug": "webcomp_124c4658-9aa4-4ca2-9100-ee0125a532f8",
+  "ecalWidgetId": "6a29f80cca6887000286c90f"
+ },
+ "venue": {
+  "venueSportecId": "MLS-STA-00000P",
+  "backgroundImageSlug": "",
+  "name": "Providence Park",
+  "city": "Portland, OR"
+ },
+ "season": {
+  "slug": "mls-cup-playoffs-2025",
+  "optaId": 2025,
+  "sportecId": "MLS-SEA-0001K9",
+  "competitionOptaId": "9800",
+  "name": "2025"
+ },
+ "competition": {
+  "optaId": 98,
+  "sportecId": "MLS-COM-000002",
+  "name": "Major League Soccer - Cup Playoffs",
+  "widgetId": "",
+  "slug": "mls-cup-playoffs",
+  "shortName": "MLS Cup Playoffs",
+  "matchType": "Cup",
+  "logoLight": {
+   "slug": ""
+  },
+  "logoDark": {
+   "slug": ""
+  },
+  "blockHeaderName": "",
+  "mgmId": "0",
+  "nextgenEcalMatchHubDisplay": false,
+  "playerHeadshotThumbnailField": ""
+ },
+ "broadcasters": [
+  {
+   "broadcasterTypeLabel": "",
+   "broadcasterName": "MLS Season Pass",
+   "broadcasterStreamingURL": "https://tv.apple.com/channel/tvs.sbd.7000",
+   "broadcasterType": "International Streaming"
+  },
+  {
+   "broadcasterTypeLabel": "",
+   "broadcasterName": "Apple TV",
+   "broadcasterStreamingURL": "https://tv.apple.com/channel/tvs.sbd.7000",
+   "broadcasterType": "International Streaming",
+   "broadcasterThumbnail": {
+    "slug": "appletv-icon-x4",
+    "selfUrl": "https://forge-dapi.mls-prd.deltatre.digital/v2/content/en-us/photos/appletv-icon-x4",
+    "title": "appletv-icon_x4",
+    "templateUrl": "https://images.mlssoccer.com/image/private/{formatInstructions}/mls/snffj82ru8ziiotyvipr",
+    "thumbnailUrl": "https://images.mlssoccer.com/image/private/w_250,h_250,c_thumb,g_auto,q_auto,f_jpg/mls/snffj82ru8ziiotyvipr",
+    "format": "png",
+    "overriddenFormats": {}
+   }
+  }
+ ],
+ "sponsorImage": {},
+ "leaguePromoImage": {},
+ "matchDate": "2025-11-02T01:30:00.0000000Z",
+ "thirdPartyTickets": {
+  "url": "https://www.ticketmaster.com/event/Z7r9jZ1A7jVuU?brand=mls&wt.mc_id=MLS_LEAGUE_POR_BUY_TIX_3PE_PLAYOFFS_R1A&utm_source=mlssoccer.com&utm_medium=client&utm_campaign=MLS_LEAGUE&utm_content=POR_BUY_TIX_3PE_PLAYOFFS_R1A",
+  "openInNewTab": true,
+  "isVisible": false
+ },
+ "tags": [
+  {
+   "type": "tag",
+   "_translationId": "83c30462-26e8-4cab-8b0b-5a1e878953a6",
+   "_entityId": "4b618269-e6a3-4939-b8b6-9c65f03837a0",
+   "selfUrl": "https://forge-dapi.mls-prd.deltatre.digital/v2/content/en-us/tags/sportcache-update",
+   "title": "SportCache Update",
+   "slug": "sportcache-update",
+   "neutralSlug": "sportcache-update",
+   "externalSourceReference": {},
+   "fields": {}
+  }
+ ],
+ "homeClubBroadcasters": [],
+ "awayClubBroadcasters": [],
+ "clubBroadcasters": [],
+ "isTimeTbd": false,
+ "mgmId": "",
+ "appleStreamURL": "https://tv.apple.com/us/sporting-event/tbd-vs-san-diego-fc/umc.cse.6eu6zym5wopgm9dix37c4xqko?ctx_brand=tvs.sbd.7000",
+ "appleSubscriptionTier": "",
+ "appleAdvertisementCategory": "",
+ "roundName": "match-round-bo3",
+ "competitionPhase": "",
+ "homeClubRank": "8",
+ "awayClubRank": "1",
+ "roundNumber": 3,
+ "roundGroup": "game_2",
+ "matchDay": "3",
+ "calendarUrl": "",
+ "hidePromotionalSponsorBrandedImageOnMatchHub": false,
+ "delayedMatch": false,
+ "priorityMatchSponsor": ""
+}

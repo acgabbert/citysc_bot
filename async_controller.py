@@ -63,6 +63,8 @@ MATCH_THREAD_LEAD_TIME = 30 * 60
 MATCH_IN_PROGRESS_WINDOW = 3 * 60 * 60
 # St. Louis CITY 2 (MLS NEXT Pro) gets match threads only: no pre- or post-match threads
 CITY2_OPTA_ID = 19202
+# Minutes after the post-match thread goes up to re-edit it (final stats, highlights)
+DEFAULT_POST_MATCH_UPDATE_MINUTES = [10, 30, 60]
 
 # Touched every HEARTBEAT_INTERVAL seconds while the event loop is running;
 # the Docker HEALTHCHECK reports unhealthy when it goes stale.
@@ -115,6 +117,27 @@ class AsyncController:
         except Exception as e:
             root.error(f"Error creating match thread: {str(e)}")
             await msg.async_send(f"Error creating match thread for {sportec_id}: {str(e)}")
+            return
+        self.schedule_post_match_updates(sportec_id)
+
+    def schedule_post_match_updates(self, sportec_id: str):
+        """Schedule re-edits of the post-match thread to pick up final stats and highlights."""
+        threads = file_manager.get_threads(str(sportec_id))
+        if threads is None or not threads.post:
+            return
+        minutes = getattr(config, 'POST_MATCH_UPDATE_MINUTES', DEFAULT_POST_MATCH_UPDATE_MINUTES)
+        for minute in minutes:
+            self.scheduler.add_job(
+                thread.update_post_match_thread,
+                'date',
+                run_date=datetime.now() + timedelta(minutes=minute),
+                args=[sportec_id],
+                name=f'post_match_update_{sportec_id}_{minute}',
+                id=f'post_match_update_{sportec_id}_{minute}',
+                replace_existing=True
+            )
+        if minutes:
+            root.info(f"Scheduled post-match thread updates for {sportec_id} in {', '.join(map(str, minutes))} minutes")
     
     async def daily_setup(self):
         """Check for upcoming matches and schedule threads"""
@@ -141,7 +164,13 @@ class AsyncController:
                 # use a starting time of 3 hours ago to check for ongoing matches as well
                 match_id, match_time = mls_schedule.check_pre_match_sched(data, date_from=int(time.time()) - MATCH_IN_PROGRESS_WINDOW)
                 
-                if match_id is not None:
+                tbd = mls_schedule.kickoff_tbd(data, match_id) if match_id is not None else None
+                if tbd:
+                    message = (f'Match coming up: {match_id}, but its kickoff is "{tbd}". '
+                               f'Not scheduling threads until the time is set.')
+                    root.warning(message)
+                    await msg.async_send(message, tag=True)
+                elif match_id is not None:
                     local_time = match_time.astimezone()
                     await msg.async_send(f'Match coming up: {match_id}, {local_time}')
 
