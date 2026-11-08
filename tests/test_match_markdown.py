@@ -70,6 +70,13 @@ async def test_match_thread_live():
     assert "### Lineups" in body
 
 
+async def test_match_thread_halftime():
+    match = await make_match("halftime")
+    _, body = md.match_thread(match)
+    assert "## HT: St. Louis CITY SC 3-1 LA Galaxy" in body
+    assert "46'" not in body
+
+
 async def test_post_match_thread_final():
     match = await make_match("final")
     title, body = md.post_match_thread(match)

@@ -78,6 +78,13 @@ def _live_payloads() -> Dict[str, Optional[dict]]:
     return payloads
 
 
+def _halftime_payloads() -> Dict[str, Optional[dict]]:
+    """Halftime break: the API reports match_status "half" with minute_of_play "46"."""
+    payloads = _live_payloads()
+    payloads["match_base"]["match_information"].update(match_status="half", minute_of_play="46")
+    return payloads
+
+
 def _without(match_id: str, *names: str) -> Dict[str, Optional[dict]]:
     payloads = load_payloads(match_id)
     for name in names:
@@ -110,6 +117,7 @@ MATCH_STATES = {
     "pre_match": lambda: load_payloads(PRE_MATCH_ID),
     "scheduled": _scheduled_payloads,
     "live": _live_payloads,
+    "halftime": _halftime_payloads,
     "final": lambda: load_payloads(FINAL_ID),
     "playoff": _playoff_payloads,
     "shootout": lambda: load_payloads(SHOOTOUT_ID),

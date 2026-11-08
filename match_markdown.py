@@ -29,10 +29,7 @@ def generate_match_header(match_obj: Match, pre: bool = False) -> str:
     result_string = ""
     if not pre:
         result_type = match_obj.get_result_type()
-        if result_type:
-            result_string = result_type
-        elif match_obj.minute_display is not None:
-            result_string = f"{match_obj.minute_display}'"
+        result_string = result_type or match_obj.get_status_display()
 
     home_display = home.fullName
     away_display = away.fullName

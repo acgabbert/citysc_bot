@@ -376,6 +376,20 @@ class Match:
             result += f" ({home_pens}-{away_pens} pens)"
         return result
 
+    def get_status_display(self) -> str:
+        """
+        Short live-status label for the thread header: "HT" during the
+        halftime break, otherwise the current minute (e.g. "33'").
+        Empty if the match hasn't started or no minute is available.
+        """
+        if not self.is_started():
+            return ""
+        if self.data.match_base.match_information.match_status == 'half':
+            return "HT"
+        if self.minute_display is not None:
+            return f"{self.minute_display}'"
+        return ""
+
     def get_result_type(self) -> str:
         """
         Get result type if the match is finished.
