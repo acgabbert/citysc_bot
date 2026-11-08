@@ -15,6 +15,7 @@ async def test_every_accessor_survives_every_state(state):
     match = await make_match(state)
     match.get_score()
     match.get_result_type()
+    match.get_status_display()
     match.get_goalscorers()
     match.get_subs()
     match.get_feed()
@@ -62,6 +63,15 @@ async def test_live():
         HOME: ["Carlo Holse (2', 7', 21')"],
         LA: ["Robert Taylor (31')"],
     }
+
+
+async def test_status_display():
+    assert (await make_match("pre_match")).get_status_display() == ""
+    assert (await make_match("scheduled")).get_status_display() == ""
+    assert (await make_match("live")).get_status_display() == "33'"
+    halftime = await make_match("halftime")
+    assert halftime.get_status_display() == "HT"
+    assert halftime.minute_display == "46"  # still drives the update interval
 
 
 async def test_final():
