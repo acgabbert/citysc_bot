@@ -38,7 +38,7 @@ Copy `config-example.py` to `config.py` and fill in secrets (Reddit OAuth, Disco
 
 **Match thread lifecycle** (`match_thread.py`): Three phases — `pre_match_thread()` (24h before), `match_thread()` (30min before kickoff, polling loop during match at `MATCH_UPDATE_INTERVAL`/`MATCH_UPDATE_INTERVAL_LATE`), `post_match_thread()` (after final whistle). Each phase creates/edits Reddit threads and updates `ThreadManager` state.
 
-**Match markdown** (`match_markdown.py`): Generates all Reddit thread markdown — headers, scorers, lineups, stats, injuries, discipline, and footers. `pre_match_thread()`, `match_thread()`, and `post_match_thread()` each return `(title, body)` tuples.
+**Match markdown** (`match_markdown.py`): Generates all Reddit thread markdown — headers, scorers, lineups, stats, injuries, discipline, and footers. Playoff matches get the round in the title (`Match.get_competition_display()`) and a round/series line under the header; `Match.get_playoff_round()` maps the sport API's `roundName`/`roundNumber`, whose slugs change between seasons. `pre_match_thread()`, `match_thread()`, and `post_match_thread()` each return `(title, body)` tuples.
 
 **API data** (`api_client.py` + `match.py`): `MLSApiClient` is an async context manager for MLS API calls. `Match` wraps it with match-specific logic (including reading injury/discipline data from JSON files). Both support session reuse via an optional `client` parameter to avoid creating multiple aiohttp sessions.
 
@@ -76,4 +76,4 @@ ruff check .
 pytest
 ```
 
-Tests never hit the network or Reddit. `tests/conftest.py` loads `config-example.py` as `config`, runs each test in a temp directory, and provides `FixtureClient`, an `MLSApiClient` that serves saved responses from `tests/fixtures/<match_id>/` (a missing file behaves like the API's 404). `MATCH_STATES` covers pre-match, lineups-only, live, final, shootout and missing-endpoint states; add a state there when a new partial-data case shows up. `.github/workflows/ci.yml` runs ruff and pytest on every PR. See `docs/RECOMMENDATIONS.md` for the improvement roadmap.
+Tests never hit the network or Reddit. `tests/conftest.py` loads `config-example.py` as `config`, runs each test in a temp directory, and provides `FixtureClient`, an `MLSApiClient` that serves saved responses from `tests/fixtures/<match_id>/` (a missing file behaves like the API's 404). `MATCH_STATES` covers pre-match, lineups-only, live, final, shootout, missing-endpoint and MLS Cup Playoffs states (a Round One series, a knockout shootout, and 2026 placeholders with TBC teams); add a state there when a new partial-data case shows up. `.github/workflows/ci.yml` runs ruff and pytest on every PR. See `docs/RECOMMENDATIONS.md` for the improvement roadmap.

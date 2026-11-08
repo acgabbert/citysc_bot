@@ -1,0 +1,104 @@
+{
+  "optaId": 289023419,
+  "sportecId": "MLS-MAT-000ACR",
+  "slug": "tbcvstbc-11-20-2026-000acr",
+  "leagueMatchTitle": "Audi 2026 MLS Cup Playoffs",
+  "home": {
+    "optaId": 163380053,
+    "sportecId": "MLS-CLU-00001H",
+    "fullName": "TBC Home",
+    "slug": "tbc-home",
+    "shortName": "TBC Home",
+    "abbreviation": "TBC",
+    "backgroundColor": "",
+    "logoBWSlug": "",
+    "logoColorSlug": "webcomp_9bb98e6f-dba9-46dc-88a8-e0bd53e1a418",
+    "logoColorUrl": "https://images.mlssoccer.com/image/upload/{formatInstructions}/v1760949685/assets/logos/fallback-club-logo-grey.png",
+    "crestColorSlug": "",
+    "ecalWidgetId": ""
+  },
+  "away": {
+    "optaId": 163380055,
+    "sportecId": "MLS-CLU-00001J",
+    "fullName": "TBC Away",
+    "slug": "tbc-away",
+    "shortName": "TBC Away",
+    "abbreviation": "TBC",
+    "backgroundColor": "",
+    "logoBWSlug": "",
+    "logoColorSlug": "webcomp_4cc62e8d-fdfc-4caf-97d5-7fb599e8411e",
+    "logoColorUrl": "https://images.mlssoccer.com/image/upload/{formatInstructions}/v1760949685/assets/logos/fallback-club-logo-grey.png",
+    "crestColorSlug": "",
+    "ecalWidgetId": ""
+  },
+  "venue": {
+    "venueSportecId": "MLS-STA-000027",
+    "backgroundImageSlug": "",
+    "name": "TBC",
+    "city": "unknown"
+  },
+  "season": {
+    "slug": "mls-playoffs-2026-do-not-change",
+    "sportecId": "MLS-SEA-0001KA",
+    "name": "2026"
+  },
+  "competition": {
+    "optaId": 98,
+    "sportecId": "MLS-COM-000002",
+    "name": "Major League Soccer - Cup Playoffs",
+    "widgetId": "",
+    "slug": "mls-cup-playoffs",
+    "shortName": "MLS Cup Playoffs",
+    "matchType": "Cup",
+    "logoLight": {
+      "slug": ""
+    },
+    "logoDark": {
+      "slug": ""
+    },
+    "blockHeaderName": "",
+    "mgmId": "0",
+    "nextgenEcalMatchHubDisplay": false,
+    "playerHeadshotThumbnailField": ""
+  },
+  "broadcasters": [
+    {
+      "broadcasterTypeLabel": "",
+      "broadcasterName": "Apple TV",
+      "broadcasterStreamingURL": "https://tv.apple.com/channel/tvs.sbd.7000",
+      "broadcasterType": "International Streaming",
+      "broadcasterThumbnail": {
+        "slug": "appletv-icon-x4",
+        "selfUrl": "https://forge-dapi.mls-prd.deltatre.digital/v2/content/en-us/photos/appletv-icon-x4",
+        "title": "appletv-icon_x4",
+        "templateUrl": "https://images.mlssoccer.com/image/private/{formatInstructions}/mls/snffj82ru8ziiotyvipr",
+        "thumbnailUrl": "https://images.mlssoccer.com/image/private/w_250,h_250,c_thumb,g_auto,q_auto,f_jpg/mls/snffj82ru8ziiotyvipr",
+        "format": "png",
+        "overriddenFormats": {}
+      }
+    }
+  ],
+  "sponsorImage": {},
+  "leaguePromoImage": {},
+  "matchDate": "2026-11-20T17:00:00.0000000Z",
+  "tags": [],
+  "homeClubBroadcasters": [],
+  "awayClubBroadcasters": [],
+  "clubBroadcasters": [],
+  "isTimeTbd": true,
+  "mgmId": "",
+  "appleStreamURL": "",
+  "appleSubscriptionTier": "",
+  "appleAdvertisementCategory": "",
+  "roundName": "best_of_3",
+  "competitionPhase": "",
+  "homeClubRank": "",
+  "awayClubRank": "",
+  "roundNumber": 2,
+  "roundGroup": "",
+  "matchDay": "2",
+  "calendarUrl": "",
+  "hidePromotionalSponsorBrandedImageOnMatchHub": false,
+  "delayedMatch": false,
+  "priorityMatchSponsor": ""
+}

@@ -1,11 +1,14 @@
 from collections import defaultdict
+from dataclasses import dataclass
 from datetime import datetime
 import json
 import logging
 import os
+import re
 from typing import Dict, List, Optional
 from api_client import MLSApiClient
 from models.club import Club_Sport
+from models.constants import MlsCompetition
 from models.event import EventDetails, MlsEvent, SubstitutionEvent
 from models.match import ComprehensiveMatchData
 from models.person import BasePerson
@@ -15,6 +18,61 @@ from models.venue import MatchVenue
 import util
 
 logger = logging.getLogger(__name__)
+
+PLAYOFFS_COMPETITION_ID = MlsCompetition.MLS_CUP_PLAYOFFS.competition_id
+
+# MLS Cup Playoffs rounds: (display name, what the winner advances to)
+_PLAYOFF_ROUNDS = {
+    'wild_card': ('Wild Card', 'Round One'),
+    'round_one': ('Round One', 'the Conference Semifinals'),
+    'semifinal': ('Conference Semifinal', 'the Conference Final'),
+    'final': ('Conference Final', 'MLS Cup'),
+    'cup': ('MLS Cup', None),
+}
+# The sport API's roundNumber, used when roundName isn't a slug we know.
+# Round One is roundNumber 2-4 (Games 1-3).
+_PLAYOFF_ROUND_NUMBERS = {
+    1: 'wild_card', 2: 'round_one', 3: 'round_one', 4: 'round_one',
+    5: 'semifinal', 6: 'final', 7: 'cup',
+}
+ROUND_ONE_GAMES = 3
+
+
+def _playoff_round_key(round_name: Optional[str], round_number: Optional[int]) -> Optional[str]:
+    """Map the sport API's roundName slug (or roundNumber) to a _PLAYOFF_ROUNDS key.
+
+    The slugs change between seasons ('match-round-bo3' in 2025, 'best_of_3'
+    in 2026), so match loosely and fall back to roundNumber.
+    """
+    slug = (round_name or '').lower()
+    if 'wild' in slug:
+        return 'wild_card'
+    if 'bo3' in slug or 'best_of' in slug or 'best-of' in slug:
+        return 'round_one'
+    if 'semi' in slug:
+        return 'semifinal'
+    if 'final' in slug:
+        return 'final'
+    if 'cup' in slug:
+        return 'cup'
+    return _PLAYOFF_ROUND_NUMBERS.get(round_number)
+
+
+@dataclass
+class PlayoffRound:
+    name: str
+    next_round: Optional[str] = None
+    game: Optional[int] = None
+    best_of: Optional[int] = None
+
+    @property
+    def is_series(self) -> bool:
+        return self.best_of is not None
+
+    def __str__(self) -> str:
+        if self.is_series and self.game:
+            return f"{self.name}, Game {self.game} of {self.best_of}"
+        return self.name
 
 
 class Match:
@@ -34,6 +92,9 @@ class Match:
     away_starters: List[BasePerson] = None
     injuries: Optional[Dict] = None
     discipline: Optional[Dict] = None
+    # Winner team IDs of earlier games in a best-of-3 series, oldest first.
+    # None until loaded (or if they couldn't be worked out).
+    series_winners: Optional[List[str]] = None
     _sportec_to_opta: Dict[str, str] = None
 
     def __init__(self, sportec_id: str):
@@ -64,12 +125,14 @@ class Match:
         match._process_data(data)
         match.update_injuries()
         match.update_discipline()
+        await match._load_series(client)
         return match
 
     async def refresh(self, client: Optional[MLSApiClient] = None):
         data = await self._fetch_data(client)
         self.data = data
         self._process_data(data)
+        await self._load_series(client)
     
     def _process_data(self, data: ComprehensiveMatchData) -> None:
         """
@@ -218,6 +281,161 @@ class Match:
             lineups[away_team.team_id] = away_lineup
 
         return lineups
+
+    def get_playoff_round(self) -> Optional[PlayoffRound]:
+        """The MLS Cup Playoffs round this match is in, or None for any other match."""
+        info = self.data.match_info if self.data else None
+        if info is None or info.competition.sportecId != PLAYOFFS_COMPETITION_ID:
+            return None
+        key = _playoff_round_key(info.roundName, info.roundNumber)
+        if key is None:
+            return None
+        name, next_round = _PLAYOFF_ROUNDS[key]
+        if key != 'round_one':
+            return PlayoffRound(name, next_round)
+        return PlayoffRound(name, next_round, game=self._series_game_number(), best_of=ROUND_ONE_GAMES)
+
+    def _series_game_number(self) -> Optional[int]:
+        """Game number within a Round One series.
+
+        2025 data has roundGroup 'game_2' and match_type 'Match 2'; the 2026
+        placeholders have neither, but roundNumber 2-4 is Games 1-3 either way.
+        """
+        info = self.data.match_info
+        candidates = [info.roundGroup]
+        if self.data.match_base is not None:
+            candidates.append(self.data.match_base.match_information.match_type)
+        for text in candidates:
+            found = re.search(r'(?:game|match)[\s_-]*(\d)', text or '', re.IGNORECASE)
+            if found:
+                return int(found.group(1))
+        if info.roundNumber in (2, 3, 4):
+            return info.roundNumber - 1
+        return None
+
+    def get_competition_display(self) -> str:
+        """Competition for thread titles, with the playoff round if there is one."""
+        playoff_round = self.get_playoff_round()
+        if playoff_round is None:
+            return self.competition
+        if playoff_round.name == 'MLS Cup':
+            return 'MLS Cup'
+        return f"{self.competition} \u2013 {playoff_round}"
+
+    def get_winner_id(self) -> Optional[str]:
+        """Team ID of the winner of a finished match (including on penalties)."""
+        if not self.is_final():
+            return None
+        info = self.data.match_base.match_information
+        home, away = info.home_team_goals, info.away_team_goals
+        if home == away:
+            home, away = info.home_team_penalty_goals, info.away_team_penalty_goals
+            if home is None or away is None:
+                return None
+        if home == away:
+            return None
+        return self.home_id if home > away else self.away_id
+
+    async def _load_series(self, client: Optional[MLSApiClient] = None) -> None:
+        """Work out who won the earlier games of a best-of-3 series.
+
+        Earlier games come from match_base.last_matches (head-to-head results).
+        They don't include shootouts, so drawn games are looked up individually.
+        """
+        if self.series_winners is not None or self.data.match_base is None:
+            return
+        playoff_round = self.get_playoff_round()
+        if playoff_round is None or not playoff_round.is_series or not playoff_round.game:
+            return
+        if playoff_round.game == 1:
+            self.series_winners = []
+            return
+
+        info = self.data.match_base.match_information
+        teams = {self.home_id, self.away_id}
+        earlier = [
+            m for m in self.data.match_base.last_matches
+            if m.competition_id == info.competition_id
+            and m.season_id == info.season_id
+            and {m.home_team_id, m.away_team_id} == teams
+            and m.match_id != self.sportec_id
+        ]
+        earlier.sort(key=lambda m: m.match_date or '')
+        earlier = earlier[-(playoff_round.game - 1):]
+        if len(earlier) != playoff_round.game - 1:
+            logger.warning(f"Found {len(earlier)} earlier series games for {self.sportec_id}, "
+                           f"expected {playoff_round.game - 1}")
+            return
+
+        try:
+            winners = []
+            for m in earlier:
+                if m.home_team_goals is None or m.away_team_goals is None:
+                    return
+                if m.home_team_goals != m.away_team_goals:
+                    winners.append(m.home_team_id if m.home_team_goals > m.away_team_goals else m.away_team_id)
+                    continue
+                if client is not None:
+                    base = await client.get_match(m.match_id)
+                else:
+                    async with MLSApiClient() as new_client:
+                        base = await new_client.get_match(m.match_id)
+                pens = base.match_information
+                if pens.home_team_penalty_goals is None or pens.away_team_penalty_goals is None:
+                    logger.warning(f"No shootout result for drawn series game {m.match_id}")
+                    return
+                winners.append(m.home_team_id if pens.home_team_penalty_goals > pens.away_team_penalty_goals else m.away_team_id)
+        except Exception as e:
+            logger.warning(f"Failed to load series results for {self.sportec_id}: {e}")
+            return
+        self.series_winners = winners
+
+    def get_series_score(self, include_current: bool = True) -> Optional[Dict[str, int]]:
+        """Series wins by team ID, or None if this isn't a series or results are unknown."""
+        if self.series_winners is None:
+            return None
+        winners = list(self.series_winners)
+        if include_current and self.get_winner_id():
+            winners.append(self.get_winner_id())
+        return {team_id: winners.count(team_id) for team_id in (self.home_id, self.away_id)}
+
+    def is_unneeded_series_game(self) -> bool:
+        """True for a Game 3 whose series was already won 2-0."""
+        score = self.get_series_score(include_current=False)
+        return bool(score) and max(score.values()) > ROUND_ONE_GAMES // 2
+
+    def get_series_status(self, include_current: bool = True) -> Optional[str]:
+        """
+        One-line playoff status, e.g. "Series tied 1-1",
+        "San Diego FC leads the series 1-0", "San Diego FC wins the series 2-1
+        and advances to the Conference Semifinals", or for a single-game round
+        once it's finished, "Vancouver Whitecaps FC advances to the Conference Final".
+        With include_current=False the result of this match is ignored (for
+        pre-match threads).
+        """
+        playoff_round = self.get_playoff_round()
+        if playoff_round is None:
+            return None
+        names = {self.home_id: self.home.fullName, self.away_id: self.away.fullName}
+
+        if not playoff_round.is_series:
+            winner = self.get_winner_id() if include_current else None
+            if winner is None:
+                return None
+            if playoff_round.next_round is None:
+                return f"{names[winner]} wins MLS Cup!"
+            return f"{names[winner]} advances to {playoff_round.next_round}"
+
+        score = self.get_series_score(include_current)
+        if not score or not any(score.values()):
+            return None
+        (leader, leader_wins), (_, trailer_wins) = sorted(score.items(), key=lambda kv: -kv[1])
+        if leader_wins == trailer_wins:
+            return f"Series tied {leader_wins}-{trailer_wins}"
+        if leader_wins > ROUND_ONE_GAMES // 2:
+            return (f"{names[leader]} wins the series {leader_wins}-{trailer_wins} "
+                    f"and advances to {playoff_round.next_round}")
+        return f"{names[leader]} leads the series {leader_wins}-{trailer_wins}"
 
     def get_comp(self) -> Competition:
         """

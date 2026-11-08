@@ -1,0 +1,644 @@
+{
+  "match_information": {
+    "competition_id": "MLS-COM-000002",
+    "competition_name": "Major League Soccer - Cup Playoffs",
+    "away_team_goals": 2,
+    "home_team_goals": 2,
+    "kickoff_time": "2025-11-23T02:42:28.715Z",
+    "match_day": 5,
+    "match_id": "MLS-MAT-00099K",
+    "match_title": "Vancouver Whitecaps FC:Los Angeles Football Club",
+    "planned_kickoff_time": "2025-11-23T02:30:00Z",
+    "result": "2:2",
+    "result_penalty": "4:3",
+    "away_team_penalty_goals": 3,
+    "home_team_penalty_goals": 4,
+    "season": 2025,
+    "season_id": "MLS-SEA-0001K9",
+    "competition_type": "Tournament",
+    "section_name": "Conference Semifinals",
+    "competition_label": "Audi 2025 MLS Cup Playoffs",
+    "series_type": "",
+    "total_time_first_half": 2850360,
+    "total_time_second_half": 3412840,
+    "playing_time_first_half": 1697880,
+    "playing_time_second_half": 1566880,
+    "total_time_first_half_extra": 1001680,
+    "total_time_second_half_extra": 1096400,
+    "playing_time_first_half_extra": 533800,
+    "playing_time_second_half_extra": 606280,
+    "total_time_penalty": 0,
+    "playing_time_penalty": 0,
+    "other_information": "",
+    "match_type": "Semifinals",
+    "match_scheduled": true,
+    "date_quality": "",
+    "end_date": "2025-11-24T00:00:00Z",
+    "sub_league": "",
+    "group": "",
+    "away_team_seed": 3,
+    "home_team_seed": 2,
+    "bracket_structure_id": "QF-02",
+    "competition_name_french": "MLS - Séries éliminatoires",
+    "match_status": "finalWhistle",
+    "minute_of_play": "120+4"
+  },
+  "environment": {
+    "air_humidity": 97,
+    "air_pressure": 1014,
+    "country": "USA",
+    "floodlight": "off",
+    "pitch_erosion": "none",
+    "pitch_x": 107,
+    "pitch_y": 69,
+    "precipitation": "none",
+    "roof": "open",
+    "sold_out": true,
+    "stadium_address": "Pacific Blvd 777, Vancouver, BC",
+    "stadium_capacity": 22120,
+    "stadium_id": "MLS-STA-00000C",
+    "stadium_name": "BC Place",
+    "temperature": 10,
+    "number_of_spectators": 53957,
+    "house_number": "777",
+    "street": "Pacific Blvd",
+    "city": "Vancouver, BC"
+  },
+  "home": {
+    "initial_line_up": "4-2-3-1",
+    "latest_line_up": "4-2-3-1",
+    "player_shirt_main_color": "#FFFFFF",
+    "player_shirt_number_color": "#002244",
+    "player_shirt_secondary_color": "#002244",
+    "player_shirt_type": "Home jersey",
+    "players": [
+      {
+        "first_name": "Ralph",
+        "last_name": "Priso",
+        "person_id": "MLS-OBJ-00005C",
+        "playing_position": "LCB",
+        "shirt_number": 6,
+        "short_name": "R. Priso",
+        "starting": "true",
+        "team_leader": false,
+        "is_on_field": "true"
+      },
+      {
+        "first_name": "Jayden",
+        "last_name": "Nelson",
+        "person_id": "MLS-OBJ-0000OB",
+        "playing_position": "LAM",
+        "shirt_number": 7,
+        "short_name": "J. Nelson",
+        "starting": "false",
+        "team_leader": false,
+        "is_on_field": "false"
+      },
+      {
+        "first_name": "Isaac",
+        "last_name": "Boehmer",
+        "person_id": "MLS-OBJ-0000OL",
+        "playing_position": "",
+        "shirt_number": 32,
+        "short_name": "I. Boehmer",
+        "starting": "false",
+        "team_leader": false,
+        "is_on_field": "false"
+      },
+      {
+        "first_name": "Tristan",
+        "last_name": "Blackmon",
+        "person_id": "MLS-OBJ-0000OP",
+        "playing_position": "RCB",
+        "shirt_number": 33,
+        "short_name": "T. Blackmon",
+        "starting": "true",
+        "team_leader": false,
+        "is_on_field": "true"
+      },
+      {
+        "first_name": "Sebastian",
+        "last_name": "Berhalter",
+        "person_id": "MLS-OBJ-0000OZ",
+        "playing_position": "RDM",
+        "shirt_number": 16,
+        "short_name": "S. Berhalter",
+        "starting": "true",
+        "team_leader": false,
+        "is_on_field": "true"
+      },
+      {
+        "first_name": "Andrés",
+        "last_name": "Cubas",
+        "person_id": "MLS-OBJ-0000P2",
+        "playing_position": "LDM",
+        "shirt_number": 20,
+        "short_name": "A. Cubas",
+        "starting": "true",
+        "team_leader": false,
+        "is_on_field": "true"
+      },
+      {
+        "first_name": "Ryan",
+        "last_name": "Gauld",
+        "person_id": "MLS-OBJ-0000P3",
+        "playing_position": "RAM",
+        "shirt_number": 25,
+        "short_name": "R. Gauld",
+        "starting": "false",
+        "team_leader": false,
+        "is_on_field": "false"
+      },
+      {
+        "first_name": "Brian",
+        "last_name": "White",
+        "person_id": "MLS-OBJ-0000PC",
+        "playing_position": "CF",
+        "shirt_number": 24,
+        "short_name": "B. White",
+        "starting": "true",
+        "team_leader": false,
+        "is_on_field": "true"
+      },
+      {
+        "first_name": "Ali",
+        "last_name": "Ahmed",
+        "person_id": "MLS-OBJ-0000S7",
+        "playing_position": "LAM",
+        "shirt_number": 22,
+        "short_name": "A. Ahmed",
+        "starting": "true",
+        "team_leader": false,
+        "is_on_field": "true"
+      },
+      {
+        "first_name": "Mathias ",
+        "last_name": "Laborda ",
+        "person_id": "MLS-OBJ-0001J5",
+        "playing_position": "LB",
+        "shirt_number": 2,
+        "short_name": "M. Laborda ",
+        "starting": "true",
+        "team_leader": false,
+        "is_on_field": "true"
+      },
+      {
+        "first_name": "Yohei",
+        "last_name": "Takaoka",
+        "person_id": "MLS-OBJ-0001KL",
+        "playing_position": "GK",
+        "shirt_number": 1,
+        "short_name": "Y. Takaoka",
+        "starting": "true",
+        "team_leader": false,
+        "is_on_field": "true"
+      },
+      {
+        "first_name": "Jeevan",
+        "last_name": "Badwal",
+        "person_id": "MLS-OBJ-0002FH",
+        "playing_position": "CAM",
+        "shirt_number": 59,
+        "short_name": "J. Badwal",
+        "starting": "false",
+        "team_leader": false,
+        "is_on_field": "false"
+      },
+      {
+        "first_name": "Tate",
+        "last_name": "Johnson",
+        "person_id": "MLS-OBJ-0002OI",
+        "playing_position": "",
+        "shirt_number": 28,
+        "short_name": "T. Johnson",
+        "starting": "false",
+        "team_leader": false,
+        "is_on_field": "false"
+      },
+      {
+        "first_name": "Belal",
+        "last_name": "Halbouni",
+        "person_id": "MLS-OBJ-000586",
+        "playing_position": "CF",
+        "shirt_number": 12,
+        "short_name": "B. Halbouni",
+        "starting": "false",
+        "team_leader": false,
+        "is_on_field": "false"
+      },
+      {
+        "first_name": "Rayan",
+        "last_name": "Elloumi",
+        "person_id": "MLS-OBJ-0006W8",
+        "playing_position": "CF",
+        "shirt_number": 75,
+        "short_name": "R. Elloumi",
+        "starting": "false",
+        "team_leader": false,
+        "is_on_field": "false"
+      },
+      {
+        "first_name": "Édier",
+        "last_name": "Ocampo",
+        "person_id": "MLS-OBJ-0007T0",
+        "playing_position": "RB",
+        "shirt_number": 18,
+        "short_name": "É. Ocampo",
+        "starting": "true",
+        "team_leader": false,
+        "is_on_field": "true"
+      },
+      {
+        "first_name": "Emmanuel",
+        "last_name": "Sabbi",
+        "person_id": "MLS-OBJ-00082C",
+        "playing_position": "RAM",
+        "shirt_number": 11,
+        "short_name": "E. Sabbi",
+        "starting": "true",
+        "team_leader": false,
+        "is_on_field": "true"
+      },
+      {
+        "first_name": "Thomas",
+        "last_name": "Müller",
+        "person_id": "MLS-OBJ-000ATL",
+        "playing_position": "CAM",
+        "shirt_number": 13,
+        "short_name": "T. Müller",
+        "starting": "true",
+        "team_leader": true,
+        "is_on_field": "true"
+      },
+      {
+        "first_name": "Kenji",
+        "last_name": "Cabrera",
+        "person_id": "MLS-OBJ-000BX5",
+        "playing_position": "",
+        "shirt_number": 17,
+        "short_name": "K. Cabrera",
+        "starting": "false",
+        "team_leader": false,
+        "is_on_field": "false"
+      },
+      {
+        "first_name": "Joedrick",
+        "last_name": "Pupe",
+        "person_id": "MLS-OBJ-000C6U",
+        "playing_position": "",
+        "shirt_number": 23,
+        "short_name": "J. Pupe",
+        "starting": "false",
+        "team_leader": false,
+        "is_on_field": "false"
+      }
+    ],
+    "role": "home",
+    "team_id": "MLS-CLU-00000C",
+    "team_name": "Vancouver Whitecaps FC",
+    "team_short_name": "Vancouver",
+    "team_three_letter_code": "VAN",
+    "trainer_staff": [
+      {
+        "first_name": "Michael",
+        "last_name": "D'Agostino",
+        "person_id": "MLS-OBJ-0001Y6",
+        "role": "assistantHeadcoach",
+        "short_name": "M. D'Agostino"
+      },
+      {
+        "first_name": "Brendan",
+        "last_name": "Shaw",
+        "person_id": "MLS-OBJ-00076D",
+        "role": "assistantHeadcoach",
+        "short_name": "B. Shaw"
+      },
+      {
+        "first_name": "Jan",
+        "last_name": "Michaelsen",
+        "person_id": "MLS-OBJ-00098Z",
+        "role": "assistantHeadcoach",
+        "short_name": "J. Michaelsen"
+      },
+      {
+        "first_name": "Jesper",
+        "last_name": "Sørensen",
+        "person_id": "MLS-OBJ-00082P",
+        "role": "headcoach",
+        "short_name": "J. Sørensen"
+      }
+    ],
+    "official_staff": null
+  },
+  "away": {
+    "initial_line_up": "4-3-3",
+    "latest_line_up": "4-3-3",
+    "player_shirt_main_color": "#212121",
+    "player_shirt_number_color": "#C39E6D",
+    "player_shirt_secondary_color": "#C39E6D",
+    "player_shirt_type": "Home jersey",
+    "players": [
+      {
+        "first_name": "Mathieu",
+        "last_name": "Choinière",
+        "person_id": "MLS-OBJ-00002L",
+        "playing_position": "",
+        "shirt_number": 66,
+        "short_name": "Mathieu Choiniere",
+        "starting": "false",
+        "team_leader": false,
+        "is_on_field": "false"
+      },
+      {
+        "first_name": "Nkosi",
+        "last_name": "Tafari",
+        "person_id": "MLS-OBJ-00008M",
+        "playing_position": "LCB",
+        "shirt_number": 91,
+        "short_name": "Nkosi Tafari",
+        "starting": "true",
+        "team_leader": false,
+        "is_on_field": "true"
+      },
+      {
+        "first_name": "Marco",
+        "last_name": "Delgado",
+        "person_id": "MLS-OBJ-0000BN",
+        "playing_position": "CM",
+        "shirt_number": 8,
+        "short_name": "Mark Delgado",
+        "starting": "true",
+        "team_leader": false,
+        "is_on_field": "true"
+      },
+      {
+        "first_name": "Eddie",
+        "last_name": "Segura",
+        "person_id": "MLS-OBJ-0000CA",
+        "playing_position": "HLM",
+        "shirt_number": 4,
+        "short_name": "Eddie Segura",
+        "starting": "true",
+        "team_leader": false,
+        "is_on_field": "true"
+      },
+      {
+        "first_name": "Ryan",
+        "last_name": "Hollingshead",
+        "person_id": "MLS-OBJ-0000CE",
+        "playing_position": "LB",
+        "shirt_number": 24,
+        "short_name": "Ryan Hollingshead",
+        "starting": "true",
+        "team_leader": false,
+        "is_on_field": "true"
+      },
+      {
+        "first_name": "Nathan",
+        "last_name": "Ordaz",
+        "person_id": "MLS-OBJ-0000CV",
+        "playing_position": "RW",
+        "shirt_number": 27,
+        "short_name": "Nathan Ordaz",
+        "starting": "true",
+        "team_leader": false,
+        "is_on_field": "true"
+      },
+      {
+        "first_name": "Denis",
+        "last_name": "Bouanga",
+        "person_id": "MLS-OBJ-0000CX",
+        "playing_position": "LW",
+        "shirt_number": 99,
+        "short_name": "Denis Bouanga",
+        "starting": "true",
+        "team_leader": false,
+        "is_on_field": "true"
+      },
+      {
+        "first_name": "Frankie",
+        "last_name": "Amaya",
+        "person_id": "MLS-OBJ-0000GW",
+        "playing_position": "HRM",
+        "shirt_number": 23,
+        "short_name": "Frankie Amaya",
+        "starting": "false",
+        "team_leader": false,
+        "is_on_field": "false"
+      },
+      {
+        "first_name": "Thomas",
+        "last_name": "Hasal",
+        "person_id": "MLS-OBJ-0000OJ",
+        "playing_position": "",
+        "shirt_number": 12,
+        "short_name": "Thomas Hasal",
+        "starting": "false",
+        "team_leader": false,
+        "is_on_field": "false"
+      },
+      {
+        "first_name": "Ryan",
+        "last_name": "Raposo",
+        "person_id": "MLS-OBJ-0000P4",
+        "playing_position": "RB",
+        "shirt_number": 21,
+        "short_name": "Ryan Raposo",
+        "starting": "false",
+        "team_leader": false,
+        "is_on_field": "false"
+      },
+      {
+        "first_name": "Sergi",
+        "last_name": "Palencia",
+        "person_id": "MLS-OBJ-0001JL",
+        "playing_position": "RB",
+        "shirt_number": 14,
+        "short_name": "Sergi Palencia",
+        "starting": "true",
+        "team_leader": false,
+        "is_on_field": "true"
+      },
+      {
+        "first_name": "Timothy",
+        "last_name": "Tillman",
+        "person_id": "MLS-OBJ-0001KA",
+        "playing_position": "HRM",
+        "shirt_number": 11,
+        "short_name": "Timothy Tillman",
+        "starting": "true",
+        "team_leader": false,
+        "is_on_field": "true"
+      },
+      {
+        "first_name": "David",
+        "last_name": "Martínez",
+        "person_id": "MLS-OBJ-00057Z",
+        "playing_position": "LCB",
+        "shirt_number": 30,
+        "short_name": "David Martinez",
+        "starting": "false",
+        "team_leader": false,
+        "is_on_field": "false"
+      },
+      {
+        "first_name": "Hugo",
+        "last_name": "Lloris",
+        "person_id": "MLS-OBJ-000581",
+        "playing_position": "GK",
+        "shirt_number": 1,
+        "short_name": "Hugo Lloris",
+        "starting": "true",
+        "team_leader": true,
+        "is_on_field": "true"
+      },
+      {
+        "first_name": "Kenny",
+        "last_name": "Nielsen",
+        "person_id": "MLS-OBJ-0007JX",
+        "playing_position": "",
+        "shirt_number": 45,
+        "short_name": "Kenneth Nielsen",
+        "starting": "false",
+        "team_leader": false,
+        "is_on_field": "false"
+      },
+      {
+        "first_name": "Artem",
+        "last_name": "Smolyakov",
+        "person_id": "MLS-OBJ-00081L",
+        "playing_position": "LB",
+        "shirt_number": 29,
+        "short_name": "Artem Smoliakov",
+        "starting": "false",
+        "team_leader": false,
+        "is_on_field": "false"
+      },
+      {
+        "first_name": "Son",
+        "last_name": "Heung-Min",
+        "person_id": "MLS-OBJ-000C5Q",
+        "playing_position": "CF",
+        "shirt_number": 7,
+        "short_name": "Son H.M.",
+        "starting": "true",
+        "team_leader": false,
+        "is_on_field": "true"
+      },
+      {
+        "first_name": "Ryan",
+        "last_name": "Porteous",
+        "person_id": "MLS-OBJ-000C5V",
+        "playing_position": "RCB",
+        "shirt_number": 5,
+        "short_name": "Ryan Porteous",
+        "starting": "true",
+        "team_leader": false,
+        "is_on_field": "true"
+      },
+      {
+        "first_name": "Andrew",
+        "last_name": "Moran",
+        "person_id": "MLS-OBJ-000C6Y",
+        "playing_position": "RW",
+        "shirt_number": 19,
+        "short_name": "Andrew Moran",
+        "starting": "false",
+        "team_leader": false,
+        "is_on_field": "false"
+      },
+      {
+        "first_name": "Alexandru",
+        "last_name": "Băluță",
+        "person_id": "MLS-OBJ-000C7B",
+        "playing_position": "",
+        "shirt_number": 22,
+        "short_name": "A. Băluță",
+        "starting": "false",
+        "team_leader": false,
+        "is_on_field": "false"
+      }
+    ],
+    "role": "away",
+    "team_id": "MLS-CLU-000001",
+    "team_name": "Los Angeles Football Club",
+    "team_short_name": "LAFC",
+    "team_three_letter_code": "LAFC",
+    "trainer_staff": [
+      {
+        "first_name": "Ante",
+        "last_name": "Razov",
+        "person_id": "MLS-OBJ-0000CZ",
+        "role": "assistantHeadcoach",
+        "short_name": "A. Razov"
+      },
+      {
+        "first_name": "Marc",
+        "last_name": "Dos Santos",
+        "person_id": "MLS-OBJ-0001QO",
+        "role": "assistantHeadcoach",
+        "short_name": "M. Dos Santos"
+      },
+      {
+        "first_name": "Enrique",
+        "last_name": "Durán",
+        "person_id": "MLS-OBJ-0002ES",
+        "role": "assistantHeadcoach",
+        "short_name": "E. Durán"
+      },
+      {
+        "first_name": "Steve",
+        "last_name": "Cherundolo",
+        "person_id": "MLS-OBJ-0000CY",
+        "role": "headcoach",
+        "short_name": "S. Cherundolo"
+      }
+    ],
+    "official_staff": null
+  },
+  "referees": [
+    {
+      "first_name": "Rubiel",
+      "last_name": "Vazquez",
+      "person_id": "MLS-OBJ-000225",
+      "role": "referee",
+      "short_name": "R. Vazquez"
+    },
+    {
+      "first_name": "Victor",
+      "last_name": "Rivas",
+      "person_id": "MLS-OBJ-00021G",
+      "role": "fourthOfficial",
+      "short_name": "V. Rivas"
+    },
+    {
+      "first_name": "Geoff",
+      "last_name": "Gamble",
+      "person_id": "MLS-OBJ-00020E",
+      "role": "videoReferee",
+      "short_name": "G. Gamble"
+    },
+    {
+      "first_name": "Corey",
+      "last_name": "Rockwell",
+      "person_id": "MLS-OBJ-0001HN",
+      "role": "firstAssistant",
+      "short_name": "C. Rockwell"
+    },
+    {
+      "first_name": "Andrew",
+      "last_name": "Bigelow",
+      "person_id": "MLS-OBJ-0001ZQ",
+      "role": "secondAssistant",
+      "short_name": "A. Bigelow"
+    },
+    {
+      "first_name": "Mike",
+      "last_name": "Kampmeinert",
+      "person_id": "MLS-OBJ-0001HD",
+      "role": "videoRefereeAssistant",
+      "short_name": "M. Kampmeinert"
+    }
+  ],
+  "last_matches": []
+}
