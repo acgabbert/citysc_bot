@@ -95,12 +95,71 @@ async def test_post_match_thread_shootout():
     assert "?'" not in body
 
 
-async def test_post_match_thread_playoff():
-    match = await make_match("playoff")
+async def test_regular_season_has_no_round_line():
+    match = await make_match("final")
+    _, body = md.post_match_thread(match)
+    assert body.split("\n")[1] == ""
+    _, body = md.pre_match_thread(await make_match("pre_match"))
+    assert "- **Competition:** Regular Season" in body
+    assert "**Round:**" not in body
+
+
+async def test_pre_match_thread_series():
+    match = await make_match("playoff_series_scheduled")
+    title, body = md.pre_match_thread(match)
+    assert title == (
+        "Matchday Thread: San Diego FC vs. Portland Timbers "
+        "(MLS Cup Playoffs \u2013 Round One, Game 3 of 3) [November 09, 2025]"
+    )
+    assert "- **Competition:** MLS Cup Playoffs\n- **Round:** Round One, Game 3 of 3 (Series tied 1-1)" in body
+
+
+async def test_match_thread_series_in_progress():
+    match = await make_match("playoff_series_scheduled")
+    title, body = md.match_thread(match)
+    assert title.startswith("Match Thread: San Diego FC vs. Portland Timbers (MLS Cup Playoffs \u2013 Round One, Game 3 of 3)")
+    assert body.startswith(
+        "## San Diego FC 0-0 Portland Timbers\n"
+        "**Round One, Game 3 of 3** | Series tied 1-1\n"
+    )
+
+
+async def test_post_match_thread_series_decided():
+    match = await make_match("playoff_series")
     title, body = md.post_match_thread(match)
-    assert "(MLS Cup Playoffs)" in title
+    assert title == (
+        "Post-Match Thread: San Diego FC vs. Portland Timbers "
+        "(MLS Cup Playoffs \u2013 Round One, Game 3 of 3) [November 09, 2025]"
+    )
+    assert body.startswith(
+        "## FT: San Diego FC 4-0 Portland Timbers\n"
+        "**Round One, Game 3 of 3** | San Diego FC wins the series 2-1 and advances to the Conference Semifinals\n"
+    )
     assert "### Match Stats:" in body
-    assert "| 58.47% | Ball Possession | 41.53% |" in body
+    assert "| SD | 4-0 | POR |" in body
+
+
+async def test_post_match_thread_knockout_shootout():
+    match = await make_match("playoff_knockout")
+    title, body = md.post_match_thread(match)
+    assert "(MLS Cup Playoffs \u2013 Conference Semifinal)" in title
+    assert body.startswith(
+        "## AET (Pens): Vancouver Whitecaps FC 2-2 (4-3 pens) Los Angeles Football Club\n"
+        "**Conference Semifinal** | Vancouver Whitecaps FC advances to the Conference Final\n"
+    )
+    # The pre-match thread never shows the result
+    _, pre_body = md.pre_match_thread(match)
+    assert "- **Round:** Conference Semifinal\n" in pre_body
+    assert "advances" not in pre_body
+
+
+async def test_2026_placeholders():
+    title, body = md.pre_match_thread(await make_match("playoff_placeholder"))
+    assert "(MLS Cup Playoffs \u2013 Round One, Game 1 of 3)" in title
+    assert "- **Round:** Round One, Game 1 of 3\n" in body
+    title, body = md.match_thread(await make_match("playoff_mls_cup_placeholder"))
+    assert title.startswith("Match Thread: TBC Home vs. TBC Away (MLS Cup) [")
+    assert "\n**MLS Cup**\n" in body
 
 
 async def test_post_match_thread_without_stats():

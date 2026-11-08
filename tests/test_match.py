@@ -2,7 +2,10 @@ from datetime import datetime, timezone
 
 import pytest
 
-from conftest import FINAL_ID, MATCH_STATES, FixtureClient, make_match
+from conftest import (
+    FINAL_ID, MATCH_STATES, SERIES_EARLIER_IDS, SERIES_GAME_3_ID, FixtureClient, _series_payloads,
+    load_fixture, make_match,
+)
 from match import Match
 
 HOME = "MLS-CLU-00001L"  # St. Louis CITY SC
@@ -27,6 +30,11 @@ async def test_every_accessor_survives_every_state(state):
     match.get_data_string()
     match.is_started()
     match.is_final()
+    match.get_playoff_round()
+    match.get_competition_display()
+    match.get_series_status()
+    match.get_series_status(include_current=False)
+    match.is_unneeded_series_game()
 
 
 async def test_pre_match():
@@ -153,3 +161,100 @@ async def test_corrupt_injuries_file(isolated_cwd):
     (isolated_cwd / "data" / "injuries.json").write_text("not json")
     match = await make_match("pre_match")
     assert match.injuries == {}
+
+
+SD = "MLS-CLU-000065"
+POR = "MLS-CLU-00000P"
+
+
+@pytest.mark.parametrize("round_name, round_number, round_group, expected", [
+    # 2025 slugs
+    ("match-round-wildcard", 1, "", "Wild Card"),
+    ("match-round-bo3", 3, "game_2", "Round One, Game 2 of 3"),
+    ("match-round-semis", 5, "", "Conference Semifinal"),
+    ("match-round-finals", 6, "", "Conference Final"),
+    # 2026 slugs: no roundGroup, so the game number comes from roundNumber
+    ("best_of_3", 2, "", "Round One, Game 1 of 3"),
+    ("best_of_3", 4, "", "Round One, Game 3 of 3"),
+    ("match-round-cup", 7, "", "MLS Cup"),
+    # Unknown slug: fall back to roundNumber
+    ("something-new", 5, "", "Conference Semifinal"),
+])
+async def test_playoff_round_names(round_name, round_number, round_group, expected):
+    payloads = MATCH_STATES["playoff_knockout"]()
+    payloads["match_base"] = None  # so match_type ("Semifinals") can't supply a game number
+    payloads["match_info"].update(roundName=round_name, roundNumber=round_number, roundGroup=round_group)
+    match = await Match.create(payloads["match_info"]["sportecId"], client=FixtureClient(payloads))
+    assert str(match.get_playoff_round()) == expected
+
+
+async def test_no_playoff_round_outside_playoffs():
+    """The U.S. Open Cup fixture has roundName 'Quarter-Finals' but isn't a playoff match."""
+    for state in ("final", "shootout", "pre_match"):
+        match = await make_match(state)
+        assert match.get_playoff_round() is None
+        assert match.get_series_status() is None
+        assert match.get_competition_display() == match.competition
+
+
+async def test_series_game_3():
+    match = await make_match("playoff_series")
+    # Game 1 SD 2-1, Game 2 POR on penalties
+    assert match.series_winners == [SD, POR]
+    assert match.get_series_score(include_current=False) == {SD: 1, POR: 1}
+    assert match.get_series_score() == {SD: 2, POR: 1}
+    assert match.get_winner_id() == SD
+    assert match.get_series_status(include_current=False) == "Series tied 1-1"
+    assert match.get_series_status() == (
+        "San Diego FC wins the series 2-1 and advances to the Conference Semifinals"
+    )
+    assert not match.is_unneeded_series_game()
+
+
+async def test_series_game_2_lead():
+    payloads = _series_payloads(SERIES_EARLIER_IDS[1], SERIES_EARLIER_IDS[:1])
+    # Only match_base is saved for Game 2; borrow Game 3's sport API data
+    info = load_fixture(SERIES_GAME_3_ID, "match_info")
+    info.update(sportecId=SERIES_EARLIER_IDS[1], roundNumber=3, roundGroup="game_2",
+                home=info["away"], away=info["home"])
+    payloads["match_info"] = info
+    base = payloads["match_base"]["match_information"]
+    base.update(match_status="secondHalf", minute_of_play="60")
+    match = await Match.create(SERIES_EARLIER_IDS[1], client=FixtureClient(payloads))
+    assert str(match.get_playoff_round()) == "Round One, Game 2 of 3"
+    assert match.series_winners == [SD]
+    assert match.get_series_status() == "San Diego FC leads the series 1-0"
+
+
+async def test_game_3_after_2_0_series_is_unneeded():
+    payloads = _series_payloads(SERIES_GAME_3_ID, SERIES_EARLIER_IDS)
+    # Make SD win Game 2 outright
+    game_2 = payloads["other_match_bases"][SERIES_EARLIER_IDS[1]]["match_information"]
+    game_2.update(home_team_penalty_goals=2, away_team_penalty_goals=4)
+    match = await Match.create(SERIES_GAME_3_ID, client=FixtureClient(payloads))
+    assert match.series_winners == [SD, SD]
+    assert match.is_unneeded_series_game()
+
+
+async def test_series_unknown_when_earlier_game_missing():
+    """If the drawn Game 2 can't be looked up, show no series status rather than a wrong one."""
+    payloads = _series_payloads(SERIES_GAME_3_ID, SERIES_EARLIER_IDS[:1])
+    match = await Match.create(SERIES_GAME_3_ID, client=FixtureClient(payloads))
+    assert match.series_winners is None
+    assert match.get_series_status() is None
+    assert str(match.get_playoff_round()) == "Round One, Game 3 of 3"
+    assert not match.is_unneeded_series_game()
+
+
+async def test_knockout_winner_on_penalties():
+    match = await make_match("playoff_knockout")
+    assert match.get_winner_id() == match.home_id
+    assert match.get_series_status() == "Vancouver Whitecaps FC advances to the Conference Final"
+    assert match.get_series_status(include_current=False) is None
+
+
+async def test_mls_cup_winner():
+    match = await make_match("playoff_knockout")
+    match.data.match_info.roundName = "match-round-cup"
+    assert match.get_competition_display() == "MLS Cup"
+    assert match.get_series_status() == "Vancouver Whitecaps FC wins MLS Cup!"

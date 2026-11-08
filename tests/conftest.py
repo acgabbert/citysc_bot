@@ -35,6 +35,15 @@ from api_client import ApiEndpoint, MLSApiClient, MLSApiClientError  # noqa: E40
 FINAL_ID = "MLS-MAT-0009MQ"     # STL 6-2 LA Galaxy, regular season, includes a penalty goal
 SHOOTOUT_ID = "MLS-MAT-000A8K"  # STL 2-2 HOU (4-2 pens), U.S. Open Cup, extra time + coach cards
 PRE_MATCH_ID = "MLS-MAT-0009N5" # STL vs VAN, 3 days out: only the sport API has data
+# 2025 MLS Cup Playoffs Round One, SD vs POR: Game 1 SD 2-1, Game 2 POR 2-2 (3-2 pens),
+# Game 3 SD 4-0. Games 1 and 2 only have match_base saved.
+SERIES_GAME_3_ID = "MLS-MAT-00098X"
+SERIES_EARLIER_IDS = ("MLS-MAT-00098S", "MLS-MAT-00098W")
+KNOCKOUT_ID = "MLS-MAT-00099K"  # 2025 Conference Semifinal, VAN 2-2 LAFC (4-3 pens) after extra time
+# 2026 playoff placeholders saved before the matchups were set: TBC teams, no
+# season optaId, and roundName "best_of_3" with a blank roundGroup.
+PLACEHOLDER_ROUND_ONE_ID = "MLS-MAT-000ACR"  # Round One, Game 1
+PLACEHOLDER_MLS_CUP_ID = "MLS-MAT-000ABL"
 
 PAYLOAD_NAMES = ("match_info", "match_base", "match_stats", "match_events")
 
@@ -91,18 +100,23 @@ def _empty_events() -> Dict[str, Optional[dict]]:
     return payloads
 
 
-def _playoff_payloads() -> Dict[str, Optional[dict]]:
-    """The final fixture relabelled as a playoff match (no real playoff fixture saved yet)."""
-    payloads = load_payloads(FINAL_ID)
-    payloads["match_info"]["competition"].update(
-        sportecId="MLS-COM-000002",
-        name="Major League Soccer - Cup Playoffs",
-        slug="mls-cup-playoffs",
-        shortName="MLS Cup Playoffs",
-        matchType="Playoff",
-    )
-    stats = payloads["match_stats"]["match_statistics_list"][0]["match_statistics"]
-    stats.update(competition="MLS Cup Playoffs", competition_id="MLS-COM-000002")
+def _series_payloads(match_id: str, earlier: tuple = ()) -> Dict[str, Optional[dict]]:
+    """A best-of-3 game plus match_base for the earlier games in its series."""
+    payloads = load_payloads(match_id)
+    payloads["other_match_bases"] = {mid: load_fixture(mid, "match_base") for mid in earlier}
+    return payloads
+
+
+def _series_game_payloads(status: str, home_goals: int, away_goals: int,
+                          minute: Optional[str]) -> Dict[str, Optional[dict]]:
+    """The Game 3 fixture rewound to an earlier point in the match."""
+    payloads = _series_payloads(SERIES_GAME_3_ID, SERIES_EARLIER_IDS)
+    info = payloads["match_base"]["match_information"]
+    info.update(match_status=status, home_team_goals=home_goals, away_team_goals=away_goals,
+                minute_of_play=minute)
+    if status == "scheduled":
+        payloads["match_events"]["events"] = []
+        payloads["match_stats"] = None
     return payloads
 
 
@@ -111,7 +125,11 @@ MATCH_STATES = {
     "scheduled": _scheduled_payloads,
     "live": _live_payloads,
     "final": lambda: load_payloads(FINAL_ID),
-    "playoff": _playoff_payloads,
+    "playoff_series": lambda: _series_payloads(SERIES_GAME_3_ID, SERIES_EARLIER_IDS),
+    "playoff_series_scheduled": lambda: _series_game_payloads("scheduled", 0, 0, None),
+    "playoff_knockout": lambda: load_payloads(KNOCKOUT_ID),
+    "playoff_placeholder": lambda: load_payloads(PLACEHOLDER_ROUND_ONE_ID),
+    "playoff_mls_cup_placeholder": lambda: load_payloads(PLACEHOLDER_MLS_CUP_ID),
     "shootout": lambda: load_payloads(SHOOTOUT_ID),
     "missing_base": lambda: _without(FINAL_ID, "match_base"),
     "missing_events": lambda: _without(FINAL_ID, "match_events"),
@@ -139,6 +157,9 @@ class FixtureClient(MLSApiClient):
             name = "match_info"
         elif endpoint == ApiEndpoint.MATCHES:
             name = "match_base"
+            other = self.payloads.get("other_match_bases", {})
+            if path in other:
+                return copy.deepcopy(other[path])
         else:
             raise AssertionError(f"Unexpected request in test: {endpoint} {path}")
 

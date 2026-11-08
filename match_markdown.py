@@ -49,16 +49,38 @@ def generate_match_header(match_obj: Match, pre: bool = False) -> str:
 
     if pre:
         header_parts.append(generate_match_info(match_obj))
+    else:
+        round_line = generate_round_line(match_obj)
+        if round_line:
+            header_parts.append(round_line)
 
     return "\n".join(header_parts)
+
+def generate_round_line(match_obj: Match) -> Optional[str]:
+    """Playoff round and series status under the match/post-match header,
+    e.g. "**Round One, Game 2 of 3** | San Diego FC leads the series 1-0"."""
+    playoff_round = match_obj.get_playoff_round()
+    if playoff_round is None:
+        return None
+    line = f"**{playoff_round}**"
+    status = match_obj.get_series_status()
+    if status:
+        line += f" | {status}"
+    return line
 
 def generate_match_info(match_obj: Match) -> Optional[str]:
     """Generate the "Match Info" section for pre-match threads."""
     date = match_obj.get_local_date_string()
     time_str = match_obj.get_local_time_string()
-    info_lines = [
-        "### Match Info",
-        f"- **Competition:** {match_obj.get_comp().name}",
+    info_lines = ["### Match Info", f"- **Competition:** {match_obj.competition}"]
+    playoff_round = match_obj.get_playoff_round()
+    if playoff_round is not None:
+        round_str = str(playoff_round)
+        status = match_obj.get_series_status(include_current=False)
+        if status:
+            round_str += f" ({status})"
+        info_lines.append(f"- **Round:** {round_str}")
+    info_lines += [
         f"- **Date:** {date}",
         f"- **Time:** {time_str}",
         f"- **Venue:** {match_obj.data.match_info.venue.name}",
@@ -249,7 +271,7 @@ def pre_match_thread(match_obj: Match):
     """
     home = match_obj.home.fullName
     away = match_obj.away.fullName
-    comp = match_obj.competition
+    comp = match_obj.get_competition_display()
     date = match_obj.get_local_date_string()
 
     title = f'Matchday Thread: {home} vs. {away} ({comp}) [{date}]'
@@ -274,7 +296,7 @@ def match_thread(match_obj: Match):
     """
     home = match_obj.home.fullName
     away = match_obj.away.fullName
-    comp = match_obj.competition
+    comp = match_obj.get_competition_display()
     date = match_obj.get_local_date_string()
 
     title = f'Match Thread: {home} vs. {away} ({comp}) [{date}]'
@@ -299,7 +321,7 @@ def post_match_thread(match_obj: Match):
     """
     home = match_obj.home.fullName
     away = match_obj.away.fullName
-    comp = match_obj.competition
+    comp = match_obj.get_competition_display()
     date = match_obj.get_local_date_string()
 
     title = f'Post-Match Thread: {home} vs. {away} ({comp}) [{date}]'

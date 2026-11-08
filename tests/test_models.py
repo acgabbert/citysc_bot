@@ -2,7 +2,10 @@ import copy
 
 import pytest
 
-from conftest import FINAL_ID, PRE_MATCH_ID, SHOOTOUT_ID, load_fixture, load_schedule_json
+from conftest import (
+    FINAL_ID, PLACEHOLDER_MLS_CUP_ID, PLACEHOLDER_ROUND_ONE_ID, PRE_MATCH_ID, SHOOTOUT_ID,
+    load_fixture, load_schedule_json,
+)
 from models.event import CoachCardEvent, MatchEventResponse
 from models.match import Match_Base, Match_Sport
 from models.match_stats import MatchStats
@@ -16,6 +19,16 @@ def test_match_info_parses(match_id):
     info = Match_Sport(**load_fixture(match_id, "match_info"))
     assert info.sportecId == match_id
     assert info.home.fullName == "St. Louis CITY SC"
+
+
+@pytest.mark.parametrize("match_id", [PLACEHOLDER_ROUND_ONE_ID, PLACEHOLDER_MLS_CUP_ID])
+def test_playoff_placeholder_match_info_parses(match_id):
+    """2026 playoff matches leave season.optaId/competitionOptaId out until the matchups are set."""
+    raw = load_fixture(match_id, "match_info")
+    assert "optaId" not in raw["season"]
+    info = Match_Sport(**raw)
+    assert info.season.optaId is None
+    assert info.competition.sportecId == "MLS-COM-000002"
 
 
 @pytest.mark.parametrize("match_id", MATCH_IDS)

@@ -44,6 +44,15 @@ def update_interval(match_obj: Match) -> float:
         return interval
     return late_interval if minute >= LATE_MATCH_MINUTE else interval
 
+async def _skip_unneeded_series_game(match_obj: Match) -> bool:
+    """A Game 3 can stay on the schedule after a 2-0 series; don't post threads for it."""
+    if not match_obj.is_unneeded_series_game():
+        return False
+    message = f'Skipping threads for {match_obj.sportec_id}: the series was already decided ({match_obj.get_series_status(include_current=False)})'
+    logger.info(message)
+    await msg.async_send(message)
+    return True
+
 async def pre_match_thread(sportec_id: str, sub: str = prod_sub):
     """Post a pre-match/matchday thread.
     
@@ -57,6 +66,8 @@ async def pre_match_thread(sportec_id: str, sub: str = prod_sub):
     sub = subreddit_name(sub)
     # get a match object
     match_obj = await Match.create(sportec_id)
+    if await _skip_unneeded_series_game(match_obj):
+        return None
 
     # get post details for the match object
     title, markdown = md.pre_match_thread(match_obj)
@@ -96,6 +107,8 @@ async def match_thread(
     async with MLSApiClient() as api_client:
         # get a match object
         match_obj = await Match.create(sportec_id, client=api_client)
+        if await _skip_unneeded_series_game(match_obj):
+            return
 
         # get reddit ids of any threads that may already exist for this match
         threads = file_manager.get_threads(sportec_id)

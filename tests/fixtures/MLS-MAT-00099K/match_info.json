@@ -1,0 +1,129 @@
+{
+  "optaId": 289022008,
+  "sportecId": "MLS-MAT-00099K",
+  "slug": "vanvslafc-11-22-2025",
+  "leagueMatchTitle": "Audi 2025 MLS Cup Playoffs",
+  "home": {
+    "optaId": 1708,
+    "sportecId": "MLS-CLU-00000C",
+    "fullName": "Vancouver Whitecaps FC",
+    "slug": "vancouver-whitecaps-fc",
+    "shortName": "Vancouver",
+    "abbreviation": "VAN",
+    "backgroundColor": "#002244",
+    "logoBWSlug": "webcomp_32b98038-9825-4376-9484-c46a4443394f",
+    "logoColorSlug": "webcomp_abf47a6c-f592-4d6d-a1e8-eb710343bd0a",
+    "logoColorUrl": "https://images.mlssoccer.com/image/upload/{formatInstructions}/v1748265547/assets/logos/mls-clubs/Club_Logo-Vancouver_ao9phl.png",
+    "crestColorSlug": "webcomp_47dd04e2-186b-4ef0-a2e7-b2e5050e265e",
+    "ecalWidgetId": "6a29f82924cb6600022f2292"
+  },
+  "away": {
+    "optaId": 11690,
+    "sportecId": "MLS-CLU-000001",
+    "fullName": "Los Angeles Football Club",
+    "slug": "los-angeles-football-club",
+    "shortName": "LAFC",
+    "abbreviation": "LAFC",
+    "backgroundColor": "#212121",
+    "logoBWSlug": "webcomp_1a2ee9e1-cac2-4f2b-b771-620376f002ee",
+    "logoColorSlug": "webcomp_3ca52419-147a-45cf-9c62-02f73306aa0e",
+    "logoColorUrl": "https://images.mlssoccer.com/image/upload/{formatInstructions}/v1747755309/assets/logos/mls-clubs/Club_Logo-LAFC_djrhru.png",
+    "crestColorSlug": "webcomp_d81f7b0b-8c59-49ce-8c59-ee5afe10aa03",
+    "ecalWidgetId": "6a29f79cca6887000286c90e"
+  },
+  "venue": {
+    "venueSportecId": "MLS-STA-00000C",
+    "backgroundImageSlug": "",
+    "name": "BC Place",
+    "city": "Vancouver, BC"
+  },
+  "season": {
+    "slug": "mls-cup-playoffs-2025",
+    "optaId": 2025,
+    "sportecId": "MLS-SEA-0001K9",
+    "competitionOptaId": "9800",
+    "name": "2025"
+  },
+  "competition": {
+    "optaId": 98,
+    "sportecId": "MLS-COM-000002",
+    "name": "Major League Soccer - Cup Playoffs",
+    "widgetId": "",
+    "slug": "mls-cup-playoffs",
+    "shortName": "MLS Cup Playoffs",
+    "matchType": "Cup",
+    "logoLight": {
+      "slug": ""
+    },
+    "logoDark": {
+      "slug": ""
+    },
+    "blockHeaderName": "",
+    "mgmId": "0",
+    "nextgenEcalMatchHubDisplay": false,
+    "playerHeadshotThumbnailField": ""
+  },
+  "broadcasters": [
+    {
+      "broadcasterTypeLabel": "",
+      "broadcasterName": "MLS Season Pass",
+      "broadcasterStreamingURL": "https://tv.apple.com/channel/tvs.sbd.7000",
+      "broadcasterType": "International Streaming"
+    },
+    {
+      "broadcasterTypeLabel": "",
+      "broadcasterName": "Apple TV",
+      "broadcasterStreamingURL": "https://tv.apple.com/channel/tvs.sbd.7000",
+      "broadcasterType": "International Streaming",
+      "broadcasterThumbnail": {
+        "slug": "appletv-icon-x4",
+        "selfUrl": "https://forge-dapi.mls-prd.deltatre.digital/v2/content/en-us/photos/appletv-icon-x4",
+        "title": "appletv-icon_x4",
+        "templateUrl": "https://images.mlssoccer.com/image/private/{formatInstructions}/mls/snffj82ru8ziiotyvipr",
+        "thumbnailUrl": "https://images.mlssoccer.com/image/private/w_250,h_250,c_thumb,g_auto,q_auto,f_jpg/mls/snffj82ru8ziiotyvipr",
+        "format": "png",
+        "overriddenFormats": {}
+      }
+    }
+  ],
+  "sponsorImage": {},
+  "leaguePromoImage": {},
+  "matchDate": "2025-11-23T02:30:00.0000000Z",
+  "thirdPartyTickets": {
+    "url": "https://www.ticketmaster.ca/event/11006336A9B36761?brand=mls&wt.mc_id=MLS_LEAGUE_VAN_SCHED_PG_SEMI_PLAYOFFS&utm_source=mlssoccer.com&utm_medium=client&utm_campaign=MLS_LEAGUE&utm_content=VAN_SCHED_PG_SEMI_PLAYOFFS",
+    "openInNewTab": true,
+    "isVisible": false
+  },
+  "tags": [
+    {
+      "type": "tag",
+      "_translationId": "83c30462-26e8-4cab-8b0b-5a1e878953a6",
+      "_entityId": "4b618269-e6a3-4939-b8b6-9c65f03837a0",
+      "selfUrl": "https://forge-dapi.mls-prd.deltatre.digital/v2/content/en-us/tags/sportcache-update",
+      "title": "SportCache Update",
+      "slug": "sportcache-update",
+      "neutralSlug": "sportcache-update",
+      "externalSourceReference": {},
+      "fields": {}
+    }
+  ],
+  "homeClubBroadcasters": [],
+  "awayClubBroadcasters": [],
+  "clubBroadcasters": [],
+  "isTimeTbd": false,
+  "mgmId": "",
+  "appleStreamURL": "https://tv.apple.com/us/sporting-event/vancouver-whitecaps-fc-vs-los-angeles-football-club/umc.cse.60is2cahge63oya1lhngyvp1s?ctx_brand=tvs.sbd.7000",
+  "appleSubscriptionTier": "",
+  "appleAdvertisementCategory": "",
+  "roundName": "match-round-semis",
+  "competitionPhase": "",
+  "homeClubRank": "2",
+  "awayClubRank": "3",
+  "roundNumber": 5,
+  "roundGroup": "",
+  "matchDay": "5",
+  "calendarUrl": "",
+  "hidePromotionalSponsorBrandedImageOnMatchHub": false,
+  "delayedMatch": false,
+  "priorityMatchSponsor": ""
+}

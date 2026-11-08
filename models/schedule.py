@@ -47,9 +47,10 @@ class Season(BaseModel):
     model_config = ConfigDict(extra="ignore", strict=False)
     
     slug: str
-    optaId: int
+    # Missing on 2026 playoff matches before the matchups are set
+    optaId: Optional[int] = None
     sportecId: str
-    competitionOptaId: str
+    competitionOptaId: Optional[str] = None
     name: str
 
 class Competition(BaseModel):
