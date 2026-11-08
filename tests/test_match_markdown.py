@@ -83,8 +83,12 @@ async def test_post_match_thread_final():
     assert title.startswith("Post-Match Thread: St. Louis CITY SC vs. LA Galaxy")
     assert "## FT: St. Louis CITY SC 6-2 LA Galaxy" in body
     assert "Rafael Navarro (45' pen, 53')" in body
-    assert "Chris Durkin (\U0001f504 Fallou Fall 72')" in body
+    # Cards next to the player, before any substitution
+    assert "Chris Durkin \U0001f7e839' (\U0001f504 Fallou Fall 72')" in body
     assert "*Subs:*" in body
+    assert "**Attendance:** 22,423" in body
+    # Not loaded in tests unless asked for
+    assert "Match highlights" not in body
     assert "### Match Stats:" in body
     assert "| STL | 6-2 | LA |" in body
     assert "| 58.47% | Ball Possession | 41.53% |" in body
@@ -126,7 +130,7 @@ async def test_match_thread_series_in_progress():
     title, body = md.match_thread(match)
     assert title.startswith("Match Thread: San Diego FC vs. Portland Timbers (MLS Cup Playoffs \u2013 Round One, Game 3 of 3)")
     assert body.startswith(
-        "## San Diego FC 0-0 Portland Timbers\n"
+        "## #1 San Diego FC 0-0 #8 Portland Timbers\n"
         "**Round One, Game 3 of 3** | Series tied 1-1\n"
     )
 
@@ -139,7 +143,7 @@ async def test_post_match_thread_series_decided():
         "(MLS Cup Playoffs \u2013 Round One, Game 3 of 3) [November 09, 2025]"
     )
     assert body.startswith(
-        "## FT: San Diego FC 4-0 Portland Timbers\n"
+        "## FT: #1 San Diego FC 4-0 #8 Portland Timbers\n"
         "**Round One, Game 3 of 3** | San Diego FC wins the series 2-1 and advances to the Conference Semifinals\n"
     )
     assert "### Match Stats:" in body
@@ -151,7 +155,7 @@ async def test_post_match_thread_knockout_shootout():
     title, body = md.post_match_thread(match)
     assert "(MLS Cup Playoffs \u2013 Conference Semifinal)" in title
     assert body.startswith(
-        "## AET (Pens): Vancouver Whitecaps FC 2-2 (4-3 pens) Los Angeles Football Club\n"
+        "## AET (Pens): #2 Vancouver Whitecaps FC 2-2 (4-3 pens) #3 Los Angeles Football Club\n"
         "**Conference Semifinal** | Vancouver Whitecaps FC advances to the Conference Final\n"
     )
     # The pre-match thread never shows the result
@@ -164,6 +168,9 @@ async def test_2026_placeholders():
     title, body = md.pre_match_thread(await make_match("playoff_placeholder"))
     assert "(MLS Cup Playoffs \u2013 Round One, Game 1 of 3)" in title
     assert "- **Round:** Round One, Game 1 of 3\n" in body
+    # Kickoff time not set yet; seeds not set yet
+    assert "- **Time:** TBD\n" in body
+    assert "## TBC Home vs. TBC Away\n" in body
     title, body = md.match_thread(await make_match("playoff_mls_cup_placeholder"))
     assert title.startswith("Match Thread: TBC Home vs. TBC Away (MLS Cup) [")
     assert "\n**MLS Cup**\n" in body
@@ -174,3 +181,93 @@ async def test_post_match_thread_without_stats():
     _, body = md.post_match_thread(match)
     assert "### Match Stats:" not in body
     assert "### Lineups" in body
+
+
+async def test_seeds_only_in_playoffs():
+    _, body = md.pre_match_thread(await make_match("playoff_series_scheduled"))
+    assert body.startswith("## #1 San Diego FC vs. #8 Portland Timbers\n")
+    # Regular season ranks are never shown
+    _, body = md.pre_match_thread(await make_match("pre_match"))
+    assert "#" not in body.split("\n")[0][3:]
+
+
+async def test_kickoff_time_shown_when_set():
+    _, body = md.pre_match_thread(await make_match("pre_match"))
+    assert "- **Time:** 07:30 PM CDT\n" in body
+
+
+async def test_shootout_table():
+    match = await make_match("shootout")
+    for generator in (md.match_thread, md.post_match_thread):
+        _, body = generator(match)
+        assert (
+            "### Penalty Shootout\n"
+            "| STL | | HOU |\n"
+            "| :---: | :---: | :---: |\n"
+            "| \u2705 Eduard L\u00f6wen | 1 | \u274c Guilherme Santos (saved) |\n"
+            "| \u2705 Marcel Hartel | 2 | \u2705 Ond\u0159ej Lingr |\n"
+            "| \u2705 Timo Baumgartl | 3 | \u2705 Duane Holmes |\n"
+            "| \u2705 Chris Durkin | 4 | \u274c H\u00e9ctor Herrera (saved) |\n"
+        ) in body
+    # Shootout kicks don't show up as goals
+    assert "Durkin (" not in body.split("### Penalty Shootout")[0]
+
+
+async def test_shootout_underway():
+    """Right after the shootout starts there are no kicks yet."""
+    match = await make_match("shootout")
+    match.data.match_events.events = [
+        e for e in match.data.match_events.events
+        if not (e.type == "penalties" and e.event.game_section == "penalty")
+    ]
+    assert "| | Shootout underway | |" in md.generate_shootout(match)
+
+
+async def test_no_shootout_table_without_shootout():
+    for state in ("final", "playoff_series", "live"):
+        _, body = md.match_thread(await make_match(state))
+        assert "### Penalty Shootout" not in body
+
+
+async def test_cards_in_lineups():
+    _, body = md.match_thread(await make_match("shootout"))
+    # A second yellow
+    assert "Lawrence Ennali \U0001f7e829' \U0001f7e8\U0001f7e5109'" in body
+    # A card for a player who came off the bench is on the bench line
+    assert "Mykhi Joyner \U0001f7e8117'" in body.split("*Subs:*")[1]
+    assert "Daniel Edelman \U0001f7e857' (\U0001f504 Eduard L\u00f6wen 63')" in body
+
+
+async def test_series_so_far():
+    match = await make_match("playoff_series_scheduled")
+    match.series_threads = {"MLS-MAT-00098S": "abc123"}
+    expected = (
+        "### Series So Far\n"
+        "- **Game 1:** San Diego FC 2-1 Portland Timbers ([thread](https://www.reddit.com/comments/abc123))\n"
+        "- **Game 2:** Portland Timbers 2-2 San Diego FC (3-2 pens)"
+    )
+    for generator in (md.pre_match_thread, md.match_thread, md.post_match_thread):
+        _, body = generator(match)
+        assert expected in body
+    # Not shown for Game 1 or outside a series
+    for state in ("playoff_placeholder", "playoff_knockout", "final"):
+        _, body = md.pre_match_thread(await make_match(state))
+        assert "### Series So Far" not in body
+
+
+async def test_post_match_info():
+    match = await make_match("final")
+    match.highlights_url = "https://www.mlssoccer.com/video/highlights-x"
+    _, body = md.post_match_thread(match)
+    assert body.split("\n\n")[1:3] == [
+        "\U0001f3a5 [Match highlights](https://www.mlssoccer.com/video/highlights-x)",
+        "**Attendance:** 22,423",
+    ]
+    # Attendance and highlights are post-match only
+    _, body = md.match_thread(match)
+    assert "Attendance" not in body and "highlights" not in body
+
+
+async def test_no_attendance_when_api_reports_zero():
+    _, body = md.post_match_thread(await make_match("shootout"))
+    assert "Attendance" not in body

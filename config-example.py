@@ -46,6 +46,9 @@ THREADS_MAX_AGE_DAYS = 30
 # Seconds between match thread updates, and from the 80th minute on
 MATCH_UPDATE_INTERVAL = 60
 MATCH_UPDATE_INTERVAL_LATE = 30
+# Minutes after the post-match thread goes up to re-edit it with final stats
+# and the highlights link (highlights usually appear 20-45 minutes after FT)
+POST_MATCH_UPDATE_MINUTES = [10, 30, 60]
 
 # More reddit config - widgets
 WIDGETS = {

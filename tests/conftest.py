@@ -2,8 +2,10 @@
 Shared test setup.
 
 Fixtures in tests/fixtures/<match_id>/ are real MLS API responses saved from
-the four endpoints `MLSApiClient.get_all_match_data()` calls. A missing file
-means that endpoint returned 404 (e.g. the stats API before a match).
+the four endpoints `MLSApiClient.get_all_match_data()` calls, plus videos.json
+(trimmed to the fields we read) from `get_videos()`. A missing file means that
+endpoint returned 404 (e.g. the stats API before a match), or for videos, that
+there are none yet.
 """
 import copy
 import importlib.util
@@ -63,7 +65,7 @@ def load_schedule_json() -> dict:
 
 
 def load_payloads(match_id: str) -> Dict[str, Optional[dict]]:
-    return {name: load_fixture(match_id, name) for name in PAYLOAD_NAMES}
+    return {name: load_fixture(match_id, name) for name in PAYLOAD_NAMES + ("videos",)}
 
 
 def _scheduled_payloads() -> Dict[str, Optional[dict]]:
@@ -161,6 +163,8 @@ class FixtureClient(MLSApiClient):
             name = "match_events"
         elif path.startswith("/statistics/clubs/matches/"):
             name = "match_stats"
+        elif endpoint == ApiEndpoint.VIDEO:
+            name = "videos"
         elif endpoint == ApiEndpoint.SPORT:
             name = "match_info"
         elif endpoint == ApiEndpoint.MATCHES:

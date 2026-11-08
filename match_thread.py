@@ -44,6 +44,16 @@ def update_interval(match_obj: Match) -> float:
         return interval
     return late_interval if minute >= LATE_MATCH_MINUTE else interval
 
+def _attach_series_threads(match_obj: Match) -> None:
+    """Point the "Series So Far" lines at our threads for earlier games:
+    the post-match thread if there is one, otherwise the match thread."""
+    series_threads = {}
+    for game in match_obj.series_games or []:
+        threads = file_manager.get_threads(game.match_id)
+        if threads and (threads.post or threads.match):
+            series_threads[game.match_id] = threads.post or threads.match
+    match_obj.series_threads = series_threads
+
 async def _skip_unneeded_series_game(match_obj: Match) -> bool:
     """A Game 3 can stay on the schedule after a 2-0 series; don't post threads for it."""
     if not match_obj.is_unneeded_series_game():
@@ -68,6 +78,7 @@ async def pre_match_thread(sportec_id: str, sub: str = prod_sub):
     match_obj = await Match.create(sportec_id)
     if await _skip_unneeded_series_game(match_obj):
         return None
+    _attach_series_threads(match_obj)
 
     # get post details for the match object
     title, markdown = md.pre_match_thread(match_obj)
@@ -109,6 +120,7 @@ async def match_thread(
         match_obj = await Match.create(sportec_id, client=api_client)
         if await _skip_unneeded_series_game(match_obj):
             return
+        _attach_series_threads(match_obj)
 
         # get reddit ids of any threads that may already exist for this match
         threads = file_manager.get_threads(sportec_id)
@@ -210,7 +222,7 @@ async def post_match_thread(
 
     sub = subreddit_name(sub)
 
-    match_obj = await Match.create(sportec_id)
+    match_obj = await _post_match_data(sportec_id)
     title, markdown = md.post_match_thread(match_obj)
     async with RedditClient() as reddit:
         post_thread_obj: asyncpraw.models.Submission = await reddit.submit_thread(
@@ -228,6 +240,32 @@ async def post_match_thread(
             threads = MatchThreads(slug=match_obj.slug)
         threads.post = post_thread_obj.id_from_url(post_thread_obj.shortlink)
         await file_manager.add_threads(sportec_id, threads)
+
+async def _post_match_data(sportec_id: str) -> Match:
+    """Match data for a post-match thread, including the highlights link if it's out."""
+    async with MLSApiClient() as api_client:
+        match_obj = await Match.create(sportec_id, client=api_client)
+        await match_obj.load_highlights(api_client)
+    _attach_series_threads(match_obj)
+    return match_obj
+
+
+async def update_post_match_thread(sportec_id: str) -> None:
+    """Re-edit the post-match thread with the latest data. Final stats keep
+    changing for a few minutes after the whistle, and highlights are usually
+    published 20-45 minutes after it; async_controller.py schedules this at
+    POST_MATCH_UPDATE_MINUTES."""
+    threads = file_manager.get_threads(sportec_id)
+    if threads is None or not threads.post:
+        logger.warning(f'No post-match thread to update for {sportec_id}')
+        return
+    match_obj = await _post_match_data(sportec_id)
+    _, markdown = md.post_match_thread(match_obj)
+    async with RedditClient() as reddit:
+        await reddit.edit_thread(threads.post, markdown)
+    highlights = 'with highlights' if match_obj.highlights_url else 'no highlights yet'
+    logger.info(f'Updated post-match thread {threads.post} for {sportec_id} ({highlights})')
+
 
 @util.time_dec(False)
 async def main():

@@ -28,6 +28,10 @@ async def test_every_accessor_survives_every_state(state):
     match.get_utc_datetime()
     match.get_local_date_string()
     match.get_local_time_string()
+    match.get_seeds()
+    match.get_attendance()
+    match.get_cards()
+    match.get_shootout()
     match.get_data_string()
     match.is_started()
     match.is_final()
@@ -268,3 +272,92 @@ async def test_mls_cup_winner():
     match.data.match_info.roundName = "match-round-cup"
     assert match.get_competition_display() == "MLS Cup"
     assert match.get_series_status() == "Vancouver Whitecaps FC wins MLS Cup!"
+
+
+async def test_series_games():
+    match = await make_match("playoff_series")
+    games = match.series_games
+    assert [(g.game, g.match_id, g.home_goals, g.away_goals, g.home_pens, g.away_pens, g.winner_id)
+            for g in games] == [
+        (1, "MLS-MAT-00098S", 2, 1, None, None, SD),
+        (2, "MLS-MAT-00098W", 2, 2, 3, 2, POR),
+    ]
+    assert games[1].home_id == POR
+    # Unknown before the stats API has the match, and outside a series
+    assert (await make_match("playoff_placeholder")).series_games is None
+    assert (await make_match("final")).series_games is None
+
+
+async def test_seeds():
+    assert (await make_match("playoff_series")).get_seeds() == {SD: 1, POR: 8}
+    # Placeholders have blank ranks; regular season matches never get seeds
+    assert (await make_match("playoff_placeholder")).get_seeds() is None
+    assert (await make_match("final")).get_seeds() is None
+
+
+async def test_kickoff_time_tbd():
+    match = await make_match("playoff_placeholder")
+    assert match.is_time_tbd()
+    assert match.get_local_time_string() == "TBD"
+    match = await make_match("pre_match")
+    assert not match.is_time_tbd()
+    assert match.get_local_time_string() == "07:30 PM CDT"
+
+
+async def test_attendance():
+    assert (await make_match("final")).get_attendance() == 22423
+    # The API reports 0 when it doesn't have a number
+    assert (await make_match("shootout")).get_attendance() is None
+    assert (await make_match("missing_base")).get_attendance() is None
+
+
+async def test_shootout_kicks():
+    match = await make_match("shootout")
+    shootout = match.get_shootout()
+    assert [(k.taker, k.scored, k.saved) for k in shootout[match.away_id]] == [
+        ("Guilherme Santos", False, True),
+        ("Ondřej Lingr", True, False),
+        ("Duane Holmes", True, False),
+        ("Héctor Herrera", False, True),
+    ]
+    assert sum(k.scored for k in shootout[match.home_id]) == 4
+    # Extra time, but no shootout
+    assert (await make_match("final")).get_shootout() is None
+
+
+async def test_cards():
+    match = await make_match("shootout")
+    cards = match.get_cards()
+    ennali = next(p.person_id for p in match.data.match_base.away.players if p.last_name == "Ennali")
+    assert cards[ennali] == ["\U0001f7e829'", "\U0001f7e8\U0001f7e5109'"]
+    # Coach cards aren't player cards
+    assert sum(len(c) for c in cards.values()) == 8
+    assert (await make_match("empty_events")).get_cards() == {}
+
+
+async def test_load_highlights():
+    payloads = MATCH_STATES["final"]()
+    match = await Match.create(FINAL_ID, client=FixtureClient(payloads))
+    url = await match.load_highlights(FixtureClient(payloads))
+    # The full highlights, not a goal clip or the match snapshot
+    assert url == match.highlights_url == (
+        "https://www.mlssoccer.com/video/highlights-st-louis-city-sc-vs-la-galaxy-october-11-2026"
+    )
+
+
+async def test_load_highlights_not_out_yet():
+    match = await make_match("shootout")  # no videos.json
+    assert await match.load_highlights(FixtureClient(MATCH_STATES["shootout"]())) is None
+    # Only goal clips so far
+    payloads = MATCH_STATES["final"]()
+    payloads["videos"]["items"] = [i for i in payloads["videos"]["items"] if i["slug"].startswith("goal-")]
+    assert await match.load_highlights(FixtureClient(payloads)) is None
+
+
+async def test_load_highlights_api_error():
+    class FailingClient(FixtureClient):
+        async def get_videos(self, match_id):
+            raise RuntimeError("boom")
+
+    match = await make_match("final")
+    assert await match.load_highlights(FailingClient({})) is None

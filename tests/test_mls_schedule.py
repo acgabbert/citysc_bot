@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 import pytest
 
 from conftest import load_schedule_json
-from mls_schedule import check_pre_match_sched
+from mls_schedule import check_pre_match_sched, kickoff_tbd
 from models.schedule import MatchSchedule
 
 
@@ -43,3 +43,13 @@ def test_kickoff_exactly_at_date_from_is_excluded(schedule):
 
 def test_empty_schedule():
     assert check_pre_match_sched([]) == (None, None)
+
+
+def test_kickoff_tbd(schedule):
+    assert kickoff_tbd(schedule, "MLS-MAT-0009N5") is None
+    assert kickoff_tbd(schedule, "MLS-MAT-UNKNOWN") is None
+    # Statuses the stats API uses for playoff matches before they're set
+    for status in ("Time tbd", "Day and time tbd"):
+        entry = next(m for m in schedule if m.match_id == "MLS-MAT-0009N5")
+        entry.match_date_time_status = status
+        assert kickoff_tbd(schedule, "MLS-MAT-0009N5") == status
