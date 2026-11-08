@@ -271,3 +271,47 @@ async def test_post_match_info():
 async def test_no_attendance_when_api_reports_zero():
     _, body = md.post_match_thread(await make_match("shootout"))
     assert "Attendance" not in body
+
+
+async def _with_next(state, next_id):
+    from conftest import load_fixture
+    from match import Match
+    from models.match import ComprehensiveMatchData, Match_Sport
+
+    match = await make_match(state)
+    next_match = Match(next_id)
+    next_match.data = ComprehensiveMatchData(match_info=Match_Sport(**load_fixture(next_id, "match_info")))
+    next_match._process_data(next_match.data)
+    match.next_match = next_match
+    return match
+
+
+async def test_next_match_line():
+    match = await _with_next("playoff_series", "MLS-MAT-00099J")
+    _, body = md.post_match_thread(match)
+    assert body.split("\n\n")[1] == (
+        "**Next:** San Diego FC vs. Minnesota United FC "
+        "(MLS Cup Playoffs – Conference Semifinal) – Monday, November 24, 9:00 PM CST"
+    )
+    match = await _with_next("playoff_series", "MLS-MAT-00098W")
+    assert md.generate_next_match(match).endswith(
+        "(MLS Cup Playoffs – Round One, Game 2 of 3) – Saturday, November 1, 8:30 PM CDT"
+    )
+    # Post-match only
+    _, body = md.match_thread(match)
+    assert "**Next:**" not in body
+
+
+async def test_next_match_line_tbd():
+    match = await _with_next("playoff_series", "MLS-MAT-00099J")
+    match.next_match_tbd = "Time tbd"
+    assert md.generate_next_match(match).endswith("– Monday, November 24, time TBD")
+    match.next_match_tbd = "Day and time tbd"
+    assert md.generate_next_match(match).endswith("– date and time TBD")
+    match = await _with_next("playoff_series", "MLS-MAT-000ACR")  # isTimeTbd placeholder
+    assert md.generate_next_match(match).endswith(", time TBD")
+
+
+async def test_no_next_match_line():
+    _, body = md.post_match_thread(await make_match("final"))
+    assert "**Next:**" not in body

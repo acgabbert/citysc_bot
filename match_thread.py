@@ -242,10 +242,12 @@ async def post_match_thread(
         await file_manager.add_threads(sportec_id, threads)
 
 async def _post_match_data(sportec_id: str) -> Match:
-    """Match data for a post-match thread, including the highlights link if it's out."""
+    """Match data for a post-match thread, including the next match and the
+    highlights link if it's out."""
     async with MLSApiClient() as api_client:
         match_obj = await Match.create(sportec_id, client=api_client)
         await match_obj.load_highlights(api_client)
+        await match_obj.load_next_match(api_client)
     _attach_series_threads(match_obj)
     return match_obj
 

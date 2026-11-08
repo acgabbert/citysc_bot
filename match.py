@@ -1,11 +1,12 @@
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import logging
 import os
 import re
 from typing import Dict, List, Optional
+import config
 from api_client import MLSApiClient
 from models.club import Club_Sport
 from models.constants import MlsCompetition
@@ -111,6 +112,8 @@ CARD_EMOJI = {
 # Full-match highlight videos have slugs like
 # "highlights-st-louis-city-sc-vs-la-galaxy-october-11-2026"
 HIGHLIGHTS_SLUG_PREFIX = 'highlights-'
+# How far ahead to look for the next match
+NEXT_MATCH_WINDOW = timedelta(days=60)
 VIDEO_URL = 'https://www.mlssoccer.com/video/{slug}'
 
 
@@ -141,6 +144,10 @@ class Match:
     series_threads: Optional[Dict[str, str]] = None
     # mlssoccer.com page for the full-match highlights, once it's published
     highlights_url: Optional[str] = None
+    # The followed team's next match (sport API data only), for post-match
+    # threads, and its schedule status if the date or time is TBD
+    next_match: Optional['Match'] = None
+    next_match_tbd: Optional[str] = None
     _sportec_to_opta: Dict[str, str] = None
 
     def __init__(self, sportec_id: str):
@@ -447,6 +454,65 @@ class Match:
                 self.highlights_url = VIDEO_URL.format(slug=slug)
                 break
         return self.highlights_url
+
+    async def load_next_match(self, client: Optional[MLSApiClient] = None) -> Optional['Match']:
+        """Look up the next match on the schedule and set next_match."""
+        try:
+            if client is not None:
+                await self._load_next_match(client)
+            else:
+                async with MLSApiClient() as new_client:
+                    await self._load_next_match(new_client)
+        except Exception as e:
+            logger.warning(f"Failed to look up the next match after {self.sportec_id}: {e}")
+        return self.next_match
+
+    def _next_match_team_ids(self) -> List[str]:
+        """Teams whose next match to look for: the ones we follow, or both if neither is."""
+        followed = {str(team) for team in getattr(config, 'TEAMS', [])}
+        teams = [club.sportecId for club in (self.home, self.away) if str(club.optaId) in followed]
+        return teams or [self.home_id, self.away_id]
+
+    async def _load_next_match(self, client: MLSApiClient) -> None:
+        info = self.data.match_info
+        kickoff = info.matchDate
+        if kickoff is None:
+            return
+        # A Game 3 can stay on the schedule after a 2-0 series
+        score = self.get_series_score()
+        series_over = bool(score) and max(score.values()) > ROUND_ONE_GAMES // 2
+        this_pairing = {self.home_id, self.away_id}
+
+        entry = None
+        for team_id in self._next_match_team_ids():
+            schedule = await client.get_schedule(
+                info.season.sportecId,
+                match_date_gte=kickoff.date().isoformat(),
+                # The API rejects a start date without an end date
+                match_date_lte=(kickoff + NEXT_MATCH_WINDOW).date().isoformat(),
+                team_id=team_id,
+            )
+            candidates = [
+                m for m in schedule
+                if m.match_id != self.sportec_id
+                and m.planned_kickoff_time is not None
+                and m.planned_kickoff_time > kickoff
+                # The league schedules "MLS Test" matches for its own testing
+                and 'test' not in m.competition_name.lower()
+                and not (series_over and {m.home_team_id, m.away_team_id} == this_pairing)
+            ]
+            if candidates:
+                entry = min(candidates, key=lambda m: m.planned_kickoff_time)
+                break
+        if entry is None:
+            return
+
+        next_match = Match(entry.match_id)
+        next_match.data = ComprehensiveMatchData(match_info=await client.get_match_by_id(entry.match_id))
+        next_match._process_data(next_match.data)
+        self.next_match = next_match
+        status = entry.match_date_time_status or ''
+        self.next_match_tbd = status if 'tbd' in status.lower() else None
 
     def get_winner_id(self) -> Optional[str]:
         """Team ID of the winner of a finished match (including on penalties)."""

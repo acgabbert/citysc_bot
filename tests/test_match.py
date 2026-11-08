@@ -361,3 +361,87 @@ async def test_load_highlights_api_error():
 
     match = await make_match("final")
     assert await match.load_highlights(FailingClient({})) is None
+
+
+def _with_next_matches(payloads):
+    from conftest import load_sd_schedule
+
+    payloads["schedule"] = load_sd_schedule()
+    payloads["other_match_infos"] = {
+        mid: load_fixture(mid, "match_info") for mid in ("MLS-MAT-00098W", "MLS-MAT-00099J")
+    }
+    return payloads
+
+
+def _series_game_payloads(game: int, home_goals: int, away_goals: int):
+    """Game 1 or 2 of the SD-POR series, finished, with Game 3's sport API data borrowed."""
+    match_id = SERIES_EARLIER_IDS[game - 1]
+    payloads = _with_next_matches(_series_payloads(match_id, SERIES_EARLIER_IDS[:game - 1]))
+    info = load_fixture(SERIES_GAME_3_ID, "match_info")
+    kickoff = {1: "2025-10-27T01:30:00Z", 2: "2025-11-02T01:30:00Z"}[game]
+    info.update(sportecId=match_id, roundNumber=game + 1, roundGroup=f"game_{game}", matchDate=kickoff)
+    if game == 2:
+        info.update(home=info["away"], away=info["home"])
+    payloads["match_info"] = info
+    payloads["match_base"]["match_information"].update(
+        match_status="finalWhistle", home_team_goals=home_goals, away_team_goals=away_goals,
+        home_team_penalty_goals=None, away_team_penalty_goals=None,
+    )
+    return payloads
+
+
+async def test_next_match_is_next_series_game():
+    payloads = _series_game_payloads(1, 2, 1)
+    match = await Match.create(SERIES_EARLIER_IDS[0], client=FixtureClient(payloads))
+    next_match = await match.load_next_match(FixtureClient(payloads))
+    assert next_match.sportec_id == "MLS-MAT-00098W"
+    assert str(next_match.get_playoff_round()) == "Round One, Game 2 of 3"
+    assert match.next_match_tbd is None
+
+
+async def test_next_match_skips_unneeded_game_3():
+    # SD (away) wins Game 2 to go up 2-0; Game 3 is still on the schedule
+    payloads = _series_game_payloads(2, 0, 1)
+    match = await Match.create(SERIES_EARLIER_IDS[1], client=FixtureClient(payloads))
+    assert match.get_series_status() == (
+        "San Diego FC wins the series 2-0 and advances to the Conference Semifinals"
+    )
+    next_match = await match.load_next_match(FixtureClient(payloads))
+    assert next_match.sportec_id == "MLS-MAT-00099J"
+
+
+async def test_next_match_after_series():
+    payloads = _with_next_matches(MATCH_STATES["playoff_series"]())
+    match = await Match.create(SERIES_GAME_3_ID, client=FixtureClient(payloads))
+    next_match = await match.load_next_match(FixtureClient(payloads))
+    assert next_match.sportec_id == "MLS-MAT-00099J"
+    assert next_match.get_competition_display() == "MLS Cup Playoffs – Conference Semifinal"
+
+
+async def test_no_next_match():
+    # Nothing on the schedule (e.g. after elimination), or the lookup fails
+    match = await make_match("final")
+    assert await match.load_next_match(FixtureClient(MATCH_STATES["final"]())) is None
+
+    class FailingClient(FixtureClient):
+        async def get_schedule(self, season, **kwargs):
+            raise RuntimeError("boom")
+
+    assert await match.load_next_match(FailingClient({})) is None
+
+
+async def test_next_match_schedule_query():
+    """The schedule API returns 400 for match_date[gte] without match_date[lte]."""
+    calls = []
+
+    class RecordingClient(FixtureClient):
+        async def get_schedule(self, season, **kwargs):
+            calls.append((season, kwargs))
+            return []
+
+    match = await make_match("playoff_series")
+    await match.load_next_match(RecordingClient({}))
+    season, kwargs = calls[0]
+    assert season == "MLS-SEA-0001K9"
+    assert kwargs["match_date_gte"] == "2025-11-10"
+    assert kwargs["match_date_lte"] == "2026-01-09"

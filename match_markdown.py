@@ -159,9 +159,33 @@ def generate_series_games(match_obj: Match) -> Optional[str]:
         lines.append(line)
     return "\n".join(lines)
 
+def generate_next_match(match_obj: Match) -> Optional[str]:
+    """The next match line for post-match threads, e.g. "**Next:** Portland
+    Timbers vs. San Diego FC (MLS Cup Playoffs – Round One, Game 2 of 3) –
+    Saturday, November 1, 8:30 PM CDT".
+    """
+    next_match = match_obj.next_match
+    if next_match is None:
+        return None
+    tbd = (match_obj.next_match_tbd or '').lower()
+    kickoff = next_match.get_local_datetime()
+    if 'day' in tbd or kickoff is None:
+        when = "date and time TBD"
+    else:
+        when = f"{kickoff:%A, %B} {kickoff.day}"
+        if tbd or next_match.is_time_tbd():
+            when += ", time TBD"
+        else:
+            when += f", {next_match.get_local_time_string().lstrip('0')}"
+    return (f"**Next:** {next_match.home.fullName} vs. {next_match.away.fullName} "
+            f"({next_match.get_competition_display()}) \u2013 {when}")
+
 def generate_post_match_info(match_obj: Match) -> Optional[str]:
-    """Highlights link and attendance for post-match threads."""
+    """Next match, highlights link and attendance for post-match threads."""
     lines = []
+    next_line = generate_next_match(match_obj)
+    if next_line:
+        lines.append(next_line)
     if match_obj.highlights_url:
         lines.append(f"\U0001f3a5 [Match highlights]({match_obj.highlights_url})")
     attendance = match_obj.get_attendance()

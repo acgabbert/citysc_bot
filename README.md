@@ -4,7 +4,7 @@ Reddit match-thread bot for [r/stlouiscitysc](https://www.reddit.com/r/stlouisci
 
 - posts a pre-match thread the morning of the match,
 - posts a match thread 30 minutes before kickoff and keeps it updated with the score, scorers, cards, lineups, stats and any penalty shootout,
-- posts a post-match thread after the final whistle, then edits it a few times over the next hour to pick up final stats, attendance and the highlights video.
+- posts a post-match thread after the final whistle with the team's next match, then edits it a few times over the next hour to pick up final stats, attendance and the highlights video.
 
 Playoff threads also show the round, the seeds, the series score and links to the threads for earlier games in a series. Scores stay out of thread titles so they don't spoil the result.
 
